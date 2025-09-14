@@ -80,7 +80,8 @@ export default function App() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const result = await submitApplication(formData);
+      const result = await evaluateScholarshipsLocally(formData);
+
       setResult(result);
       setCurrentStep(5); // Results page
       toast.success("Application submitted successfully!");
