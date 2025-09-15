@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { evaluateScholarshipsLocally } from "@/lib/submit";
+import { t } from "@/lib/i18n";
 
 type IdString = string;
 
@@ -112,16 +113,16 @@ export function LegacyWizard() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Scholarship Eligibility Checker</h1>
-          <p className="text-lg text-gray-600">Check your eligibility for AAS and Chevening scholarships</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('ui.title', 'Scholarship Eligibility Checker')}</h1>
+          <p className="text-lg text-gray-600">{t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           {currentStep <= totalSteps && (
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-sm font-medium text-gray-500">Step {currentStep} of {totalSteps}</span>
-                <span className="text-sm font-medium text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+                <span className="text-sm font-medium text-gray-500">{t('ui.step.progress', `Step ${currentStep} of ${totalSteps}`)}</span>
+                <span className="text-sm font-medium text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(currentStep / totalSteps) * 100}%` }} />
@@ -158,23 +159,23 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
   const canProceed = formData.fullName && formData.email && formData.dateOfBirth && formData.gender && formData.countryOfCitizenship && formData.currentCity;
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.personal.title', 'Personal Information')}</h2>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-        <input type="text" value={formData.fullName} onChange={(e) => updateFormData("fullName", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your full name" />
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.fullName.label', 'Full Name *')}</label>
+        <input type="text" value={formData.fullName} onChange={(e) => updateFormData("fullName", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.fullName.placeholder', 'Enter your full name')} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-        <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your email address" />
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.email.label', 'Email Address *')}</label>
+        <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.email.placeholder', 'Enter your email address')} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.dob.label', 'Date of Birth *')}</label>
         <input type="date" value={formData.dateOfBirth} onChange={(e) => updateFormData("dateOfBirth", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.gender.label', 'Gender *')}</label>
         <div className="space-y-2">
-          {["Male", "Female", "Other", "Prefer not to say"].map((option) => (
+          {[t('ui.gender.male', 'Male'), t('ui.gender.female', 'Female'), t('ui.gender.other', 'Other'), t('ui.gender.na', 'Prefer not to say')].map((option) => (
             <label key={option} className="flex items-center">
               <input type="radio" name="gender" value={option} checked={formData.gender === option} onChange={(e) => updateFormData("gender", e.target.value)} className="mr-3 text-blue-600" />
               {option}
@@ -183,19 +184,19 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Country of Citizenship *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.citizenship.label', 'Country of Citizenship *')}</label>
         <select value={formData.countryOfCitizenship} onChange={(e) => updateFormData("countryOfCitizenship", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">Select your country</option>
-          <option value="Vietnam">Vietnam</option>
-          <option value="Other">Other</option>
+          <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
+          <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
+          <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Current City of Residence *</label>
-        <input type="text" value={formData.currentCity} onChange={(e) => updateFormData("currentCity", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your current city" />
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.city.label', 'Current City of Residence *')}</label>
+        <input type="text" value={formData.currentCity} onChange={(e) => updateFormData("currentCity", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.city.placeholder', 'Enter your current city')} />
       </div>
       <div className="flex justify-end">
-        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('ui.next', 'Next')}</button>
       </div>
     </div>
   );
@@ -234,8 +235,8 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
         <input type="text" value={formData.employerName} onChange={(e) => updateFormData("employerName", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your employer name" />
       </div>
       <div className="flex justify-between">
-        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Previous</button>
-        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">{t('ui.prev', 'Previous')}</button>
+        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('ui.next', 'Next')}</button>
       </div>
     </div>
   );
@@ -250,46 +251,46 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
   const canProceed = formData.employmentSector && formData.isEmployerVietnameseOwned !== undefined && formData.hasWorkedInMilitaryPolice !== undefined;
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Employment Details</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.employment.title', 'Employment Details')}</h2>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Is your employer Vietnamese-owned? *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.employment.vnOwned.label', 'Is your employer Vietnamese-owned? *')}</label>
         <div className="space-y-2">
           <label className="flex items-center">
             <input type="radio" name="isEmployerVietnameseOwned" value="true" checked={formData.isEmployerVietnameseOwned === true} onChange={() => updateFormData("isEmployerVietnameseOwned", true)} className="mr-3 text-blue-600" />
-            Yes
+            {t('ui.common.yes', 'Yes')}
           </label>
           <label className="flex items-center">
             <input type="radio" name="isEmployerVietnameseOwned" value="false" checked={formData.isEmployerVietnameseOwned === false} onChange={() => updateFormData("isEmployerVietnameseOwned", false)} className="mr-3 text-blue-600" />
-            No
+            {t('ui.common.no', 'No')}
           </label>
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Employment Sector *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.employment.sector.label', 'Employment Sector *')}</label>
         <select value={formData.employmentSector} onChange={(e) => updateFormData("employmentSector", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">Select sector</option>
-          <option value="Government">Government</option>
-          <option value="Private">Private</option>
-          <option value="NGO">NGO</option>
-          <option value="Military/Security">Military/Security</option>
+          <option value="">{t('ui.employment.sector.select', 'Select sector')}</option>
+          <option value="Government">{t('ui.employment.sector.government', 'Government')}</option>
+          <option value="Private">{t('ui.employment.sector.private', 'Private')}</option>
+          <option value="NGO">{t('ui.employment.sector.ngo', 'NGO')}</option>
+          <option value="Military/Security">{t('ui.employment.sector.military', 'Military/Security')}</option>
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Have you ever worked for or served in the military or police? *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.employment.military.label', 'Have you ever worked for or served in the military or police? *')}</label>
         <div className="space-y-2">
           <label className="flex items-center">
             <input type="radio" name="hasWorkedInMilitaryPolice" value="true" checked={formData.hasWorkedInMilitaryPolice === true} onChange={() => updateFormData("hasWorkedInMilitaryPolice", true)} className="mr-3 text-blue-600" />
-            Yes
+            {t('ui.common.yes', 'Yes')}
           </label>
           <label className="flex items-center">
             <input type="radio" name="hasWorkedInMilitaryPolice" value="false" checked={formData.hasWorkedInMilitaryPolice === false} onChange={() => updateFormData("hasWorkedInMilitaryPolice", false)} className="mr-3 text-blue-600" />
-            No
+            {t('ui.common.no', 'No')}
           </label>
         </div>
       </div>
       <div className="flex justify-between">
-        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Previous</button>
-        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">{t('ui.prev', 'Previous')}</button>
+        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('ui.next', 'Next')}</button>
       </div>
     </div>
   );
@@ -305,52 +306,52 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
   const canProceed = formData.planToReturn !== undefined && formData.hasStudiedAbroadOnGovScholarship !== undefined && formData.englishTestType && (formData.englishTestType === "None" || formData.englishScore !== undefined);
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Final Questions</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.final.title', 'Final Questions')}</h2>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Do you plan to return to your country after finishing the scholarship? *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.return.label', 'Do you plan to return to your country after finishing the scholarship? *')}</label>
         <div className="space-y-2">
           <label className="flex items-center">
             <input type="radio" name="planToReturn" value="true" checked={formData.planToReturn === true} onChange={() => updateFormData("planToReturn", true)} className="mr-3 text-blue-600" />
-            Yes
+            {t('ui.common.yes', 'Yes')}
           </label>
           <label className="flex items-center">
             <input type="radio" name="planToReturn" value="false" checked={formData.planToReturn === false} onChange={() => updateFormData("planToReturn", false)} className="mr-3 text-blue-600" />
-            No
+            {t('ui.common.no', 'No')}
           </label>
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Have you ever studied abroad on a government-funded scholarship? *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.govscholar.label', 'Have you ever studied abroad on a government-funded scholarship? *')}</label>
         <div className="space-y-2">
           <label className="flex items-center">
             <input type="radio" name="hasStudiedAbroadOnGovScholarship" value="true" checked={formData.hasStudiedAbroadOnGovScholarship === true} onChange={() => updateFormData("hasStudiedAbroadOnGovScholarship", true)} className="mr-3 text-blue-600" />
-            Yes
+            {t('ui.common.yes', 'Yes')}
           </label>
           <label className="flex items-center">
             <input type="radio" name="hasStudiedAbroadOnGovScholarship" value="false" checked={formData.hasStudiedAbroadOnGovScholarship === false} onChange={() => updateFormData("hasStudiedAbroadOnGovScholarship", false)} className="mr-3 text-blue-600" />
-            No
+            {t('ui.common.no', 'No')}
           </label>
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">English Proficiency Test Type *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.testType.label', 'English Proficiency Test Type *')}</label>
         <select value={formData.englishTestType} onChange={(e) => updateFormData("englishTestType", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">Select test type</option>
-          <option value="IELTS">IELTS</option>
-          <option value="TOEFL">TOEFL</option>
-          <option value="PTE">PTE</option>
-          <option value="None">None</option>
+          <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
+          <option value="IELTS">{t('ui.final.testType.ielts', 'IELTS')}</option>
+          <option value="TOEFL">{t('ui.final.testType.toefl', 'TOEFL')}</option>
+          <option value="PTE">{t('ui.final.testType.pte', 'PTE')}</option>
+          <option value="None">{t('ui.final.testType.none', 'None')}</option>
         </select>
       </div>
       {formData.englishTestType && formData.englishTestType !== "None" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Overall Score *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.overall.label', 'Overall Score *')}</label>
           <input type="number" step="0.1" value={formData.englishScore || ""} onChange={(e) => updateFormData("englishScore", parseFloat(e.target.value) || undefined)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your overall score" />
         </div>
       )}
       <div className="flex justify-between">
-        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Previous</button>
-        <button onClick={onSubmit} disabled={!canProceed || isSubmitting} className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? "Submitting..." : "Submit Application"}</button>
+        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">{t('ui.prev', 'Previous')}</button>
+        <button onClick={onSubmit} disabled={!canProceed || isSubmitting} className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}</button>
       </div>
     </div>
   );
@@ -406,4 +407,3 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
     </div>
   );
 }
-
