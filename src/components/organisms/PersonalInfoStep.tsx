@@ -1,30 +1,17 @@
-import React from 'react';
-import { SectionTitle } from '../atoms/SectionTitle';
 import { FormInput } from '../atoms/FormInput';
-import { StepNavigation } from '../molecules/StepNavigation';
+import { SectionTitle } from '../atoms/SectionTitle';
 
 interface Props {
   fullName: string;
-  age: string;
   setFullName: (val: string) => void;
+  age: string;
   setAge: (val: string) => void;
-  onNext: () => void;
 }
 
-export const PersonalInfoStep: React.FC<Props> = ({
-  fullName,
-  age,
-  setFullName,
-  setAge,
-  onNext,
-}) => {
-  return (
-    <div>
-      <SectionTitle>Personal Information</SectionTitle>
-      <FormInput label="Full Name" value={fullName} onChange={setFullName} />
-      <FormInput label="Age" type="number" value={age} onChange={setAge} />
-      <StepNavigation onBack={() => {}} showBack={false} onNext={onNext} />
-    </div>
-  );
-};
-
+export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, setAge }) => (
+  <div>
+    <SectionTitle>Thông tin cá nhân</SectionTitle>
+    <FormInput label="Họ và tên" value={fullName} onChange={setFullName} />
+    <FormInput label="Tuổi" value={age} onChange={setAge} type="number" />
+  </div>
+);

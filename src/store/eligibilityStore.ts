@@ -1,50 +1,44 @@
-import { create } from "zustand";
+// src/store/eligibilityStore.ts
+import { create } from 'zustand';
+import { z } from 'zod';
+import { schema } from '@/ts/schema';
 
-type FormData = {
-  fullName: string;
-  age: number | null;
-  jobTitle: string;
-  employer: string;
-  englishTestType: string;
-  englishScore: number | null;
-};
+type FormData = z.infer<typeof schema>;
 
-type State = {
+interface EligibilityState {
   step: number;
   formData: FormData;
-  setStep: (s: number) => void;
-  nextStep: () => void;
-  prevStep: () => void;
+  setStep: (step: number) => void;
+  updateField: (field: keyof FormData, value: any) => void;
   reset: () => void;
-  updateField: <K extends keyof FormData>(key: K, value: FormData[K]) => void;
-};
+}
 
-export const useEligibilityStore = create<State>((set) => ({
+export const useEligibilityStore = create<EligibilityState>((set) => ({
   step: 0,
   formData: {
-    fullName: "",
-    age: null,
-    jobTitle: "",
-    employer: "",
-    englishTestType: "",
-    englishScore: null,
+    age: 0,
+    englishScore: 0,
+    country: '',
+    employment: '',
+    hasMilitaryBackground: false,
   },
-  setStep: (s) => set({ step: s }),
-  nextStep: () => set((st) => ({ step: st.step + 1 })),
-  prevStep: () => set((st) => ({ step: Math.max(0, st.step - 1) })),
+  setStep: (step) => set({ step }),
+  updateField: (field, value) =>
+    set((state) => ({
+      formData: {
+        ...state.formData,
+        [field]: value,
+      },
+    })),
   reset: () =>
     set({
       step: 0,
       formData: {
-        fullName: "",
-        age: null,
-        jobTitle: "",
-        employer: "",
-        englishTestType: "",
-        englishScore: null,
+        age: 0,
+        englishScore: 0,
+        country: '',
+        employment: '',
+        hasMilitaryBackground: false,
       },
     }),
-  updateField: (key, value) =>
-    set((st) => ({ formData: { ...st.formData, [key]: value } })),
 }));
-

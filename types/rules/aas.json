@@ -1,31 +1,32 @@
 [
   {
-    "id": "fullName_required",
-    "type": "text",
-    "field": "fullName",
-    "value": true,
-    "message": "Full name is required"
-  },
-  {
-    "id": "age_min_18",
+    "field": "ielts",
     "type": "minScore",
-    "field": "age",
-    "value": 18,
-    "message": "Minimum age is 18"
+    "value": 6.5,
+    "message": "Điểm IELTS của bạn chưa đủ yêu cầu tối thiểu (6.5)"
   },
   {
-    "id": "english_type_ielts",
+    "field": "military",
+    "type": "boolean",
+    "value": false,
+    "message": "Bạn đang công tác trong cơ quan quân đội hoặc an ninh"
+  },
+  {
+    "field": "companyOwnership",
     "type": "select",
-    "field": "englishTestType",
-    "value": "IELTS",
-    "message": "AAS requires IELTS for this MVP"
+    "value": "vietnamese_owned",
+    "message": "Công ty bạn làm không thuộc sở hữu Việt Nam"
   },
   {
-    "id": "ielts_min_7",
+    "field": "workExperience",
     "type": "minScore",
-    "field": "englishScore",
-    "value": 7.0,
-    "message": "IELTS score must be at least 7.0"
+    "value": 2,
+    "message": "Bạn cần ít nhất 2 năm kinh nghiệm làm việc toàn thời gian"
+  },
+  {
+    "field": "countryOfResidence",
+    "type": "select",
+    "value": "vietnam",
+    "message": "Bạn hiện không cư trú tại Việt Nam"
   }
 ]
-

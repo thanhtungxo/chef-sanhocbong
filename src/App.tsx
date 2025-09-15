@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
+// import { useMutation } from "convex/react";
+// import { api } from "../convex/_generated/api";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
-import { Id } from "../convex/_generated/dataModel";
+import type { Id } from "../convex/_generated/dataModel";
+import { evaluateScholarshipsLocally } from "./lib/submit";
 
 interface FormData {
   fullName: string;
@@ -57,7 +58,7 @@ export default function App() {
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submitApplication = useMutation(api.scholarships.submitApplication);
+  // const submitApplication = useMutation(api.scholarships.submitApplication);
 
   const totalSteps = 4;
 

@@ -1,31 +1,32 @@
 [
   {
-    "id": "fullName_required",
-    "type": "text",
-    "field": "fullName",
+    "field": "ielts",
+    "type": "minScore",
+    "value": 7.0,
+    "message": "Điểm IELTS của bạn chưa đủ yêu cầu tối thiểu (7.0)"
+  },
+  {
+    "field": "workExperience",
+    "type": "minScore",
+    "value": 2,
+    "message": "Bạn chưa có đủ 2 năm kinh nghiệm làm việc (hoặc 2800 giờ)"
+  },
+  {
+    "field": "military",
+    "type": "boolean",
+    "value": false,
+    "message": "Bạn đang công tác trong cơ quan quân đội hoặc an ninh"
+  },
+  {
+    "field": "hasLeadershipPotential",
+    "type": "boolean",
     "value": true,
-    "message": "Full name is required"
+    "message": "Học bổng yêu cầu ứng viên thể hiện tiềm năng lãnh đạo"
   },
   {
-    "id": "age_min_18",
-    "type": "minScore",
-    "field": "age",
-    "value": 18,
-    "message": "Minimum age is 18"
-  },
-  {
-    "id": "english_type_ielts",
-    "type": "select",
-    "field": "englishTestType",
-    "value": "IELTS",
-    "message": "Chevening requires IELTS for this MVP"
-  },
-  {
-    "id": "ielts_min_6_5",
-    "type": "minScore",
-    "field": "englishScore",
-    "value": 6.5,
-    "message": "IELTS score must be at least 6.5"
+    "field": "returnToHomeCountry",
+    "type": "boolean",
+    "value": true,
+    "message": "Bạn cần cam kết trở về Việt Nam sau khi kết thúc khoá học"
   }
 ]
-
