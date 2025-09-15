@@ -1,7 +1,3 @@
-type Props = {
-  rules: EligibilityRule[]
-  onSubmit: (answers: AnswerSet) => void
-}
 // src/components/EligibilityForm.tsx
 
 import React, { useState } from 'react';
@@ -80,3 +76,4 @@ export const EligibilityForm: React.FC<EligibilityFormProps> = ({
     </form>
   );
 };
+

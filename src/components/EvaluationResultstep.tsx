@@ -1,31 +1,30 @@
-type Props = {
-  result: EvaluationResult
-}
-// src/components/EvaluationResult.tsx
+import React from "react";
+import { evaluateEligibility } from "@/lib/evaluator";
+import { z, schema } from "@/ts/schema";
+import type { RuleNode as EvalRule, EvaluationResult } from "../../types/eligibility";
 
-import React from 'react';
-
-interface EvaluationResult {
-  passed: boolean;
-  failedRules: { id: string; message: string }[];
+interface Props {
+  formData: z.infer<typeof schema>;
+  rules: EvalRule[];
 }
 
-interface EvaluationResultProps {
-  result: EvaluationResult;
-}
+export const EligibilityResultStep: React.FC<Props> = ({ formData, rules }) => {
+  const result: EvaluationResult = evaluateEligibility(
+    formData as Record<string, any>,
+    rules
+  );
 
-export const EvaluationResult: React.FC<EvaluationResultProps> = ({ result }) => {
   return (
     <div className="mt-6 border rounded p-4">
       {result.passed ? (
-        <div className="text-green-600 font-semibold text-lg">
-          ✅ Bạn đủ điều kiện nhận học bổng!
-        </div>
+        <p className="text-green-600 font-semibold text-lg">
+          You meet the eligibility requirements!
+        </p>
       ) : (
         <>
-          <div className="text-red-600 font-semibold mb-2">
-            ❌ Bạn không đủ điều kiện vì:
-          </div>
+          <p className="text-red-600 font-semibold mb-2">
+            You are not eligible because:
+          </p>
           <ul className="list-disc list-inside text-sm text-gray-700">
             {result.failedRules.map((rule) => (
               <li key={rule.id}>{rule.message}</li>
@@ -36,3 +35,4 @@ export const EvaluationResult: React.FC<EvaluationResultProps> = ({ result }) =>
     </div>
   );
 };
+

@@ -1,4 +1,7 @@
 import { z } from "zod";
+// Re-export helpers so imports from '@/ts/schema' can use them
+export { z } from "zod";
+export { schema } from "../../schema";
 
 export const RuleTypeEnum = z.enum(["minScore", "boolean", "select", "text"]);
 export const SeverityEnum = z.enum(["blocker", "warn"]).default("blocker");

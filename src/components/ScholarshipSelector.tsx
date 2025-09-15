@@ -1,14 +1,10 @@
-type Props = {
-  value: string
-  onChange: (val: 'aas' | 'chevening') => void
-}
 // src/components/ScholarshipSelector.tsx
 
 import React from 'react';
 
 interface ScholarshipSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: 'aas' | 'chevening';
+  onChange: (value: 'aas' | 'chevening') => void;
 }
 
 export const ScholarshipSelector: React.FC<ScholarshipSelectorProps> = ({
@@ -20,7 +16,7 @@ export const ScholarshipSelector: React.FC<ScholarshipSelectorProps> = ({
       <label className="block text-sm font-medium mb-2">Chọn loại học bổng:</label>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value as 'aas' | 'chevening')}
         className="border border-gray-300 rounded px-3 py-2 w-full"
       >
         <option value="aas">Australia Awards (AAS)</option>
@@ -29,3 +25,4 @@ export const ScholarshipSelector: React.FC<ScholarshipSelectorProps> = ({
     </div>
   );
 };
+

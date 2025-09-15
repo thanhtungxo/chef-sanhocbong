@@ -22,7 +22,8 @@
 
     /* Import paths */
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/ts/*": ["./src/lib/engine/*"]
     }
   },
   "include": ["src"]
