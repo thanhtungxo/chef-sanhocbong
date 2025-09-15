@@ -1,11 +1,13 @@
 import { Toaster } from "sonner";
 import { EligibilityChecker } from "@/components/pages/EligibilityChecker";
+import { LegacyWizard } from "@/components/pages/LegacyWizard";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { RulesetRegistry } from "@/components/pages/RulesetRegistry";
 
 export default function App() {
   const admin = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin') === '1';
   const convexUrl = (import.meta as any).env?.VITE_CONVEX_URL as string | undefined;
+  const ui = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ui') : null;
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <LanguageToggle />
@@ -18,7 +20,7 @@ export default function App() {
           </div>
         )
       ) : (
-        <EligibilityChecker />
+        ui === 'simple' ? <EligibilityChecker /> : <LegacyWizard />
       )}
       <Toaster />
     </div>
