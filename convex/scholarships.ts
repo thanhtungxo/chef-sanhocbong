@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
+import { toAnswerSet } from "../src/lib/mappers";
 import { validateRules } from "../src/lib/engine/schema";
 
 export const submitApplication = mutation({
@@ -31,11 +32,11 @@ export const submitApplication = mutation({
     const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
 
-    const answers = { ...args, age } as Record<string, any>;
+    const answers = toAnswerSet({ ...args, age } as Record<string, any>);
 
     const [aasRules, cheRules] = await Promise.all([
-      loadRulesServer("aas"),
-      loadRulesServer("chevening"),
+      loadRulesServer(ctx, "aas"),
+      loadRulesServer(ctx, "chevening"),
     ]);
 
     const aas = evaluateWithRules(answers, aasRules);
@@ -68,6 +69,52 @@ export const getApplication = query({
   args: { applicationId: v.id("scholarshipApplications") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.applicationId);
+  },
+});
+
+export const getActiveRules = query({
+  args: { scholarshipId: v.string() },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("rulesets")
+      .withIndex("by_scholarshipId", (q) => q.eq("scholarshipId", args.scholarshipId))
+      .collect();
+    const active = rows.find((r) => r.isActive);
+    if (!active) {
+      return {
+        ok: false,
+        source: "db",
+        id: null,
+        version: null,
+        json: null,
+        rules: [] as any[],
+        issues: ["No active ruleset"],
+      };
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(active.json);
+    } catch (e) {
+      return {
+        ok: false,
+        source: "db",
+        id: active._id,
+        version: active.version,
+        json: active.json,
+        rules: [] as any[],
+        issues: ["Invalid JSON: " + String(e)],
+      };
+    }
+    const { rules, issues } = validateRules(parsed);
+    return {
+      ok: issues.length === 0,
+      source: "db",
+      id: active._id,
+      version: active.version,
+      json: active.json,
+      rules: rules as any[],
+      issues,
+    };
   },
 });
 

@@ -5,6 +5,8 @@ import { WorkInfoStep } from '../organisms/WorkInfoStep';
 import { EnglishInfoStep } from '../organisms/EnglishInfoStep';
 import { EligibilityResultStep } from '../organisms/EligibilityResultStep';
 import { useEligibilityEngine } from '@/lib/useEligibilityEngine';
+import { toAnswerSet } from '@/lib/mappers';
+import { t } from '@/lib/i18n';
 
 export const EligibilityChecker: React.FC = () => {
   const step = useEligibilityStore((s) => s.step);
@@ -26,15 +28,8 @@ export const EligibilityChecker: React.FC = () => {
       return;
     }
 
-    // Prepare answers for evaluator
-    const answers = {
-      fullName: formData.fullName,
-      age: typeof formData.age === 'number' ? formData.age : Number(formData.age ?? 0),
-      englishTestType: formData.englishTestType,
-      englishScore: typeof formData.englishScore === 'number' ? formData.englishScore : Number(formData.englishScore ?? 0),
-      jobTitle: formData.jobTitle,
-      employer: formData.employer,
-    } as Record<string, any>;
+    // Prepare answers via centralized mapper
+    const answers = toAnswerSet(formData as any);
 
     const [aEval, cEval] = await Promise.all([
       engine.evaluate('aas', answers),
@@ -45,8 +40,8 @@ export const EligibilityChecker: React.FC = () => {
 
     setAasEligible(aas.passed);
     setCheEligible(che.passed);
-    setAasReasons(aas.failedRules.map((r) => r.message));
-    setCheReasons(che.failedRules.map((r) => r.message));
+    setAasReasons(aas.failedRules.map((r) => t(r.messageKey, r.message)));
+    setCheReasons(che.failedRules.map((r) => t(r.messageKey, r.message)));
     const issues = [...aErrors, ...cErrors];
     setRuleIssues(Array.from(new Set(issues)));
     setStep(3);

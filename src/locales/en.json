@@ -1,0 +1,14 @@
+{
+  "aas.ielts.min": "Your IELTS score does not meet the minimum requirement",
+  "aas.military.block": "You are currently working in military or security",
+  "aas.ownership.vn": "Your company is not Vietnamese-owned",
+  "aas.experience.min": "You need at least 2 years of full-time experience",
+  "aas.residence.vn": "You are not currently residing in Vietnam",
+
+  "che.ielts.min": "Your IELTS score does not meet the minimum (7.0)",
+  "che.experience.min": "You do not meet the experience requirement",
+  "che.military.block": "You are currently in military or security",
+  "che.leadership.required": "Scholarship requires leadership potential",
+  "che.return.required": "You must commit to return to your home country"
+}
+

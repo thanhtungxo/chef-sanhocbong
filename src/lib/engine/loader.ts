@@ -1,23 +1,33 @@
 import type { RuleNode } from "./schema";
 import { validateRules } from "./schema";
-import type { ScholarshipId } from "./registry";
 
-async function importJson(id: ScholarshipId): Promise<unknown> {
-  switch (id) {
-    case "aas": {
-      const mod = await import("../../../types/rules/aas.json");
-      return (mod as any).default ?? mod;
-    }
-    case "chevening": {
-      const mod = await import("../../../types/rules/chevening.json");
+// Build a map of all JSON rules at build time via Vite's glob import
+const ruleModules = import.meta.glob("../../../types/rules/*.json", { eager: true });
+
+function extractId(filePath: string): string {
+  // e.g. '../../../types/rules/aas.json' -> 'aas'
+  const m = filePath.match(/([^\\/]+)\.json$/i);
+  return m ? m[1] : filePath;
+}
+
+function getRawRulesJsonById(id: string): unknown | undefined {
+  for (const [path, mod] of Object.entries(ruleModules)) {
+    if (extractId(path) === id) {
+      // Vite JSON imports expose default
       return (mod as any).default ?? mod;
     }
   }
+  return undefined;
 }
 
-export async function loadRulesWithIssues(id: ScholarshipId): Promise<{ rules: RuleNode[]; issues: string[] }> {
+export async function loadRulesWithIssues(id: string): Promise<{ rules: RuleNode[]; issues: string[] }> {
   try {
-    const json = await importJson(id);
+    const json = getRawRulesJsonById(id);
+    if (json === undefined) {
+      const issue = `Unknown ruleset id: ${id}`;
+      console.warn(`[rules] ${issue}`);
+      return { rules: [] as RuleNode[], issues: [issue] };
+    }
     const { rules, issues } = validateRules(json);
     if (issues.length) {
       console.warn(`[rules] Validation issues for '${id}':`, issues);
@@ -29,7 +39,14 @@ export async function loadRulesWithIssues(id: ScholarshipId): Promise<{ rules: R
   }
 }
 
-export async function loadRules(id: ScholarshipId): Promise<RuleNode[]> {
+export async function loadRules(id: string): Promise<RuleNode[]> {
   const { rules } = await loadRulesWithIssues(id);
   return rules;
+}
+
+// Optional: expose the discovered ids for UI listing
+export function listAvailableRuleIds(): string[] {
+  const ids = new Set<string>();
+  for (const p of Object.keys(ruleModules)) ids.add(extractId(p));
+  return Array.from(ids);
 }
