@@ -15,7 +15,7 @@ export const EligibilityResultStep: React.FC<Props> = ({
   cheveningEligible,
   aasReasons,
   cheveningReasons,
-  onRestart
+  onRestart,
 }) => {
   return (
     <div>
@@ -23,8 +23,8 @@ export const EligibilityResultStep: React.FC<Props> = ({
 
       <div className="mb-6">
         <ResultMessage
-          message={aasEligible ? "You are eligible for AAS 🎉" : "Not eligible for AAS"}
-          type={aasEligible ? "success" : "error"}
+          message={aasEligible ? 'You are eligible for AAS' : 'Not eligible for AAS'}
+          type={aasEligible ? 'success' : 'error'}
         />
         {!aasEligible && (
           <ul className="list-disc ml-6 text-sm text-gray-600">
@@ -37,8 +37,8 @@ export const EligibilityResultStep: React.FC<Props> = ({
 
       <div className="mb-6">
         <ResultMessage
-          message={cheveningEligible ? "You are eligible for Chevening 🎉" : "Not eligible for Chevening"}
-          type={cheveningEligible ? "success" : "error"}
+          message={cheveningEligible ? 'You are eligible for Chevening' : 'Not eligible for Chevening'}
+          type={cheveningEligible ? 'success' : 'error'}
         />
         {!cheveningEligible && (
           <ul className="list-disc ml-6 text-sm text-gray-600">
@@ -57,3 +57,4 @@ export const EligibilityResultStep: React.FC<Props> = ({
     </div>
   );
 };
+

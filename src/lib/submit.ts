@@ -1,5 +1,5 @@
 import { evaluateEligibility, loadRules } from "./evaluator";
-import { AnswerSet, EligibilityResult } from "@/types/eligibility";
+import { AnswerSet, EligibilityResult } from "../../types/eligibility";
 import { v4 as uuidv4 } from "uuid";
 
 export async function evaluateScholarshipsLocally(

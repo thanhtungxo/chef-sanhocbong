@@ -1,40 +1,19 @@
-import rules from "@/rules/aas.json"; // ví dụ: import rule cho học bổng AAS
+import type { AnswerSet, EvaluationResult } from "../../types/eligibility";
+import { loadRulesWithIssues, evaluateEligibility } from "./evaluator";
 
-type FormData = {
-  fullName: string;
-  age: string;
-};
-
-type Rule = {
-  field: string;
-  type: "min" | "required";
-  value: any;
-  message: string;
-};
-
-type Result = {
-  eligible: boolean;
-  messages: string[];
-};
-
-export function useEligibilityEngine(formData: FormData) {
-  const errors: string[] = [];
-  if (!Array.isArray(rules)) errors.push("Rule file bị lỗi cấu trúc!");
-
-  let eligible = true;
-  const messages: string[] = [];
-
-  for (const rule of rules as Rule[]) {
-    const value = formData[rule.field];
-    if (rule.type === "required" && !value) {
-      eligible = false;
-      messages.push(rule.message);
-    }
-    if (rule.type === "min" && Number(value) < rule.value) {
-      eligible = false;
-      messages.push(rule.message);
-    }
-  }
-
-  return { result: { eligible, messages }, errors };
+// Hook-like utility to evaluate a selected scholarship ruleset
+// Returns a small API rather than directly coupling to React state.
+export function useEligibilityEngine() {
+  return {
+    async evaluate(
+      scholarshipId: "aas" | "chevening",
+      answers: AnswerSet
+    ): Promise<{ result: EvaluationResult; errors: string[] }> {
+      const errors: string[] = [];
+      const out = await loadRulesWithIssues(scholarshipId).catch((e) => ({ rules: [], issues: [`Failed to load rules: ${String(e)}`] }));
+      if (out.issues.length) errors.push(...out.issues);
+      const result = evaluateEligibility(answers, out.rules);
+      return { result, errors };
+    },
+  };
 }

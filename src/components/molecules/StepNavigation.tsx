@@ -10,8 +10,9 @@ interface Props {
 export const StepNavigation: React.FC<Props> = ({ onBack, onNext, showBack = true, isLastStep = false }) => {
   return (
     <div className="flex justify-between mt-4">
-      {showBack && <button onClick={onBack} className="btn">Quay lại</button>}
-      <button onClick={onNext} className="btn btn-primary">{isLastStep ? 'Xem kết quả' : 'Tiếp theo'}</button>
+      {showBack && <button onClick={onBack} className="btn">Back</button>}
+      <button onClick={onNext} className="btn btn-primary">{isLastStep ? 'See Result' : 'Next'}</button>
     </div>
   );
 };
+

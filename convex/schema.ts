@@ -26,6 +26,14 @@ const applicationTables = {
     cheveningEligible: v.boolean(),
     cheveningReasons: v.array(v.string()),
   }),
+  rulesets: defineTable({
+    scholarshipId: v.string(), // 'aas' | 'chevening'
+    version: v.string(),
+    json: v.string(), // raw JSON text
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    createdBy: v.optional(v.string()),
+  }).index('by_scholarshipId', ['scholarshipId']),
 };
 
 export default defineSchema({

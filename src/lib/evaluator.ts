@@ -1,27 +1,32 @@
 // src/lib/evaluator.ts
-import { z } from "zod";
-import { schema } from "@/ts/schema"; // tạo file này ngay sau
-import { rules } from "@/ts/rules/aas.json"; // hoặc chevening nếu đang test chevening
+// Safe evaluator wrapper + rules loader. Avoids string eval entirely.
+export { evaluateEligibility } from "../../types/eligibility";
+export { loadRules, loadRulesWithIssues } from "./engine/loader";
 
-interface Rule {
-  id: string;
-  string: string;
-  condition: (data: z.infer<typeof schema>) => boolean;
-}
-
-export function evaluateEligibility(data: z.infer<typeof schema>) {
-  const failedRules = rules.filter((rule) => {
-    try {
-      // Với rule dạng JSON rule engine, bạn có thể viết một evaluator riêng
-      return !eval(rule.condition); // sẽ update sau
-    } catch (err) {
-      console.error("Invalid rule:", rule.id, err);
-      return true;
+// Minimal loader. Loads JSON by scholarship id and returns a normalized array.
+export async function loadRules(id: string): Promise<EligibilityRule[]> {
+  try {
+    switch (id) {
+      case "aas": {
+        const mod = await import("../../types/rules/aas.json");
+        const data = (mod as any).default ?? mod;
+        if (Array.isArray(data)) return data as EligibilityRule[];
+        console.warn("AAS rules are not an array. Returning empty.");
+        return [];
+      }
+      case "chevening": {
+        const mod = await import("../../types/rules/chevening.json");
+        const data = (mod as any).default ?? mod;
+        if (Array.isArray(data)) return data as EligibilityRule[];
+        console.warn("Chevening rules are not an array. Returning empty.");
+        return [];
+      }
+      default:
+        console.warn(`Unknown ruleset id: ${id}`);
+        return [];
     }
-  });
-
-  return {
-    passed: failedRules.length === 0,
-    failedRules,
-  };
+  } catch (err) {
+    console.warn(`Failed to load rules for '${id}':`, err);
+    return [];
+  }
 }

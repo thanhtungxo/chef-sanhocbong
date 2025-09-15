@@ -1,0 +1,31 @@
+[
+  {
+    "id": "fullName_required",
+    "type": "text",
+    "field": "fullName",
+    "value": true,
+    "message": "Full name is required"
+  },
+  {
+    "id": "age_min_18",
+    "type": "minScore",
+    "field": "age",
+    "value": 18,
+    "message": "Minimum age is 18"
+  },
+  {
+    "id": "english_type_ielts",
+    "type": "select",
+    "field": "englishTestType",
+    "value": "IELTS",
+    "message": "AAS requires IELTS for this MVP"
+  },
+  {
+    "id": "ielts_min_7",
+    "type": "minScore",
+    "field": "englishScore",
+    "value": 7.0,
+    "message": "IELTS score must be at least 7.0"
+  }
+]
+
