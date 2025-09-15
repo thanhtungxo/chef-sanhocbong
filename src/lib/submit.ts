@@ -1,6 +1,5 @@
 import { evaluateEligibility, loadRules } from "./evaluator";
 import { AnswerSet, EligibilityResult } from "../../types/eligibility";
-import { v4 as uuidv4 } from "uuid";
 
 export async function evaluateScholarshipsLocally(
   formData: AnswerSet
@@ -11,8 +10,10 @@ export async function evaluateScholarshipsLocally(
   const aasResult = evaluateEligibility(formData, aasRules);
   const chvResult = evaluateEligibility(formData, chvRules);
 
+  const applicationId = (globalThis.crypto?.randomUUID?.() ??
+    `app_${Date.now()}_${Math.random().toString(36).slice(2)}`) as any;
   return {
-    applicationId: uuidv4() as any, // fake ID
+    applicationId,
     aasEligible: aasResult.passed,
     aasReasons: aasResult.failedRules.map(r => r.message),
     cheveningEligible: chvResult.passed,
