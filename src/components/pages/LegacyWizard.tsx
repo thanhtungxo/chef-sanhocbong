@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Progress } from "@/components/atoms/Progress";
 import { Input } from "@/components/atoms/Input";
 import { Select } from "@/components/atoms/Select";
@@ -133,7 +133,7 @@ export function LegacyWizard() {
           {currentStep <= totalSteps && (
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `Bước ${currentStep} of ${totalSteps}`)}</span>
+                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `BÆ°á»›c ${currentStep} of ${totalSteps}`)}</span>
                 <span className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
               </div>
               <Progress value={(currentStep / totalSteps) * 100} />
@@ -211,7 +211,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                   {form.formState.errors.email && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                 </div>
               </FormControl>
-              <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help','Chúng tôi sẽ dùng để gửi kết quả kiểm tra.')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help','ChÃºng tÃ´i sáº½ dÃ¹ng Ä‘á»ƒ gá»­i káº¿t quáº£ kiá»ƒm tra.')}</p>
               <FormMessage id="lw-email" />
             </FormItem>
           )} />
@@ -277,35 +277,72 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
   onNext: () => void;
   onPrev: () => void;
 }) {
-  const canProceed = formData.highestQualification && formData.yearsOfExperience >= 0 && formData.currentJobTitle && formData.employerName;
+  const schema = z.object({
+    highestQualification: z.string().min(1, 'Required'),
+    yearsOfExperience: z.coerce.number().min(0, 'Required'),
+    currentJobTitle: z.string().min(1, 'Required'),
+    employerName: z.string().min(1, 'Required'),
+  })
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: formData as any,
+    mode: 'onChange',
+  })
+  const [shake, setShake] = useState(false)
+  const handleNext = form.handleSubmit(() => onNext(), () => { setShake(true); setTimeout(() => setShake(false), 300) })
+  const canProceed = form.formState.isValid
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">Education & Work Experience</h2>
-      <div>
-        <Label className="mb-2">Highest Completed Qualification *</Label>
-        <Select value={formData.highestQualification} onChange={(e) => updateFormData("highestQualification", (e.target as any).value)}>
-          <option value="">Select qualification</option>
-          <option value="Bachelor">Bachelor's Degree</option>
-          <option value="Master">Master's Degree</option>
-          <option value="PhD">PhD</option>
-          <option value="Other">Other</option>
-        </Select>
-      </div>
-      <div>
-        <Label className="mb-2">Years of Full-time Work Experience *</Label>
-        <Input type="number" min={0} value={formData.yearsOfExperience} onChange={(e) => updateFormData("yearsOfExperience", parseInt((e.target as HTMLInputElement).value) || 0)} placeholder="Enter years of experience" />
-      </div>
-      <div>
-        <Label className="mb-2">Current Job Title *</Label>
-        <Input value={formData.currentJobTitle} onChange={(e) => updateFormData("currentJobTitle", (e.target as HTMLInputElement).value)} placeholder="Enter your current job title" />
-      </div>
-      <div>
-        <Label className="mb-2">Employer Name *</Label>
-        <Input value={formData.employerName} onChange={(e) => updateFormData("employerName", (e.target as HTMLInputElement).value)} placeholder="Enter your employer name" />
-      </div>
+      <Form {...form}>
+        <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
+          <FormField name="highestQualification" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>Highest Completed Qualification *</FormLabel>
+              <FormControl>
+                <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('highestQualification', (e.target as any).value) }}>
+                  <option value="">Select qualification</option>
+                  <option value="Bachelor">Bachelor's Degree</option>
+                  <option value="Master">Master's Degree</option>
+                  <option value="PhD">PhD</option>
+                  <option value="Other">Other</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="yearsOfExperience" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>Years of Full-time Work Experience *</FormLabel>
+              <FormControl>
+                <Input type="number" min={0} value={field.value as any} onChange={(e)=>{ field.onChange(e); updateFormData('yearsOfExperience', parseInt((e.target as HTMLInputElement).value) || 0) }} placeholder="Enter years of experience" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="currentJobTitle" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>Current Job Title *</FormLabel>
+              <FormControl>
+                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('currentJobTitle', (e.target as HTMLInputElement).value) }} placeholder="Enter your current job title" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="employerName" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>Employer Name *</FormLabel>
+              <FormControl>
+                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employerName', (e.target as HTMLInputElement).value) }} placeholder="Enter your employer name" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </motion.form>
+      </Form>
       <div className="flex justify-between">
         <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
-        <Button onClick={onNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
+        <Button onClick={handleNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
       </div>
     </div>
   );
@@ -317,49 +354,80 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
   onNext: () => void;
   onPrev: () => void;
 }) {
-  const canProceed = formData.employmentSector && formData.isEmployerVietnameseOwned !== undefined && formData.hasWorkedInMilitaryPolice !== undefined;
+  const schema = z.object({
+    isEmployerVietnameseOwned: z.boolean(),
+    employmentSector: z.string().min(1, 'Required'),
+    hasWorkedInMilitaryPolice: z.boolean(),
+  })
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: formData as any,
+    mode: 'onChange',
+  })
+  const [shake, setShake] = useState(false)
+  const handleNext = form.handleSubmit(() => onNext(), () => { setShake(true); setTimeout(()=>setShake(false), 300) })
+  const canProceed = form.formState.isValid
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.employment.title', 'Employment Details')}</h2>
-      <div>
-        <Label className="mb-2">{t('ui.employment.vnOwned.label', 'Is your employer Vietnamese-owned? *')}</Label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <Radio name="isEmployerVietnameseOwned" value="true" checked={formData.isEmployerVietnameseOwned === true} onChange={() => updateFormData("isEmployerVietnameseOwned", true)} />
-            <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-          </label>
-          <label className="flex items-center">
-            <Radio name="isEmployerVietnameseOwned" value="false" checked={formData.isEmployerVietnameseOwned === false} onChange={() => updateFormData("isEmployerVietnameseOwned", false)} />
-            <span className="ml-3">{t('ui.common.no', 'No')}</span>
-          </label>
-        </div>
-      </div>
-      <div>
-        <Label className="mb-2">{t('ui.employment.sector.label', 'Employment Sector *')}</Label>
-        <Select value={formData.employmentSector} onChange={(e) => updateFormData("employmentSector", (e.target as any).value)}>
-          <option value="">{t('ui.employment.sector.select', 'Select sector')}</option>
-          <option value="Government">{t('ui.employment.sector.government', 'Government')}</option>
-          <option value="Private">{t('ui.employment.sector.private', 'Private')}</option>
-          <option value="NGO">{t('ui.employment.sector.ngo', 'NGO')}</option>
-          <option value="Military/Security">{t('ui.employment.sector.military', 'Military/Security')}</option>
-        </Select>
-      </div>
-      <div>
-        <Label className="mb-2">{t('ui.employment.military.label', 'Have you ever worked for or served in the military or police? *')}</Label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <Radio name="hasWorkedInMilitaryPolice" value="true" checked={formData.hasWorkedInMilitaryPolice === true} onChange={() => updateFormData("hasWorkedInMilitaryPolice", true)} />
-            <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-          </label>
-          <label className="flex items-center">
-            <Radio name="hasWorkedInMilitaryPolice" value="false" checked={formData.hasWorkedInMilitaryPolice === false} onChange={() => updateFormData("hasWorkedInMilitaryPolice", false)} />
-            <span className="ml-3">{t('ui.common.no', 'No')}</span>
-          </label>
-        </div>
-      </div>
+      <Form {...form}>
+        <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
+          <FormField name="isEmployerVietnameseOwned" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.employment.vnOwned.label', 'Is your employer Vietnamese-owned? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="isEmployerVietnameseOwned" value="true" checked={form.watch('isEmployerVietnameseOwned') === true} onChange={()=>{ form.setValue('isEmployerVietnameseOwned', true, { shouldValidate:true }); updateFormData('isEmployerVietnameseOwned', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="isEmployerVietnameseOwned" value="false" checked={form.watch('isEmployerVietnameseOwned') === false} onChange={()=>{ form.setValue('isEmployerVietnameseOwned', false, { shouldValidate:true }); updateFormData('isEmployerVietnameseOwned', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="employmentSector" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>{t('ui.employment.sector.label', 'Employment Sector *')}</FormLabel>
+              <FormControl>
+                <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employmentSector', (e.target as any).value) }}>
+                  <option value="">{t('ui.employment.sector.select', 'Select sector')}</option>
+                  <option value="Government">{t('ui.employment.sector.government', 'Government')}</option>
+                  <option value="Private">{t('ui.employment.sector.private', 'Private')}</option>
+                  <option value="NGO">{t('ui.employment.sector.ngo', 'NGO')}</option>
+                  <option value="Military/Security">{t('ui.employment.sector.military', 'Military/Security')}</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="hasWorkedInMilitaryPolice" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.employment.military.label', 'Have you ever worked for or served in the military or police? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="hasWorkedInMilitaryPolice" value="true" checked={form.watch('hasWorkedInMilitaryPolice') === true} onChange={()=>{ form.setValue('hasWorkedInMilitaryPolice', true, { shouldValidate:true }); updateFormData('hasWorkedInMilitaryPolice', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="hasWorkedInMilitaryPolice" value="false" checked={form.watch('hasWorkedInMilitaryPolice') === false} onChange={()=>{ form.setValue('hasWorkedInMilitaryPolice', false, { shouldValidate:true }); updateFormData('hasWorkedInMilitaryPolice', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </motion.form>
+      </Form>
       <div className="flex justify-between">
         <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
-        <Button onClick={onNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
+        <Button onClick={handleNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
       </div>
     </div>
   );
@@ -372,62 +440,98 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
   onPrev: () => void;
   isSubmitting: boolean;
 }) {
-  const canProceed = formData.planToReturn !== undefined && formData.hasStudiedAbroadOnGovScholarship !== undefined && formData.englishTestType && (formData.englishTestType === "None" || formData.englishScore !== undefined);
+  const schema = z.object({
+    planToReturn: z.boolean(),
+    hasStudiedAbroadOnGovScholarship: z.boolean(),
+    englishTestType: z.string().min(1,'Required'),
+    englishScore: z.union([z.number(), z.undefined()]),
+  }).refine((v)=> v.englishTestType==='None' || typeof v.englishScore === 'number', { message:'Overall Score required', path:['englishScore'] })
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: formData as any,
+    mode: 'onChange',
+  })
+  const [shake, setShake] = useState(false)
+  const handleSubmitClick = form.handleSubmit(()=>onSubmit(), ()=>{ setShake(true); setTimeout(()=>setShake(false),300) })
+  const canProceed = form.formState.isValid
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.final.title', 'Final Questions')}</h2>
-      <div>
-        <Label className="mb-2">{t('ui.final.return.label', 'Do you plan to return to your country after finishing the scholarship? *')}</Label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <Radio name="planToReturn" value="true" checked={formData.planToReturn === true} onChange={() => updateFormData("planToReturn", true)} />
-            <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-          </label>
-          <label className="flex items-center">
-            <Radio name="planToReturn" value="false" checked={formData.planToReturn === false} onChange={() => updateFormData("planToReturn", false)} />
-            <span className="ml-3">{t('ui.common.no', 'No')}</span>
-          </label>
-        </div>
-      </div>
-      <div>
-        <Label className="mb-2">{t('ui.final.govscholar.label', 'Have you ever studied abroad on a government-funded scholarship? *')}</Label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <Radio name="hasStudiedAbroadOnGovScholarship" value="true" checked={formData.hasStudiedAbroadOnGovScholarship === true} onChange={() => updateFormData("hasStudiedAbroadOnGovScholarship", true)} />
-            <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-          </label>
-          <label className="flex items-center">
-            <Radio name="hasStudiedAbroadOnGovScholarship" value="false" checked={formData.hasStudiedAbroadOnGovScholarship === false} onChange={() => updateFormData("hasStudiedAbroadOnGovScholarship", false)} />
-            <span className="ml-3">{t('ui.common.no', 'No')}</span>
-          </label>
-        </div>
-      </div>
-      <div>
-        <Label className="mb-2">{t('ui.final.testType.label', 'English Proficiency Test Type *')}</Label>
-        <Select value={formData.englishTestType} onChange={(e) => updateFormData("englishTestType", (e.target as any).value)}>
-          <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
-          <option value="IELTS">{t('ui.final.testType.ielts', 'IELTS')}</option>
-          <option value="TOEFL">{t('ui.final.testType.toefl', 'TOEFL')}</option>
-          <option value="PTE">{t('ui.final.testType.pte', 'PTE')}</option>
-          <option value="None">{t('ui.final.testType.none', 'None')}</option>
-        </Select>
-      </div>
-      {formData.englishTestType && formData.englishTestType !== "None" && (
-        <div>
-          <Label className="mb-2">{t('ui.final.overall.label', 'Overall Score *')}</Label>
-          <Input type="number" step="0.1" value={formData.englishScore || ""} onChange={(e) => updateFormData("englishScore", parseFloat((e.target as HTMLInputElement).value) || undefined)} placeholder="Enter your overall score" />
-        </div>
-      )}
+      <Form {...form}>
+        <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
+          <FormField name="planToReturn" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.final.return.label', 'Do you plan to return to your country after finishing the scholarship? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="planToReturn" value="true" checked={form.watch('planToReturn') === true} onChange={()=>{ form.setValue('planToReturn', true, { shouldValidate:true }); updateFormData('planToReturn', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="planToReturn" value="false" checked={form.watch('planToReturn') === false} onChange={()=>{ form.setValue('planToReturn', false, { shouldValidate:true }); updateFormData('planToReturn', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="hasStudiedAbroadOnGovScholarship" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.final.govscholar.label', 'Have you ever studied abroad on a government-funded scholarship? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="hasStudiedAbroadOnGovScholarship" value="true" checked={form.watch('hasStudiedAbroadOnGovScholarship') === true} onChange={()=>{ form.setValue('hasStudiedAbroadOnGovScholarship', true, { shouldValidate:true }); updateFormData('hasStudiedAbroadOnGovScholarship', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="hasStudiedAbroadOnGovScholarship" value="false" checked={form.watch('hasStudiedAbroadOnGovScholarship') === false} onChange={()=>{ form.setValue('hasStudiedAbroadOnGovScholarship', false, { shouldValidate:true }); updateFormData('hasStudiedAbroadOnGovScholarship', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="englishTestType" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>{t('ui.final.testType.label', 'English Proficiency Test Type *')}</FormLabel>
+              <FormControl>
+                <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('englishTestType', (e.target as any).value) }}>
+                  <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
+                  <option value="IELTS">{t('ui.final.testType.ielts', 'IELTS')}</option>
+                  <option value="TOEFL">{t('ui.final.testType.toefl', 'TOEFL')}</option>
+                  <option value="PTE">{t('ui.final.testType.pte', 'PTE')}</option>
+                  <option value="None">{t('ui.final.testType.none', 'None')}</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          {form.watch('englishTestType') && form.watch('englishTestType') !== 'None' && (
+            <FormField name="englishScore" control={form.control} render={({field}) => (
+              <FormItem>
+                <FormLabel>{t('ui.final.overall.label', 'Overall Score *')}</FormLabel>
+                <FormControl>
+                  <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v = parseFloat((e.target as HTMLInputElement).value); field.onChange(Number.isNaN(v)? undefined : v); updateFormData('englishScore', Number.isNaN(v)? undefined : v) }} placeholder="Enter your overall score" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          )}
+        </motion.form>
+      </Form>
       <div className="flex justify-between">
         <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
-        <Button onClick={onSubmit} disabled={!canProceed || isSubmitting} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
+        <Button onClick={handleSubmitClick} disabled={!canProceed || isSubmitting} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
           {isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}
         </Button>
       </div>
     </div>
   );
 }
-
 function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: () => void; }) {
   const hasEligibleScholarship = result.aasEligible || result.cheveningEligible;
   return (
@@ -445,10 +549,10 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
             <h3 className="text-xl font-semibold text-gray-900">Australia Awards</h3>
           </div>
           {result.aasEligible ? (
-            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">✔</span><span className="font-semibold">You are eligible to apply for AAS!</span></div>
+            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">âœ”</span><span className="font-semibold">You are eligible to apply for AAS!</span></div>
           ) : (
             <div>
-              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">✖</span><span className="font-semibold">You are not eligible for AAS</span></div>
+              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">âœ–</span><span className="font-semibold">You are not eligible for AAS</span></div>
               <div className="text-sm text-gray-700"><p className="font-medium mb-2">Reasons:</p><ul className="list-disc list-inside space-y-1">{result.aasReasons.map((r, i) => (<li key={i}>{r}</li>))}</ul></div>
             </div>
           )}
@@ -459,10 +563,10 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
             <h3 className="text-xl font-semibold text-gray-900">Chevening</h3>
           </div>
           {result.cheveningEligible ? (
-            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">✔</span><span className="font-semibold">You are eligible to apply for Chevening!</span></div>
+            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">âœ”</span><span className="font-semibold">You are eligible to apply for Chevening!</span></div>
           ) : (
             <div>
-              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">✖</span><span className="font-semibold">You are not eligible for Chevening</span></div>
+              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">âœ–</span><span className="font-semibold">You are not eligible for Chevening</span></div>
               <div className="text-sm text-gray-700"><p className="font-medium mb-2">Reasons:</p><ul className="list-disc list-inside space-y-1">{result.cheveningReasons.map((r, i) => (<li key={i}>{r}</li>))}</ul></div>
             </div>
           )}
@@ -470,7 +574,7 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
       </div>
       {hasEligibleScholarship && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-center mb-2"><span className="text-2xl mr-2">🎉</span><h4 className="text-lg font-semibold text-green-800">Congratulations!</h4></div>
+          <div className="flex items-center mb-2"><span className="text-2xl mr-2">ðŸŽ‰</span><h4 className="text-lg font-semibold text-green-800">Congratulations!</h4></div>
           <p className="text-green-700">You are eligible for at least one scholarship! We recommend you start preparing your application early. Good luck with your scholarship journey!</p>
         </div>
       )}

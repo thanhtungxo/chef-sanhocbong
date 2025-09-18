@@ -9,7 +9,7 @@ export default function App() {
   const convexUrl = (import.meta as any).env?.VITE_CONVEX_URL as string | undefined;
   const ui = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ui') : null;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50">
       <LanguageToggle />
       {admin ? (
         convexUrl ? (
@@ -20,7 +20,7 @@ export default function App() {
           </div>
         )
       ) : (
-        ui === 'simple' ? <EligibilityChecker /> : <LegacyWizard />
+        ui === 'legacy' ? <LegacyWizard /> : <EligibilityChecker />
       )}
       <Toaster />
     </div>
