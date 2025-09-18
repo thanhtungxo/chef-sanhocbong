@@ -20,7 +20,7 @@ export default function App() {
           </div>
         )
       ) : (
-        ui === 'legacy' ? <LegacyWizard /> : <EligibilityChecker />
+        ui === 'simple' ? <EligibilityChecker /> : <LegacyWizard />
       )}
       <Toaster />
     </div>
