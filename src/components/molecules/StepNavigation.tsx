@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/components/atoms/Button';
 
 interface Props {
   onBack: () => void;
@@ -9,10 +10,13 @@ interface Props {
 
 export const StepNavigation: React.FC<Props> = ({ onBack, onNext, showBack = true, isLastStep = false }) => {
   return (
-    <div className="flex justify-between mt-4">
-      {showBack && <button onClick={onBack} className="btn">Back</button>}
-      <button onClick={onNext} className="btn btn-primary">{isLastStep ? 'See Result' : 'Next'}</button>
+    <div className="flex justify-between mt-4 gap-2">
+      {showBack && (
+        <Button variant="secondary" onClick={onBack}>
+          Back
+        </Button>
+      )}
+      <Button onClick={onNext}>{isLastStep ? 'See Result' : 'Next'}</Button>
     </div>
   );
 };
-

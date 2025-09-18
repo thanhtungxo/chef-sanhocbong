@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResultMessage } from '../molecules/ResultMessage';
 import { SectionTitle } from '../atoms/SectionTitle';
+import { Button } from '../atoms/Button';
 
 interface Props {
   aasEligible: boolean;
@@ -50,11 +51,8 @@ export const EligibilityResultStep: React.FC<Props> = ({
       </div>
 
       <div className="text-center mt-6">
-        <button onClick={onRestart} className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">
-          Restart Form
-        </button>
+        <Button onClick={onRestart}>Restart Form</Button>
       </div>
     </div>
   );
 };
-

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Progress } from "@/components/atoms/Progress";
 import { toast } from "sonner";
 import { evaluateScholarshipsLocally } from "@/lib/submit";
 import { t } from "@/lib/i18n";
@@ -124,9 +125,8 @@ export function LegacyWizard() {
                 <span className="text-sm font-medium text-gray-500">{t('ui.step.progress', `Step ${currentStep} of ${totalSteps}`)}</span>
                 <span className="text-sm font-medium text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${(currentStep / totalSteps) * 100}%` }} />
-              </div>
+              {/* Progress bar switched to shadcn/ui */}
+              <Progress value={(currentStep / totalSteps) * 100} />
             </div>
           )}
 

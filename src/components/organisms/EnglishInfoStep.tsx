@@ -2,6 +2,7 @@ import React from 'react';
 import { SectionTitle } from '../atoms/SectionTitle';
 import { FormInput } from '../atoms/FormInput';
 import { StepNavigation } from '../molecules/StepNavigation';
+import { Label } from '../atoms/Label';
 
 interface Props {
   testType: string;
@@ -25,7 +26,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
       <SectionTitle>English Proficiency</SectionTitle>
 
       <div className="mb-4">
-        <label className="block font-medium mb-1">Test Type</label>
+        <Label className="font-medium mb-1">Test Type</Label>
         <select
           className="w-full border px-3 py-2 rounded"
           value={testType}
