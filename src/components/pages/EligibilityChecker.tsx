@@ -7,6 +7,8 @@ import { EligibilityResultStep } from '../organisms/EligibilityResultStep';
 import { useEligibilityEngine } from '@/lib/useEligibilityEngine';
 import { toAnswerSet } from '@/lib/mappers';
 import { t } from '@/lib/i18n';
+import { Progress } from '@/components/atoms/Progress';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export const EligibilityChecker: React.FC = () => {
   const step = useEligibilityStore((s) => s.step);
@@ -52,52 +54,70 @@ export const EligibilityChecker: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white shadow rounded mt-10">
-      {step === 0 && (
-        <PersonalInfoStep
-          fullName={formData.fullName}
-          setFullName={(v) => updateField('fullName', v)}
-          age={formData.age?.toString() ?? ''}
-          setAge={(v) => updateField('age', v ? Number(v) : null)}
-          onNext={onNext}
-        />
-      )}
-      {step === 1 && (
-        <WorkInfoStep
-          jobTitle={formData.jobTitle}
-          employer={formData.employer}
-          onChangeJobTitle={(v) => updateField('jobTitle', v)}
-          onChangeEmployer={(v) => updateField('employer', v)}
-          onBack={onBack}
-          onNext={onNext}
-        />
-      )}
-      {step === 2 && (
-        <EnglishInfoStep
-          testType={formData.englishTestType}
-          score={formData.englishScore?.toString() ?? ''}
-          setTestType={(v) => updateField('englishTestType', v)}
-          setScore={(v) => updateField('englishScore', v ? Number(v) : null)}
-          onBack={onBack}
-          onNext={onNext}
-        />
-      )}
-      {step === 3 && (
-        <EligibilityResultStep
-          aasEligible={aasEligible}
-          cheveningEligible={cheEligible}
-          aasReasons={aasReasons}
-          cheveningReasons={cheReasons}
-          onRestart={() => {
-            reset();
-            setAasEligible(false);
-            setCheEligible(false);
-            setAasReasons([]);
-            setCheReasons([]);
-            setRuleIssues([]);
-          }}
-        />
-      )}
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
+      <div className="text-center mb-8">
+        <div className="mx-auto inline-flex items-center justify-center text-3xl">🎓</div>
+        <h1 className="mt-2 text-2xl font-heading font-semibold">Sanhocbong Eligibility</h1>
+      </div>
+
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">Bước {Math.min(step + 1, 4)}/4</span>
+          <span className="text-sm text-muted-foreground">{Math.round(((Math.min(step, 3) + 1) / 4) * 100)}%</span>
+        </div>
+        <Progress value={((Math.min(step, 3) + 1) / 4) * 100} />
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.25 }}>
+          {step === 0 && (
+            <PersonalInfoStep
+              fullName={formData.fullName}
+              setFullName={(v) => updateField('fullName', v)}
+              age={formData.age?.toString() ?? ''}
+              setAge={(v) => updateField('age', v ? Number(v) : null)}
+              onNext={onNext}
+            />
+          )}
+          {step === 1 && (
+            <WorkInfoStep
+              jobTitle={formData.jobTitle}
+              employer={formData.employer}
+              onChangeJobTitle={(v) => updateField('jobTitle', v)}
+              onChangeEmployer={(v) => updateField('employer', v)}
+              onBack={onBack}
+              onNext={onNext}
+            />
+          )}
+          {step === 2 && (
+            <EnglishInfoStep
+              testType={formData.englishTestType}
+              score={formData.englishScore?.toString() ?? ''}
+              setTestType={(v) => updateField('englishTestType', v)}
+              setScore={(v) => updateField('englishScore', v ? Number(v) : null)}
+              onBack={onBack}
+              onNext={onNext}
+            />
+          )}
+          {step === 3 && (
+            <EligibilityResultStep
+              aasEligible={aasEligible}
+              cheveningEligible={cheEligible}
+              aasReasons={aasReasons}
+              cheveningReasons={cheReasons}
+              onRestart={() => {
+                reset();
+                setAasEligible(false);
+                setCheEligible(false);
+                setAasReasons([]);
+                setCheReasons([]);
+                setRuleIssues([]);
+              }}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+
       {step === 3 && ruleIssues.length > 0 && (
         <div className="mt-4 p-3 rounded bg-yellow-100 text-yellow-800 text-sm">
           Rule validation issues: {ruleIssues.join('; ')}
