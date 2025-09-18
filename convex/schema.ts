@@ -34,6 +34,23 @@ const applicationTables = {
     createdAt: v.number(),
     createdBy: v.optional(v.string()),
   }).index('by_scholarshipId', ['scholarshipId']),
+  submissions: defineTable({
+    fullName: v.string(),
+    email: v.string(),
+    dateOfBirth: v.string(),
+    gender: v.string(),
+    countryOfCitizenship: v.string(),
+    currentCity: v.string(),
+    englishTestType: v.string(),
+    englishScore: v.optional(v.number()),
+    currentJobTitle: v.string(),
+    employerName: v.string(),
+    aasEligible: v.boolean(),
+    aasReasons: v.array(v.string()),
+    cheveningEligible: v.boolean(),
+    cheveningReasons: v.array(v.string()),
+    createdAt: v.number(),
+  }).index('by_createdAt', ['createdAt']),
 };
 
 export default defineSchema({

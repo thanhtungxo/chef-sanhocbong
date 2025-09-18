@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "convex": "^1.24.2",
     "framer-motion": "^12.23.14",
+    "lucide-react": "^0.544.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.62.0",

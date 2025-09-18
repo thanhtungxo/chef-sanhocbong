@@ -4,6 +4,7 @@ import { SectionTitle } from '../atoms/SectionTitle';
 import { Button } from '../atoms/Button';
 import { Card, CardHeader, CardContent, CardFooter } from '../atoms/Card';
 import { motion } from 'framer-motion';
+import { CheckCircle2 } from 'lucide-react';
 
 interface Props {
   aasEligible: boolean;
@@ -11,6 +12,7 @@ interface Props {
   aasReasons: string[];
   cheveningReasons: string[];
   onRestart: () => void;
+  formData?: any;
 }
 
 export const EligibilityResultStep: React.FC<Props> = ({
@@ -19,14 +21,26 @@ export const EligibilityResultStep: React.FC<Props> = ({
   aasReasons,
   cheveningReasons,
   onRestart,
+  formData,
 }) => {
+  // Save submission non-blocking when this step mounts
+  const saveSubmission = (window as any).useConvexSaveSubmission as undefined | ((data: any) => Promise<void>);
+  React.useEffect(() => {
+    // Defer to a global helper injected by parent page to avoid tight coupling here
+    if (saveSubmission && formData) {
+      saveSubmission({
+        formData,
+        result: { aasEligible, aasReasons, cheveningEligible, cheveningReasons },
+      }).catch(() => {});
+    }
+  }, []);
   return (
     <div className="max-w-xl mx-auto p-6 sm:p-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <Card className="rounded-lg shadow-xl border border-primary/20 bg-gradient-to-b from-primary/5 via-background to-primary/5">
           <CardHeader>
             <SectionTitle>
-              <span className="mr-2">✅</span> Eligibility Result
+              <CheckCircle2 className="inline-block mr-2 h-5 w-5" /> Eligibility Result
             </SectionTitle>
             <p className="text-sm text-muted-foreground">Your scholarship eligibility status.</p>
           </CardHeader>

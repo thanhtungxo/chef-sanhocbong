@@ -4,6 +4,7 @@ import { FormInput } from '../atoms/FormInput';
 import { StepNavigation } from '../molecules/StepNavigation';
 import { Card, CardHeader, CardContent, CardFooter } from '../atoms/Card';
 import { motion } from 'framer-motion';
+import { Briefcase, Building2 } from 'lucide-react';
 
 interface Props {
   jobTitle: string;
@@ -28,13 +29,13 @@ export const WorkInfoStep: React.FC<Props> = ({
         <Card className="rounded-lg shadow-xl border border-primary/20 bg-gradient-to-b from-primary/5 via-background to-primary/5">
           <CardHeader>
             <SectionTitle>
-              <span className="mr-2">💼</span> Work Information
+              <Briefcase className="inline-block mr-2 h-5 w-5" /> Work Information
             </SectionTitle>
             <p className="text-sm text-muted-foreground">Tell us about your current role and employer.</p>
           </CardHeader>
           <CardContent>
-            <FormInput label="Job Title" value={jobTitle} onChange={onChangeJobTitle} icon={"🧑‍💼"} />
-            <FormInput label="Employer Name" value={employer} onChange={onChangeEmployer} icon={"🏢"} />
+            <FormInput label="Job Title" value={jobTitle} onChange={onChangeJobTitle} icon={<Briefcase className="h-4 w-4 text-muted-foreground" />} />
+            <FormInput label="Employer Name" value={employer} onChange={onChangeEmployer} icon={<Building2 className="h-4 w-4 text-muted-foreground" />} />
           </CardContent>
           <CardFooter>
             <StepNavigation onBack={onBack} onNext={onNext} />

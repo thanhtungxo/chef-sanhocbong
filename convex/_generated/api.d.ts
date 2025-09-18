@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as router from "../router.js";
 import type * as scholarships from "../scholarships.js";
+import type * as submissions from "../submissions.js";
 import type * as utils_rules from "../utils/rules.js";
 
 /**
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   router: typeof router;
   scholarships: typeof scholarships;
+  submissions: typeof submissions;
   "utils/rules": typeof utils_rules;
 }>;
 export declare const api: FilterApi<

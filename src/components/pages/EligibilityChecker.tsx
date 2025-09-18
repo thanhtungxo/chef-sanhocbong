@@ -9,7 +9,11 @@ import { toAnswerSet } from '@/lib/mappers';
 import { t } from '@/lib/i18n';
 import { Progress } from '@/components/atoms/Progress';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { toast } from 'sonner';
 
+/* eslint-disable */
 export const EligibilityChecker: React.FC = () => {
   const step = useEligibilityStore((s) => s.step);
   const setStep = useEligibilityStore((s) => s.setStep);
@@ -52,6 +56,37 @@ export const EligibilityChecker: React.FC = () => {
   const onBack = () => {
     if (step > 0) setStep(step - 1);
   };
+
+  // Convex integration helper used by the results step (non-blocking save)
+  const saveSubmissionMutation = useMutation(api.submissions.saveSubmission);
+  React.useEffect(() => {
+    (window as any).useConvexSaveSubmission = async ({ formData, result }: any) => {
+      try {
+        await saveSubmissionMutation({
+          fullName: formData.fullName ?? '',
+          email: formData.email ?? '',
+          dateOfBirth: formData.dateOfBirth ?? '',
+          gender: formData.gender ?? '',
+          countryOfCitizenship: formData.countryOfCitizenship ?? formData.country ?? '',
+          currentCity: formData.currentCity ?? '',
+          englishTestType: formData.englishTestType ?? '',
+          englishScore: typeof formData.englishScore === 'number' ? formData.englishScore : undefined,
+          currentJobTitle: formData.currentJobTitle ?? formData.jobTitle ?? '',
+          employerName: formData.employerName ?? formData.employer ?? '',
+          aasEligible: !!result.aasEligible,
+          aasReasons: result.aasReasons ?? [],
+          cheveningEligible: !!result.cheveningEligible,
+          cheveningReasons: result.cheveningReasons ?? [],
+        });
+        toast.success(t('ui.save.success', 'Submission saved'));
+      } catch (e) {
+        toast.error(t('ui.save.error', 'Failed to save submission'));
+      }
+    };
+    return () => {
+      delete (window as any).useConvexSaveSubmission;
+    };
+  }, [saveSubmissionMutation]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
@@ -99,22 +134,23 @@ export const EligibilityChecker: React.FC = () => {
               onNext={onNext}
             />
           )}
-          {step === 3 && (
-            <EligibilityResultStep
-              aasEligible={aasEligible}
-              cheveningEligible={cheEligible}
-              aasReasons={aasReasons}
-              cheveningReasons={cheReasons}
-              onRestart={() => {
-                reset();
-                setAasEligible(false);
-                setCheEligible(false);
-                setAasReasons([]);
-                setCheReasons([]);
-                setRuleIssues([]);
-              }}
-            />
-          )}
+      {step === 3 && (
+        <EligibilityResultStep
+          aasEligible={aasEligible}
+          cheveningEligible={cheEligible}
+          aasReasons={aasReasons}
+          cheveningReasons={cheReasons}
+          formData={formData as any}
+          onRestart={() => {
+            reset();
+            setAasEligible(false);
+            setCheEligible(false);
+            setAasReasons([]);
+            setCheReasons([]);
+            setRuleIssues([]);
+          }}
+        />
+      )}
         </motion.div>
       </AnimatePresence>
 
@@ -126,3 +162,4 @@ export const EligibilityChecker: React.FC = () => {
     </div>
   );
 };
+

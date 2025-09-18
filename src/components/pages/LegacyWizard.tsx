@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { Progress } from "@/components/atoms/Progress";
+import { Input } from "@/components/atoms/Input";
+import { Select } from "@/components/atoms/Select";
+import { Radio } from "@/components/atoms/Radio";
+import { Label } from "@/components/atoms/Label";
+import { Button } from "@/components/atoms/Button";
 import { toast } from "sonner";
 import { evaluateScholarshipsLocally } from "@/lib/submit";
 import { t } from "@/lib/i18n";
@@ -121,9 +126,17 @@ export function LegacyWizard() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           {currentStep <= totalSteps && (
             <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm font-medium text-gray-500">{t('ui.step.progress', `Step ${currentStep} of ${totalSteps}`)}</span>
-                <span className="text-sm font-medium text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `Bước ${currentStep}/${totalSteps}`)}</span>
+                <span className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mb-2">
+                {[
+                  t('ui.step.1','Bước 1: Thông tin cá nhân'),
+                  t('ui.step.2','Bước 2: Học vấn & Công việc'),
+                  t('ui.step.3','Bước 3: Việc làm'),
+                  t('ui.step.4','Bước 4: Câu hỏi cuối'),
+                ][currentStep-1]}
               </div>
               {/* Progress bar switched to shadcn/ui */}
               <Progress value={(currentStep / totalSteps) * 100} />
@@ -161,42 +174,44 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.personal.title', 'Personal Information')}</h2>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.fullName.label', 'Full Name *')}</label>
-        <input type="text" value={formData.fullName} onChange={(e) => updateFormData("fullName", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.fullName.placeholder', 'Enter your full name')} />
+        <Label className="mb-2">{t('ui.fullName.label', 'Full Name *')}</Label>
+        <Input value={formData.fullName} onChange={(e) => updateFormData("fullName", (e.target as HTMLInputElement).value)} placeholder={t('ui.fullName.placeholder', 'Enter your full name')} />
+        <p className="text-xs text-muted-foreground mt-1">{t('ui.fullName.help','Tên sẽ dùng cho liên hệ sau này.')}</p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.email.label', 'Email Address *')}</label>
-        <input type="email" value={formData.email} onChange={(e) => updateFormData("email", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.email.placeholder', 'Enter your email address')} />
+        <Label className="mb-2">{t('ui.email.label', 'Email Address *')}</Label>
+        <Input type="email" value={formData.email} onChange={(e) => updateFormData("email", (e.target as HTMLInputElement).value)} placeholder={t('ui.email.placeholder', 'Enter your email address')} />
+        <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help','Chúng tôi sẽ dùng để gửi kết quả kiểm tra.')}</p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.dob.label', 'Date of Birth *')}</label>
-        <input type="date" value={formData.dateOfBirth} onChange={(e) => updateFormData("dateOfBirth", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        <Label className="mb-2">{t('ui.dob.label', 'Date of Birth *')}</Label>
+        <Input type="date" value={formData.dateOfBirth} onChange={(e) => updateFormData("dateOfBirth", (e.target as HTMLInputElement).value)} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.gender.label', 'Gender *')}</label>
+        <Label className="mb-2">{t('ui.gender.label', 'Gender *')}</Label>
         <div className="space-y-2">
           {[t('ui.gender.male', 'Male'), t('ui.gender.female', 'Female'), t('ui.gender.other', 'Other'), t('ui.gender.na', 'Prefer not to say')].map((option) => (
-            <label key={option} className="flex items-center">
-              <input type="radio" name="gender" value={option} checked={formData.gender === option} onChange={(e) => updateFormData("gender", e.target.value)} className="mr-3 text-blue-600" />
-              {option}
+            <label key={option} className="flex items-center gap-3">
+              <Radio name="gender" value={option} checked={formData.gender === option} onChange={(e) => updateFormData("gender", (e.target as HTMLInputElement).value)} />
+              <span>{option}</span>
             </label>
           ))}
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.citizenship.label', 'Country of Citizenship *')}</label>
-        <select value={formData.countryOfCitizenship} onChange={(e) => updateFormData("countryOfCitizenship", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <Label className="mb-2">{t('ui.citizenship.label', 'Country of Citizenship *')}</Label>
+        <Select value={formData.countryOfCitizenship} onChange={(e) => updateFormData("countryOfCitizenship", (e.target as HTMLSelectElement).value)}>
           <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
           <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
           <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
-        </select>
+        </Select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.city.label', 'Current City of Residence *')}</label>
-        <input type="text" value={formData.currentCity} onChange={(e) => updateFormData("currentCity", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder={t('ui.city.placeholder', 'Enter your current city')} />
+        <Label className="mb-2">{t('ui.city.label', 'Current City of Residence *')}</Label>
+        <Input value={formData.currentCity} onChange={(e) => updateFormData("currentCity", (e.target as HTMLInputElement).value)} placeholder={t('ui.city.placeholder', 'Enter your current city')} />
       </div>
       <div className="flex justify-end">
-        <button onClick={onNext} disabled={!canProceed} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{t('ui.next', 'Next')}</button>
+        <Button onClick={onNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
       </div>
     </div>
   );
@@ -334,24 +349,26 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.testType.label', 'English Proficiency Test Type *')}</label>
-        <select value={formData.englishTestType} onChange={(e) => updateFormData("englishTestType", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <Label className="mb-2">{t('ui.final.testType.label', 'English Proficiency Test Type *')}</Label>
+        <Select value={formData.englishTestType} onChange={(e) => updateFormData("englishTestType", (e.target as HTMLSelectElement).value)}>
           <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
           <option value="IELTS">{t('ui.final.testType.ielts', 'IELTS')}</option>
           <option value="TOEFL">{t('ui.final.testType.toefl', 'TOEFL')}</option>
           <option value="PTE">{t('ui.final.testType.pte', 'PTE')}</option>
           <option value="None">{t('ui.final.testType.none', 'None')}</option>
-        </select>
+        </Select>
       </div>
       {formData.englishTestType && formData.englishTestType !== "None" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">{t('ui.final.overall.label', 'Overall Score *')}</label>
-          <input type="number" step="0.1" value={formData.englishScore || ""} onChange={(e) => updateFormData("englishScore", parseFloat(e.target.value) || undefined)} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your overall score" />
-        </div>
+          <Label className="mb-2">{t('ui.final.overall.label', 'Overall Score *')}</Label>
+          <Input type="number" step="0.1" value={formData.englishScore || ""} onChange={(e) => updateFormData("englishScore", parseFloat((e.target as HTMLInputElement).value) || undefined)} placeholder="Enter your overall score" />
+      </div>
       )}
       <div className="flex justify-between">
-        <button onClick={onPrev} className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600">{t('ui.prev', 'Previous')}</button>
-        <button onClick={onSubmit} disabled={!canProceed || isSubmitting} className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}</button>
+        <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
+        <Button onClick={onSubmit} disabled={!canProceed || isSubmitting} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
+          {isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}
+        </Button>
       </div>
     </div>
   );
