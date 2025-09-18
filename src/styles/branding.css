@@ -1,0 +1,23 @@
+/* Branding variables for PTE Helper identity */
+:root {
+  /* Hex colors */
+  --color-primary: #00A651;   /* main green */
+  --color-secondary: #009245; /* darker green */
+  --color-accent-orange: #FF6600;
+  --color-accent-yellow: #FFD600;
+  --color-neutral-dark: #1A1A1A;
+  --color-neutral-light: #F5F5F5;
+
+  /* RGB triplets for Tailwind opacity support */
+  --color-primary-rgb: 0 166 81;
+  --color-secondary-rgb: 0 146 69;
+  --color-accent-orange-rgb: 255 102 0;
+  --color-accent-yellow-rgb: 255 214 0;
+  --color-neutral-dark-rgb: 26 26 26;
+  --color-neutral-light-rgb: 245 245 245;
+
+  /* Fonts */
+  --font-sans: 'Inter', 'Roboto', 'Arial', sans-serif;
+  --font-heading: 'Inter', 'Roboto', sans-serif;
+}
+
