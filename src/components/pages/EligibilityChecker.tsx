@@ -92,18 +92,31 @@ export const EligibilityChecker: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-center justify-center px-4 sm:px-6 py-10">
       <div className="w-full max-w-3xl">
-      <div className="text-center mb-8">
-        <div className="mx-auto inline-flex items-center justify-center text-3xl">🎓</div>
-        <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">Sanhocbong Eligibility</h1>
-      </div>
-
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">Bước {Math.min(step + 1, 4)}/4</span>
-          <span className="text-sm text-muted-foreground">{Math.round(((Math.min(step, 3) + 1) / 4) * 100)}%</span>
+        <div className="text-center mb-8">
+          <div className="mx-auto inline-flex items-center justify-center text-3xl">🎓</div>
+          <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">Sanhocbong Eligibility</h1>
         </div>
-        <Progress value={((Math.min(step, 3) + 1) / 4) * 100} />
-      </div>
+
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Bước {Math.min(step + 1, 4)}/4</span>
+            <span className="text-sm text-muted-foreground">{Math.round(((Math.min(step, 3) + 1) / 4) * 100)}%</span>
+          </div>
+          <Progress value={((Math.min(step, 3) + 1) / 4) * 100} />
+          <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+            {[0,1,2,3].map((idx) => (
+              <button
+                key={idx}
+                onClick={() => { if (idx <= step) setStep(idx) }}
+                className={`px-3 py-1 rounded-full border ${idx < step ? 'bg-primary/10 text-foreground hover:bg-primary/20' : idx === step ? 'bg-primary text-white' : 'bg-muted text-muted-foreground cursor-not-allowed'} transition-colors`}
+                disabled={idx > step}
+                aria-disabled={idx > step}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        </div>
 
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.25 }}>
@@ -136,23 +149,24 @@ export const EligibilityChecker: React.FC = () => {
               onNext={onNext}
             />
           )}
-      {step === 3 && (
-        <EligibilityResultStep
-          aasEligible={aasEligible}
-          cheveningEligible={cheEligible}
-          aasReasons={aasReasons}
-          cheveningReasons={cheReasons}
-          formData={formData as any}
-          onRestart={() => {
-            reset();
-            setAasEligible(false);
-            setCheEligible(false);
-            setAasReasons([]);
-            setCheReasons([]);
-            setRuleIssues([]);
-          }}
-        />
-      )}
+          {step === 3 && (
+            <EligibilityResultStep
+              aasEligible={aasEligible}
+              cheveningEligible={cheEligible}
+              aasReasons={aasReasons}
+              cheveningReasons={cheReasons}
+              formData={formData as any}
+              onEdit={() => setStep(0)}
+              onRestart={() => {
+                reset();
+                setAasEligible(false);
+                setCheEligible(false);
+                setAasReasons([]);
+                setCheReasons([]);
+                setRuleIssues([]);
+              }}
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 

@@ -13,6 +13,7 @@ interface Props {
   cheveningReasons: string[];
   onRestart: () => void;
   formData?: any;
+  onEdit?: () => void;
 }
 
 export const EligibilityResultStep: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const EligibilityResultStep: React.FC<Props> = ({
   cheveningReasons,
   onRestart,
   formData,
+  onEdit,
 }) => {
   // Save submission non-blocking when this step mounts
   const saveSubmission = (window as any).useConvexSaveSubmission as undefined | ((data: any) => Promise<void>);
@@ -75,7 +77,16 @@ export const EligibilityResultStep: React.FC<Props> = ({
           </CardContent>
           <CardFooter>
             <div className="w-full text-center">
-              <Button className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md" onClick={onRestart}>Restart Form</Button>
+              <div className="flex justify-center gap-3">
+                <Button
+                  variant="secondary"
+                  className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-full"
+                  onClick={onEdit}
+                >
+                  Edit answers
+                </Button>
+                <Button className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-full" onClick={onRestart}>Restart Form</Button>
+              </div>
             </div>
           </CardFooter>
         </Card>
