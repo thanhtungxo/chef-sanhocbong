@@ -15,14 +15,14 @@ export const StepNavigation: React.FC<Props> = ({ onBack, onNext, showBack = tru
         <Button
           variant="secondary"
           onClick={onBack}
-          className="bg-gradient-to-r from-secondary to-secondary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md"
+          className="bg-gradient-to-r from-blue-500 to-blue-400 text-white hover:scale-105 hover:shadow-xl transition-transform duration-200 h-11 px-7 rounded-full"
         >
           Back
         </Button>
       )}
       <Button
         onClick={onNext}
-        className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md"
+        className="bg-gradient-to-r from-green-500 to-orange-400 text-white hover:scale-105 hover:shadow-xl transition-transform duration-200 h-11 px-8 rounded-full"
       >
         {isLastStep ? 'See Result' : 'Next'}
       </Button>

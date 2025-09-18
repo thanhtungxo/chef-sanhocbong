@@ -14,7 +14,7 @@ interface FormInputProps {
 export const FormInput: React.FC<FormInputProps> = ({ label, value, onChange, type = 'text', placeholder, icon }) => {
   const id = React.useId()
   return (
-    <div className="mb-4 space-y-2">
+    <div className="mb-4 space-y-2 transition-transform duration-150 ease-out focus-within:scale-[1.01]">
       <Label htmlFor={id} className="font-medium">
         {label}
       </Label>
@@ -30,7 +30,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, value, onChange, ty
           value={value}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className={(icon ? 'pl-10 ' : '') + 'shadow-sm focus-visible:ring-2 focus-visible:ring-ring'}
+          className={(icon ? 'pl-10 ' : '') + 'shadow-sm focus-visible:ring-2 focus-visible:ring-primary/60'}
         />
       </div>
     </div>

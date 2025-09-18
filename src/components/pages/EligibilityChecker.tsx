@@ -51,6 +51,7 @@ export const EligibilityChecker: React.FC = () => {
     const issues = [...aErrors, ...cErrors];
     setRuleIssues(Array.from(new Set(issues)));
     setStep(3);
+    toast.success('🎉 Eligibility check complete!');
   };
 
   const onBack = () => {
@@ -89,10 +90,11 @@ export const EligibilityChecker: React.FC = () => {
   }, [saveSubmissionMutation]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-center justify-center px-4 sm:px-6 py-10">
+      <div className="w-full max-w-3xl">
       <div className="text-center mb-8">
         <div className="mx-auto inline-flex items-center justify-center text-3xl">🎓</div>
-        <h1 className="mt-2 text-2xl font-heading font-semibold">Sanhocbong Eligibility</h1>
+        <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">Sanhocbong Eligibility</h1>
       </div>
 
       <div className="mb-6">
@@ -159,6 +161,7 @@ export const EligibilityChecker: React.FC = () => {
           Rule validation issues: {ruleIssues.join('; ')}
         </div>
       )}
+      </div>
     </div>
   );
 };
