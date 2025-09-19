@@ -34,6 +34,11 @@ const applicationTables = {
     createdAt: v.number(),
     createdBy: v.optional(v.string()),
   }).index('by_scholarshipId', ['scholarshipId']),
+  scholarships: defineTable({
+    id: v.string(),
+    name: v.string(),
+    isEnabled: v.boolean(),
+  }).index('by_id', ['id']),
   submissions: defineTable({
     fullName: v.string(),
     email: v.string(),

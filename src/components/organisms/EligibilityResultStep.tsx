@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ResultMessage } from '../molecules/ResultMessage';
 import { SectionTitle } from '../atoms/SectionTitle';
 import { Button } from '../atoms/Button';
@@ -11,6 +11,10 @@ interface Props {
   cheveningEligible: boolean;
   aasReasons: string[];
   cheveningReasons: string[];
+  showAas?: boolean;
+  showChevening?: boolean;
+  aasName?: string;
+  cheveningName?: string;
   onRestart: () => void;
   formData?: any;
   onEdit?: () => void;
@@ -21,21 +25,46 @@ export const EligibilityResultStep: React.FC<Props> = ({
   cheveningEligible,
   aasReasons,
   cheveningReasons,
+  showAas = true,
+  showChevening = true,
+  aasName = 'AAS',
+  cheveningName = 'Chevening',
   onRestart,
   formData,
   onEdit,
 }) => {
-  // Save submission non-blocking when this step mounts
   const saveSubmission = (window as any).useConvexSaveSubmission as undefined | ((data: any) => Promise<void>);
   React.useEffect(() => {
-    // Defer to a global helper injected by parent page to avoid tight coupling here
     if (saveSubmission && formData) {
       saveSubmission({
         formData,
-        result: { aasEligible, aasReasons, cheveningEligible, cheveningReasons },
+        result: {
+          aasEligible: showAas ? aasEligible : false,
+          aasReasons: showAas ? aasReasons : [],
+          cheveningEligible: showChevening ? cheveningEligible : false,
+          cheveningReasons: showChevening ? cheveningReasons : [],
+        },
       }).catch(() => {});
     }
-  }, []);
+  }, [saveSubmission, formData, aasEligible, cheveningEligible, aasReasons, cheveningReasons, showAas, showChevening]);
+
+  const visibleSections = [
+    showAas && {
+      id: 'aas',
+      name: aasName,
+      eligible: aasEligible,
+      reasons: aasReasons,
+    },
+    showChevening && {
+      id: 'chevening',
+      name: cheveningName,
+      eligible: cheveningEligible,
+      reasons: cheveningReasons,
+    },
+  ].filter(Boolean) as Array<{ id: string; name: string; eligible: boolean; reasons: string[] }>;
+
+  const hasEligibleScholarship = visibleSections.some((sch) => sch.eligible);
+
   return (
     <div className="max-w-xl mx-auto p-6 sm:p-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -46,34 +75,26 @@ export const EligibilityResultStep: React.FC<Props> = ({
             </SectionTitle>
             <p className="text-sm text-muted-foreground">Your scholarship eligibility status.</p>
           </CardHeader>
-          <CardContent>
-            <div className="mb-6">
-              <ResultMessage
-                message={aasEligible ? 'You are eligible for AAS' : 'Not eligible for AAS'}
-                type={aasEligible ? 'success' : 'error'}
-              />
-            {!aasEligible && (
-              <ul className="list-disc ml-6 text-sm text-gray-600">
-                {aasReasons.map((r, i) => (
-                  <li key={i}>{r}</li>
-                ))}
-              </ul>
+          <CardContent className="space-y-6">
+            {visibleSections.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No scholarships are currently enabled.</p>
+            ) : (
+              visibleSections.map((sch) => (
+                <div key={sch.id}>
+                  <ResultMessage
+                    message={sch.eligible ? `You are eligible for ${sch.name}` : `Not eligible for ${sch.name}`}
+                    type={sch.eligible ? 'success' : 'error'}
+                  />
+                  {!sch.eligible && sch.reasons.length > 0 && (
+                    <ul className="list-disc ml-6 text-sm text-gray-600">
+                      {sch.reasons.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))
             )}
-          </div>
-
-          <div className="mb-6">
-            <ResultMessage
-              message={cheveningEligible ? 'You are eligible for Chevening' : 'Not eligible for Chevening'}
-              type={cheveningEligible ? 'success' : 'error'}
-            />
-            {!cheveningEligible && (
-              <ul className="list-disc ml-6 text-sm text-gray-600">
-                {cheveningReasons.map((r, i) => (
-                  <li key={i}>{r}</li>
-                ))}
-              </ul>
-            )}
-          </div>
           </CardContent>
           <CardFooter>
             <div className="w-full text-center">
@@ -87,6 +108,9 @@ export const EligibilityResultStep: React.FC<Props> = ({
                 </Button>
                 <Button className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-full" onClick={onRestart}>Restart Form</Button>
               </div>
+              {visibleSections.length > 0 && hasEligibleScholarship && (
+                <p className="mt-4 text-sm text-green-700">Congratulations! You are eligible for at least one scholarship.</p>
+              )}
             </div>
           </CardFooter>
         </Card>

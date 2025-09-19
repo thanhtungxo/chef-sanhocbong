@@ -84,3 +84,15 @@ export function evaluateEligibility(
     failedRules: failed,
   };
 }
+
+export interface ScholarshipEvaluationSummary {
+  id: string;
+  name: string;
+  eligible: boolean;
+  reasons: string[];
+}
+
+export interface EligibilityResult {
+  applicationId: string;
+  scholarships: ScholarshipEvaluationSummary[];
+}

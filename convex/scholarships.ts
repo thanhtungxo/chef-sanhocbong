@@ -1,8 +1,60 @@
-import { mutation, query } from "./_generated/server";
+﻿import { mutation, query } from "./_generated/server";
+import type { Id, Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
 import { toAnswerSet } from "../src/lib/mappers";
 import { validateRules } from "../src/lib/engine/schema";
+
+const SCHOLARSHIP_PRESETS = [
+  { id: "aas", name: "Australia Awards Scholarship (AAS)" },
+  { id: "chevening", name: "Chevening Scholarship" },
+] as const;
+
+type PresetId = typeof SCHOLARSHIP_PRESETS[number]["id"];
+const DEFAULT_ENABLED = new Set<PresetId>(["aas", "chevening"]);
+
+const ensurePresetName = (id: string) => {
+  const preset = SCHOLARSHIP_PRESETS.find((p) => p.id === id);
+  return preset ? preset.name : id.toUpperCase();
+};
+
+type ScholarshipDoc = Doc<"scholarships">;
+
+type ScholarshipSummary = {
+  id: string;
+  name: string;
+  isEnabled: boolean;
+  _id?: Id<"scholarships">;
+};
+
+function mergeScholarships(docs: ScholarshipDoc[]): ScholarshipSummary[] {
+  const byId = new Map<string, ScholarshipDoc>();
+  for (const doc of docs) {
+    byId.set(doc.id, doc);
+  }
+  const result: ScholarshipSummary[] = SCHOLARSHIP_PRESETS.map((preset) => {
+    const doc = byId.get(preset.id);
+    return {
+      id: preset.id,
+      name: doc?.name ?? preset.name,
+      isEnabled: doc?.isEnabled ?? true,
+      _id: doc?._id,
+    };
+  });
+  for (const doc of docs) {
+    if (!SCHOLARSHIP_PRESETS.some((preset) => preset.id === doc.id)) {
+      result.push({ id: doc.id, name: doc.name, isEnabled: doc.isEnabled, _id: doc._id });
+    }
+  }
+  return result;
+}
+
+const isScholarshipEnabled = (summaries: ScholarshipSummary[], id: string) => {
+  const match = summaries.find((s) => s.id === id);
+  if (match) return match.isEnabled;
+  if (DEFAULT_ENABLED.has(id as PresetId)) return true;
+  return true;
+};
 
 export const submitApplication = mutation({
   args: {
@@ -25,7 +77,6 @@ export const submitApplication = mutation({
     englishScore: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // Derive age from dateOfBirth to match rule fields
     const birthDate = new Date(args.dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -34,18 +85,22 @@ export const submitApplication = mutation({
 
     const answers = toAnswerSet({ ...args, age } as Record<string, any>);
 
+    const summaries = mergeScholarships(await ctx.db.query("scholarships").collect());
+    const evalAas = isScholarshipEnabled(summaries, "aas");
+    const evalChe = isScholarshipEnabled(summaries, "chevening");
+
     const [aasRules, cheRules] = await Promise.all([
-      loadRulesServer(ctx, "aas"),
-      loadRulesServer(ctx, "chevening"),
+      evalAas ? loadRulesServer(ctx, "aas") : Promise.resolve([]),
+      evalChe ? loadRulesServer(ctx, "chevening") : Promise.resolve([]),
     ]);
 
-    const aas = evaluateWithRules(answers, aasRules);
-    const che = evaluateWithRules(answers, cheRules);
+    const aas = evalAas ? evaluateWithRules(answers, aasRules) : { passed: false, failedRules: [] };
+    const che = evalChe ? evaluateWithRules(answers, cheRules) : { passed: false, failedRules: [] };
 
-    const aasEligible = aas.passed;
-    const cheveningEligible = che.passed;
-    const aasReasons = aas.failedRules.map((r) => r.message);
-    const cheveningReasons = che.failedRules.map((r) => r.message);
+    const aasEligible = evalAas ? aas.passed : false;
+    const cheveningEligible = evalChe ? che.passed : false;
+    const aasReasons = evalAas ? aas.failedRules.map((r) => r.message) : [];
+    const cheveningReasons = evalChe ? che.failedRules.map((r) => r.message) : [];
 
     const applicationId = await ctx.db.insert("scholarshipApplications", {
       ...args,
@@ -157,5 +212,27 @@ export const publishRuleset = mutation({
       createdAt: Date.now(),
     });
     return { ok: true, id };
+  },
+});
+
+export const listScholarships = query({
+  args: {},
+  handler: async (ctx) => {
+    const docs = await ctx.db.query("scholarships").collect();
+    return mergeScholarships(docs).map(({ id, name, isEnabled }) => ({ id, name, isEnabled }));
+  },
+});
+
+export const toggleScholarship = mutation({
+  args: { id: v.string(), enabled: v.boolean() },
+  handler: async (ctx, args) => {
+    const existing = (await ctx.db.query("scholarships").collect()).find((doc) => doc.id === args.id);
+    if (!existing) {
+      const name = ensurePresetName(args.id);
+      const _id = await ctx.db.insert("scholarships", { id: args.id, name, isEnabled: args.enabled });
+      return { id: args.id, name, isEnabled: args.enabled, _id };
+    }
+    await ctx.db.patch(existing._id, { isEnabled: args.enabled });
+    return { id: existing.id, name: existing.name, isEnabled: args.enabled, _id: existing._id };
   },
 });

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { Progress } from "@/components/atoms/Progress";
 import { Input } from "@/components/atoms/Input";
 import { Select } from "@/components/atoms/Select";
@@ -7,6 +7,9 @@ import { Label } from "@/components/atoms/Label";
 import { Button } from "@/components/atoms/Button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/atoms/Card";
 import { toast } from "sonner";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { EligibilityResult } from "../../../types/eligibility";
 import { evaluateScholarshipsLocally } from "@/lib/submit";
 import { t } from "@/lib/i18n";
 import { z } from "zod";
@@ -38,14 +41,6 @@ interface FormData {
   englishScore?: number;
 }
 
-interface EligibilityResult {
-  applicationId: IdString;
-  aasEligible: boolean;
-  aasReasons: string[];
-  cheveningEligible: boolean;
-  cheveningReasons: string[];
-}
-
 export function LegacyWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -70,6 +65,40 @@ export function LegacyWizard() {
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const scholarships = useQuery(api.scholarships.listScholarships, {});
+  const scholarshipConfig = useMemo(() => {
+    if (!scholarships) {
+      return {
+        aas: { enabled: true, name: "AAS" },
+        chevening: { enabled: true, name: "Chevening" },
+        activeNames: null as string[] | null,
+      };
+    }
+    const byId = new Map(scholarships.map((s) => [s.id, s]));
+    return {
+      aas: {
+        enabled: byId.get("aas")?.isEnabled ?? false,
+        name: byId.get("aas")?.name ?? "AAS",
+      },
+      chevening: {
+        enabled: byId.get("chevening")?.isEnabled ?? false,
+        name: byId.get("chevening")?.name ?? "Chevening",
+      },
+      activeNames: scholarships.filter((s) => s.isEnabled).map((s) => s.name),
+    };
+  }, [scholarships]);
+
+  const isAasEnabled = scholarshipConfig.aas.enabled;
+  const aasName = scholarshipConfig.aas.name;
+  const isCheveningEnabled = scholarshipConfig.chevening.enabled;
+  const cheveningName = scholarshipConfig.chevening.name;
+  const hasAnyScholarship = isAasEnabled || isCheveningEnabled;
+  const subtitleText = scholarshipConfig.activeNames === null
+    ? t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')
+    : scholarshipConfig.activeNames.length
+      ? `Check your eligibility for ${scholarshipConfig.activeNames.join(' & ')}`
+      : 'Currently no scholarships are enabled.';
+
   const totalSteps = 4;
 
   const updateFormData = (field: keyof FormData, value: any) => {
@@ -86,18 +115,32 @@ export function LegacyWizard() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const res = await evaluateScholarshipsLocally(formData as any);
-      setResult(res as any);
+      if (!hasAnyScholarship) {
+        toast.warning('No scholarships are currently enabled.');
+        setIsSubmitting(false);
+        return;
+      }
+      const enabledIds: string[] = [];
+      const nameOverrides: Record<string, string> = {};
+      if (isAasEnabled) {
+        enabledIds.push('aas');
+        nameOverrides.aas = aasName;
+      }
+      if (isCheveningEnabled) {
+        enabledIds.push('chevening');
+        nameOverrides.chevening = cheveningName;
+      }
+      const res = await evaluateScholarshipsLocally(formData as any, enabledIds, nameOverrides);
+      setResult(res);
       setCurrentStep(5);
-      toast.success("Application submitted successfully!");
+      toast.success('Application submitted successfully!');
     } catch (e) {
-      toast.error("Failed to submit application. Please try again.");
+      toast.error('Failed to submit application. Please try again.');
       console.error(e);
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const resetForm = () => {
     setCurrentStep(1);
     setFormData({
@@ -126,12 +169,17 @@ export function LegacyWizard() {
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-start justify-center px-4 py-10">
       <div className="w-full max-w-3xl">
         <div className="text-center mb-8">
-          <span className="mx-auto inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary">🎓</span>
+          <span className="mx-auto inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary">??</span>
           <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">{t('ui.title', 'Scholarship Eligibility Checker')}</h1>
-          <p className="text-sm text-muted-foreground">{t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')}</p>
+          <p className="text-sm text-muted-foreground">{subtitleText}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
+          {!hasAnyScholarship && (
+            <div className="mb-6 rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+              All scholarships are currently disabled in the admin dashboard. Enable at least one to use this wizard.
+            </div>
+          )}
           {currentStep <= totalSteps && (
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
@@ -165,7 +213,7 @@ export function LegacyWizard() {
             <EmploymentStep formData={formData} updateFormData={updateFormData} onNext={nextStep} onPrev={prevStep} />
           )}
           {currentStep === 4 && (
-            <FinalQuestionsStep formData={formData} updateFormData={updateFormData} onSubmit={handleSubmit} onPrev={prevStep} isSubmitting={isSubmitting} />
+            <FinalQuestionsStep formData={formData} updateFormData={updateFormData} onSubmit={handleSubmit} onPrev={prevStep} isSubmitting={isSubmitting} isSubmitAllowed={hasAnyScholarship} />
           )}
           {currentStep === 5 && result && (
             <ResultsPage result={result} onReset={resetForm} />
@@ -704,7 +752,7 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
       </Form>
       <div className="flex justify-between">
         <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
-        <Button onClick={handleSubmitClick} disabled={!canProceed || isSubmitting} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
+        <Button onClick={handleSubmitClick} disabled={!canProceed || isSubmitting || !isSubmitAllowed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
           {isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}
         </Button>
       </div>
@@ -712,53 +760,114 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
   );
 }
 function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: () => void; }) {
-  const hasEligibleScholarship = result.aasEligible || result.cheveningEligible;
+  const styleMap: Record<string, { gradient: string; accent: string; badge: string; title: string }> = {
+    aas: {
+      gradient: "from-orange-50 to-orange-100",
+      accent: "bg-orange-500",
+      badge: "AAS",
+      title: "Australia Awards",
+    },
+    chevening: {
+      gradient: "from-blue-50 to-blue-100",
+      accent: "bg-blue-500",
+      badge: "CHV",
+      title: "Chevening",
+    },
+  };
+
+  const hasScholarships = result.scholarships.length > 0;
+  const hasEligibleScholarship = result.scholarships.some((s) => s.eligible);
+
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Scholarship Eligibility Results</h2>
-        <p className="text-lg text-gray-600">Here are your eligibility results for both scholarships</p>
+        <p className="text-lg text-gray-600">
+          {hasScholarships ? 'Here are your eligibility results for active scholarships.' : 'No scholarships are currently enabled.'}
+        </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg border">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
-              <span className="text-white font-bold text-lg">AAS</span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900">Australia Awards</h3>
-          </div>
-          {result.aasEligible ? (
-            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">âœ”</span><span className="font-semibold">You are eligible to apply for AAS!</span></div>
-          ) : (
-            <div>
-              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">âœ–</span><span className="font-semibold">You are not eligible for AAS</span></div>
-              <div className="text-sm text-gray-700"><p className="font-medium mb-2">Reasons:</p><ul className="list-disc list-inside space-y-1">{result.aasReasons.map((r, i) => (<li key={i}>{r}</li>))}</ul></div>
-            </div>
-          )}
+      {hasScholarships && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {result.scholarships.map((sch) => {
+            const style = styleMap[sch.id] ?? {
+              gradient: "from-slate-50 to-slate-100",
+              accent: "bg-slate-500",
+              badge: sch.id.slice(0, 3).toUpperCase(),
+              title: sch.name,
+            };
+            return (
+              <div key={sch.id} className={`bg-gradient-to-br ${style.gradient} p-6 rounded-lg border`}>
+                <div className="flex items-center mb-4">
+                  <div className={`w-12 h-12 ${style.accent} rounded-full flex items-center justify-center mr-4`}>
+                    <span className="text-white font-bold text-lg">{style.badge}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">{style.title}</h3>
+                </div>
+                {sch.eligible ? (
+                  <div className="flex items-center text-green-700 mb-4">
+                    <span className="text-2xl mr-2">✔</span>
+                    <span className="font-semibold">You are eligible for {sch.name}!</span>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center text-red-700 mb-4">
+                      <span className="text-2xl mr-2">✔</span>
+                      <span className="font-semibold">You are not eligible for {sch.name}</span>
+                    </div>
+                    {sch.reasons.length > 0 && (
+                      <div className="text-sm text-gray-700">
+                        <p className="font-medium mb-2">Reasons:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {sch.reasons.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4"><span className="text-white font-bold text-lg">CHV</span></div>
-            <h3 className="text-xl font-semibold text-gray-900">Chevening</h3>
-          </div>
-          {result.cheveningEligible ? (
-            <div className="flex items-center text-green-700 mb-4"><span className="text-2xl mr-2">âœ”</span><span className="font-semibold">You are eligible to apply for Chevening!</span></div>
-          ) : (
-            <div>
-              <div className="flex items-center text-red-700 mb-4"><span className="text-2xl mr-2">âœ–</span><span className="font-semibold">You are not eligible for Chevening</span></div>
-              <div className="text-sm text-gray-700"><p className="font-medium mb-2">Reasons:</p><ul className="list-disc list-inside space-y-1">{result.cheveningReasons.map((r, i) => (<li key={i}>{r}</li>))}</ul></div>
-            </div>
-          )}
-        </div>
-      </div>
-      {hasEligibleScholarship && (
+      )}
+      {hasScholarships && hasEligibleScholarship && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <div className="flex items-center mb-2"><span className="text-2xl mr-2">ðŸŽ‰</span><h4 className="text-lg font-semibold text-green-800">Congratulations!</h4></div>
+          <div className="flex items-center mb-2">
+            <span className="text-2xl mr-2">🎉</span>
+            <h4 className="text-lg font-semibold text-green-800">Congratulations!</h4>
+          </div>
           <p className="text-green-700">You are eligible for at least one scholarship! We recommend you start preparing your application early. Good luck with your scholarship journey!</p>
         </div>
       )}
-      <div className="text-center"><button onClick={onReset} className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Check Another Application</button></div>
+      <div className="text-center">
+        <button onClick={onReset} className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Check Another Application</button>
+      </div>
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
