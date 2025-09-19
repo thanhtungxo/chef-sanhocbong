@@ -5,6 +5,7 @@ import { Select } from "@/components/atoms/Select";
 import { Radio } from "@/components/atoms/Radio";
 import { Label } from "@/components/atoms/Label";
 import { Button } from "@/components/atoms/Button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/atoms/Card";
 import { toast } from "sonner";
 import { evaluateScholarshipsLocally } from "@/lib/submit";
 import { t } from "@/lib/i18n";
@@ -12,8 +13,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
-import { AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { AlertCircle, User, Mail, CalendarDays, Briefcase, Building2, Globe, GraduationCap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type IdString = string;
 
@@ -122,11 +123,12 @@ export function LegacyWizard() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-start justify-center px-4 py-10">
+      <div className="w-full max-w-3xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('ui.title', 'Scholarship Eligibility Checker')}</h1>
-          <p className="text-lg text-gray-600">{t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')}</p>
+          <span className="mx-auto inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary">🎓</span>
+          <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">{t('ui.title', 'Scholarship Eligibility Checker')}</h1>
+          <p className="text-sm text-muted-foreground">{t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
@@ -137,6 +139,19 @@ export function LegacyWizard() {
                 <span className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
               </div>
               <Progress value={(currentStep / totalSteps) * 100} />
+              <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+                {[1,2,3,4].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { if (idx <= currentStep) setCurrentStep(idx) }}
+                    className={`px-3 py-1 rounded-full border ${idx < currentStep ? 'bg-primary/10 text-foreground hover:bg-primary/20' : idx === currentStep ? 'bg-primary text-white' : 'bg-muted text-muted-foreground cursor-not-allowed'} transition-colors`}
+                    disabled={idx > currentStep}
+                    aria-disabled={idx > currentStep}
+                  >
+                    {idx}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -195,7 +210,8 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               <FormLabel>{t('ui.fullName.label', 'Full Name *')}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input aria-invalid={!!form.formState.errors.fullName} aria-describedby="lw-fullname" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('fullName', (e.target as HTMLInputElement).value) }} placeholder={t('ui.fullName.placeholder', 'Enter your full name')} />
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><User className="h-4 w-4 text-muted-foreground" /></span>
+                  <Input aria-invalid={!!form.formState.errors.fullName} aria-describedby="lw-fullname" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('fullName', (e.target as HTMLInputElement).value) }} placeholder={t('ui.fullName.placeholder', 'Enter your full name')} className="pl-10" />
                   {form.formState.errors.fullName && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                 </div>
               </FormControl>
@@ -207,7 +223,8 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               <FormLabel>{t('ui.email.label', 'Email Address *')}</FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input type="email" aria-invalid={!!form.formState.errors.email} aria-describedby="lw-email" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('email', (e.target as HTMLInputElement).value) }} placeholder={t('ui.email.placeholder', 'Enter your email address')} />
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Mail className="h-4 w-4 text-muted-foreground" /></span>
+                  <Input type="email" aria-invalid={!!form.formState.errors.email} aria-describedby="lw-email" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('email', (e.target as HTMLInputElement).value) }} placeholder={t('ui.email.placeholder', 'Enter your email address')} className="pl-10" />
                   {form.formState.errors.email && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
                 </div>
               </FormControl>
@@ -219,7 +236,10 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             <FormItem>
               <FormLabel>{t('ui.dob.label', 'Date of Birth *')}</FormLabel>
               <FormControl>
-                <Input type="date" aria-invalid={!!form.formState.errors.dateOfBirth} aria-describedby="lw-dob" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('dateOfBirth', (e.target as HTMLInputElement).value) }} />
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><CalendarDays className="h-4 w-4 text-muted-foreground" /></span>
+                  <Input type="date" aria-invalid={!!form.formState.errors.dateOfBirth} aria-describedby="lw-dob" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('dateOfBirth', (e.target as HTMLInputElement).value) }} className="pl-10" />
+                </div>
               </FormControl>
               <FormMessage id="lw-dob" />
             </FormItem>
@@ -244,11 +264,14 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             <FormItem>
               <FormLabel>{t('ui.citizenship.label', 'Country of Citizenship *')}</FormLabel>
               <FormControl>
-                <Select value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('countryOfCitizenship', (e.target as any).value) }}>
-                  <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
-                  <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
-                  <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
-                </Select>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Globe className="h-4 w-4 text-muted-foreground" /></span>
+                  <Select value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('countryOfCitizenship', (e.target as any).value) }}>
+                    <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
+                    <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
+                    <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
+                  </Select>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -257,7 +280,10 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             <FormItem>
               <FormLabel>{t('ui.city.label', 'Current City of Residence *')}</FormLabel>
               <FormControl>
-                <Input value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('currentCity', (e.target as HTMLInputElement).value) }} placeholder={t('ui.city.placeholder', 'Enter your current city')} />
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Building2 className="h-4 w-4 text-muted-foreground" /></span>
+                  <Input value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('currentCity', (e.target as HTMLInputElement).value) }} placeholder={t('ui.city.placeholder', 'Enter your current city')} className="pl-10" />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
