@@ -2,8 +2,9 @@
 import type { Id, Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
-import { toAnswerSet } from "../src/lib/mappers";
-import { validateRules } from "../src/lib/engine/schema";
+import { toAnswerSet } from "./shared/mappers";
+import { validateRules } from "./shared/engine/schema";
+import type { EligibilityRule } from "./shared/eligibility";
 
 const SCHOLARSHIP_PRESETS = [
   { id: "aas", name: "Australia Awards Scholarship (AAS)" },
@@ -94,13 +95,17 @@ export const submitApplication = mutation({
       evalChe ? loadRulesServer(ctx, "chevening") : Promise.resolve([]),
     ]);
 
-    const aas = evalAas ? evaluateWithRules(answers, aasRules) : { passed: false, failedRules: [] };
-    const che = evalChe ? evaluateWithRules(answers, cheRules) : { passed: false, failedRules: [] };
+    const aas = evalAas
+      ? evaluateWithRules(answers, aasRules)
+      : { passed: false, failedRules: [] as EligibilityRule[] };
+    const che = evalChe
+      ? evaluateWithRules(answers, cheRules)
+      : { passed: false, failedRules: [] as EligibilityRule[] };
 
     const aasEligible = evalAas ? aas.passed : false;
     const cheveningEligible = evalChe ? che.passed : false;
-    const aasReasons = evalAas ? aas.failedRules.map((r) => r.message) : [];
-    const cheveningReasons = evalChe ? che.failedRules.map((r) => r.message) : [];
+    const aasReasons = evalAas ? aas.failedRules.map((r: EligibilityRule) => r.message) : [];
+    const cheveningReasons = evalChe ? che.failedRules.map((r: EligibilityRule) => r.message) : [];
 
     const applicationId = await ctx.db.insert("scholarshipApplications", {
       ...args,

@@ -1,0 +1,37 @@
+[
+  {
+    "field": "ielts",
+    "type": "minScore",
+    "value": 6.5,
+    "message": "Điểm IELTS của bạn chưa đạt yêu cầu tối thiểu (6.5)",
+    "messageKey": "aas.ielts.min"
+  },
+  {
+    "field": "military",
+    "type": "boolean",
+    "value": false,
+    "message": "Bạn đang công tác trong cơ quan quân đội hoặc an ninh",
+    "messageKey": "aas.military.block"
+  },
+  {
+    "field": "companyOwnership",
+    "type": "select",
+    "value": "vietnamese_owned",
+    "message": "Công ty bạn làm trực thuộc sở hữu Việt Nam",
+    "messageKey": "aas.ownership.vn"
+  },
+  {
+    "field": "workExperience",
+    "type": "minScore",
+    "value": 2,
+    "message": "Bạn cần ít nhất 2 năm kinh nghiệm toàn thời gian",
+    "messageKey": "aas.experience.min"
+  },
+  {
+    "field": "countryOfResidence",
+    "type": "select",
+    "value": "vietnam",
+    "message": "Bạn hiện không cư trú tại Việt Nam",
+    "messageKey": "aas.residence.vn"
+  }
+]

@@ -38,7 +38,7 @@ const applicationTables = {
     id: v.string(),
     name: v.string(),
     isEnabled: v.boolean(),
-  }).index('by_id', ['id']),
+  }).index('by_public_id', ['id']),
   submissions: defineTable({
     fullName: v.string(),
     email: v.string(),

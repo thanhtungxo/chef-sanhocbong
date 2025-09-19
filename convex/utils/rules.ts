@@ -1,6 +1,6 @@
-import type { RuleNode } from "../../src/lib/engine/schema";
-import { evaluateEligibility } from "../../types/eligibility";
-import { validateRules } from "../../src/lib/engine/schema";
+import type { RuleNode } from "../shared/engine/schema";
+import { evaluateEligibility } from "../shared/eligibility";
+import { validateRules } from "../shared/engine/schema";
 import type { QueryCtx } from "../_generated/server";
 
 export type ScholarshipId = string; // server accepts any string id
@@ -9,11 +9,11 @@ async function importJsonFallback(id: ScholarshipId): Promise<unknown | undefine
   try {
     switch (id) {
       case "aas": {
-        const mod = await import("../../types/rules/aas.json");
+        const mod = await import("../shared/rules/aas.json");
         return (mod as any).default ?? mod;
       }
       case "chevening": {
-        const mod = await import("../../types/rules/chevening.json");
+        const mod = await import("../shared/rules/chevening.json");
         return (mod as any).default ?? mod;
       }
       default:

@@ -660,12 +660,13 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
   );
 }
 
-function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubmitting }: {
+function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubmitting, isSubmitAllowed }: {
   formData: FormData;
   updateFormData: (field: keyof FormData, value: any) => void;
   onSubmit: () => void;
   onPrev: () => void;
   isSubmitting: boolean;
+  isSubmitAllowed: boolean;
 }) {
   const schema = z.object({
     planToReturn: z.boolean(),
