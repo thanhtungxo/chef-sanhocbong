@@ -176,122 +176,275 @@ export function LegacyWizard() {
   );
 }
 
+const personalInfoSchema = z.object({
+  fullName: z.string().min(1, 'Required'),
+  email: z.string().min(1, 'Required').email('Invalid email'),
+  dateOfBirth: z.string().min(1, 'Required'),
+  gender: z.string().min(1, 'Required'),
+  countryOfCitizenship: z.string().min(1, 'Required'),
+  currentCity: z.string().min(1, 'Required'),
+});
+
+type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
+
 function PersonalInfoStep({ formData, updateFormData, onNext }: {
   formData: FormData;
   updateFormData: (field: keyof FormData, value: any) => void;
   onNext: () => void;
 }) {
-  const schema = z.object({
-    fullName: z.string().min(1, 'Required'),
-    email: z.string().email('Invalid email'),
-    dateOfBirth: z.string().min(1, 'Required'),
-    gender: z.string().min(1, 'Required'),
-    countryOfCitizenship: z.string().min(1, 'Required'),
-    currentCity: z.string().min(1, 'Required'),
-  })
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: formData as any,
+  const form = useForm<PersonalInfoFormValues>({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: {
+      fullName: formData.fullName ?? '',
+      email: formData.email ?? '',
+      dateOfBirth: formData.dateOfBirth ?? '',
+      gender: formData.gender ?? '',
+      countryOfCitizenship: formData.countryOfCitizenship ?? '',
+      currentCity: formData.currentCity ?? '',
+    },
     mode: 'onChange',
-  })
-  const [shake, setShake] = useState(false)
-  const canProceed = form.formState.isValid
-  const handleNext = form.handleSubmit(
-    () => onNext(),
-    () => { setShake(true); setTimeout(() => setShake(false), 300) }
-  )
+  });
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+  } = form;
+  const [shake, setShake] = useState(false);
+
+  const genderOptions = [
+    t('ui.gender.male', 'Male'),
+    t('ui.gender.female', 'Female'),
+    t('ui.gender.other', 'Other'),
+    t('ui.gender.na', 'Prefer not to say'),
+  ];
+  const genderValue = watch('gender');
+
+  const handleNext = handleSubmit(
+    () => {
+      onNext();
+    },
+    () => {
+      setShake(true);
+      setTimeout(() => setShake(false), 300);
+    }
+  );
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.personal.title', 'Personal Information')}</h2>
       <Form {...form}>
-        <motion.form className="space-y-4" onSubmit={(e) => e.preventDefault()} animate={shake ? { x: [0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
-          <FormField name="fullName" control={form.control} render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('ui.fullName.label', 'Full Name *')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><User className="h-4 w-4 text-muted-foreground" /></span>
-                  <Input aria-invalid={!!form.formState.errors.fullName} aria-describedby="lw-fullname" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('fullName', (e.target as HTMLInputElement).value) }} placeholder={t('ui.fullName.placeholder', 'Enter your full name')} className="pl-10" />
-                  {form.formState.errors.fullName && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
-                </div>
-              </FormControl>
-              <FormMessage id="lw-fullname" />
-            </FormItem>
-          )} />
-          <FormField name="email" control={form.control} render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('ui.email.label', 'Email Address *')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Mail className="h-4 w-4 text-muted-foreground" /></span>
-                  <Input type="email" aria-invalid={!!form.formState.errors.email} aria-describedby="lw-email" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('email', (e.target as HTMLInputElement).value) }} placeholder={t('ui.email.placeholder', 'Enter your email address')} className="pl-10" />
-                  {form.formState.errors.email && <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
-                </div>
-              </FormControl>
-              <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help','ChÃºng tÃ´i sáº½ dÃ¹ng Ä‘á»ƒ gá»­i káº¿t quáº£ kiá»ƒm tra.')}</p>
-              <FormMessage id="lw-email" />
-            </FormItem>
-          )} />
-          <FormField name="dateOfBirth" control={form.control} render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('ui.dob.label', 'Date of Birth *')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><CalendarDays className="h-4 w-4 text-muted-foreground" /></span>
-                  <Input type="date" aria-invalid={!!form.formState.errors.dateOfBirth} aria-describedby="lw-dob" value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('dateOfBirth', (e.target as HTMLInputElement).value) }} className="pl-10" />
-                </div>
-              </FormControl>
-              <FormMessage id="lw-dob" />
-            </FormItem>
-          )} />
-          <FormField name="gender" control={form.control} render={() => (
-            <FormItem>
-              <FormLabel>{t('ui.gender.label', 'Gender *')}</FormLabel>
-              <FormControl>
-                <div className="space-y-2">
-                  {[t('ui.gender.male', 'Male'), t('ui.gender.female', 'Female'), t('ui.gender.other', 'Other'), t('ui.gender.na', 'Prefer not to say')].map((option) => (
-                    <label key={option} className="flex items-center gap-3">
-                      <Radio name="gender" value={option} checked={form.watch('gender') === option} onChange={(e) => { form.setValue('gender', (e.target as HTMLInputElement).value, { shouldValidate: true }); updateFormData('gender', (e.target as HTMLInputElement).value) }} />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField name="countryOfCitizenship" control={form.control} render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('ui.citizenship.label', 'Country of Citizenship *')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Globe className="h-4 w-4 text-muted-foreground" /></span>
-                  <Select value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('countryOfCitizenship', (e.target as any).value) }}>
-                    <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
-                    <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
-                    <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
-                  </Select>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField name="currentCity" control={form.control} render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('ui.city.label', 'Current City of Residence *')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none"><Building2 className="h-4 w-4 text-muted-foreground" /></span>
-                  <Input value={field.value ?? ''} onChange={(e) => { field.onChange(e); updateFormData('currentCity', (e.target as HTMLInputElement).value) }} placeholder={t('ui.city.placeholder', 'Enter your current city')} className="pl-10" />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+        <motion.form
+          className="space-y-4"
+          onSubmit={(event) => event.preventDefault()}
+          animate={shake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          <FormField
+            control={control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.fullName.label', 'Full Name *')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Input
+                      ref={field.ref}
+                      name={field.name}
+                      value={field.value ?? ''}
+                      onBlur={field.onBlur}
+                      aria-invalid={Boolean(errors.fullName)}
+                      aria-describedby="lw-fullname"
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('fullName', value);
+                      }}
+                      placeholder={t('ui.fullName.placeholder', 'Enter your full name')}
+                      className="pl-10"
+                    />
+                    {errors.fullName && (
+                      <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage id="lw-fullname" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.email.label', 'Email Address *')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Input
+                      ref={field.ref}
+                      name={field.name}
+                      type="email"
+                      value={field.value ?? ''}
+                      onBlur={field.onBlur}
+                      aria-invalid={Boolean(errors.email)}
+                      aria-describedby="lw-email"
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('email', value);
+                      }}
+                      placeholder={t('ui.email.placeholder', 'Enter your email address')}
+                      className="pl-10"
+                    />
+                    {errors.email && (
+                      <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                </FormControl>
+                <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help', 'We only use this to email your results.')}</p>
+                <FormMessage id="lw-email" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.dob.label', 'Date of Birth *')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Input
+                      ref={field.ref}
+                      name={field.name}
+                      type="date"
+                      value={field.value ?? ''}
+                      onBlur={field.onBlur}
+                      aria-invalid={Boolean(errors.dateOfBirth)}
+                      aria-describedby="lw-dob"
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('dateOfBirth', value);
+                      }}
+                      className="pl-10"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage id="lw-dob" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="gender"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.gender.label', 'Gender *')}</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    {genderOptions.map((option) => (
+                      <label key={option} className="flex items-center gap-3">
+                        <Radio
+                          name={field.name}
+                          value={option}
+                          checked={genderValue === option}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            field.onChange(value);
+                            updateFormData('gender', value);
+                          }}
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="countryOfCitizenship"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.citizenship.label', 'Country of Citizenship *')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Select
+                      className="w-full pl-10"
+                      value={field.value ?? ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('countryOfCitizenship', value);
+                      }}
+                    >
+                      <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
+                      <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
+                      <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
+                    </Select>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="currentCity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('ui.city.label', 'Current City of Residence *')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Input
+                      ref={field.ref}
+                      name={field.name}
+                      value={field.value ?? ''}
+                      onBlur={field.onBlur}
+                      aria-invalid={Boolean(errors.currentCity)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('currentCity', value);
+                      }}
+                      placeholder={t('ui.city.placeholder', 'Enter your current city')}
+                      className="pl-10"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </motion.form>
       </Form>
       <div className="flex justify-end">
-        <Button onClick={handleNext} disabled={!canProceed} className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md">{t('ui.next', 'Next')}</Button>
+        <Button
+          type="button"
+          onClick={handleNext}
+          disabled={!isValid}
+          className="bg-gradient-to-r from-primary to-primary/80 text-white hover:scale-105 transition-transform duration-200 h-11 px-6 rounded-md"
+        >
+          {t('ui.next', 'Next')}
+        </Button>
       </div>
     </div>
   );
