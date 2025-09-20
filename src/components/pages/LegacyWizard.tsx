@@ -29,6 +29,7 @@ interface FormData {
   countryOfCitizenship: string;
   currentCity: string;
   highestQualification: string;
+  gpa: number;
   yearsOfExperience: number;
   currentJobTitle: string;
   employerName: string;
@@ -42,6 +43,8 @@ interface FormData {
   // New fields for Personal Info step
   hasSpouseAuNzCitizenOrPR?: boolean;
   hasCriminalRecordOrInvestigation?: boolean;
+  // New fields for Education & Work step
+  vulnerableGroups: string[];
 }
 
 export function LegacyWizard() {
@@ -54,6 +57,7 @@ export function LegacyWizard() {
     countryOfCitizenship: "",
     currentCity: "",
     highestQualification: "",
+    gpa: 0,
     yearsOfExperience: 0,
     currentJobTitle: "",
     employerName: "",
@@ -66,6 +70,7 @@ export function LegacyWizard() {
     englishScore: undefined,
     hasSpouseAuNzCitizenOrPR: undefined,
     hasCriminalRecordOrInvestigation: undefined,
+    vulnerableGroups: [],
   });
   const [result, setResult] = useState<EligibilityResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -156,6 +161,7 @@ export function LegacyWizard() {
       countryOfCitizenship: "",
       currentCity: "",
       highestQualification: "",
+      gpa: 0,
       yearsOfExperience: 0,
       currentJobTitle: "",
       employerName: "",
@@ -168,6 +174,7 @@ export function LegacyWizard() {
       englishScore: undefined,
       hasSpouseAuNzCitizenOrPR: undefined,
       hasCriminalRecordOrInvestigation: undefined,
+      vulnerableGroups: [],
     });
     setResult(null);
   };
@@ -604,7 +611,11 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
 }) {
   const schema = z.object({
     highestQualification: z.string().min(1, 'Required'),
+    gpa: z.coerce.number(),
     yearsOfExperience: z.coerce.number().min(0, 'Required'),
+    vulnerableGroups: z.array(z.string())
+      .nonempty('Required')
+      .refine(arr => !(arr.includes('none') && arr.some(v => v !== 'none')), 'Invalid selection'),
     currentJobTitle: z.string().min(1, 'Required'),
     employerName: z.string().min(1, 'Required'),
   })
@@ -618,47 +629,122 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
   const canProceed = form.formState.isValid
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6">Education & Work Experience</h2>
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.education.title', 'Education & Work Experience')}</h2>
       <Form {...form}>
         <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
           <FormField name="highestQualification" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>Highest Completed Qualification *</FormLabel>
+              <FormLabel>{t('ui.education.highest.label', 'Highest Completed Qualification *')}</FormLabel>
               <FormControl>
                 <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('highestQualification', (e.target as any).value) }}>
-                  <option value="">Select qualification</option>
-                  <option value="Bachelor">Bachelor's Degree</option>
-                  <option value="Master">Master's Degree</option>
-                  <option value="PhD">PhD</option>
-                  <option value="Other">Other</option>
+                  <option value="">{t('ui.education.highest.select', 'Select qualification')}</option>
+                  <option value="Bachelor">{t('ui.education.highest.bachelor', "Bachelor's Degree")}</option>
+                  <option value="Master">{t('ui.education.highest.master', "Master's Degree")}</option>
+                  <option value="PhD">{t('ui.education.highest.phd', 'PhD')}</option>
+                  <option value="Other">{t('ui.education.highest.other', 'Other')}</option>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="gpa" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>Điểm trung bình (GPA) bậc đại học *</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step={0.1}
+                  value={(field.value as any) ?? ''}
+                  onChange={(e)=>{
+                    const v = parseFloat((e.target as HTMLInputElement).value);
+                    field.onChange(Number.isNaN(v) ? undefined : v);
+                    updateFormData('gpa', Number.isNaN(v) ? 0 : v);
+                  }}
+                  placeholder="Theo thang 10"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField name="yearsOfExperience" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>Years of Full-time Work Experience *</FormLabel>
+              <FormLabel>{t('ui.education.years.label', 'Years of Full-time Work Experience *')}</FormLabel>
               <FormControl>
-                <Input type="number" min={0} value={field.value as any} onChange={(e)=>{ field.onChange(e); updateFormData('yearsOfExperience', parseInt((e.target as HTMLInputElement).value) || 0) }} placeholder="Enter years of experience" />
+                <Input type="number" min={0} value={field.value as any} onChange={(e)=>{ field.onChange(e); updateFormData('yearsOfExperience', parseInt((e.target as HTMLInputElement).value) || 0) }} placeholder={t('ui.education.years.placeholder', 'Enter years of experience')} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
+          <FormField name="vulnerableGroups" control={form.control} render={() => {
+            const selected: string[] = form.watch('vulnerableGroups') ?? [];
+            const hasNone = selected.includes('none');
+            const hasOthers = selected.some((v) => v !== 'none');
+            const toggle = (value: string) => (checked: boolean) => {
+              let next = [...selected];
+              if (value === 'none') {
+                next = checked ? ['none'] : [];
+              } else {
+                next = checked ? [...selected.filter(v=>v!=='none'), value] : selected.filter(v => v !== value);
+              }
+              form.setValue('vulnerableGroups', next, { shouldValidate: true });
+              updateFormData('vulnerableGroups', next);
+            };
+            return (
+              <FormItem>
+                <FormLabel>Bạn có thuộc một trong các nhóm sau? *</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes('disability')}
+                        onChange={(e)=>toggle('disability')(e.target.checked)}
+                        disabled={hasNone}
+                      />
+                      <span className="text-sm font-medium leading-none">Người khuyết tật</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes('hardship_area')}
+                        onChange={(e)=>toggle('hardship_area')(e.target.checked)}
+                        disabled={hasNone}
+                      />
+                      <span className="text-sm font-medium leading-none">
+                        Sinh sống/làm việc tại địa phương khó khăn (
+                        <span className="text-blue-600 underline">Xem danh sách địa phương ở đây</span>
+                        )
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes('none')}
+                        onChange={(e)=>toggle('none')(e.target.checked)}
+                        disabled={hasOthers}
+                      />
+                      <span className="text-sm font-medium leading-none">Không thuộc nhóm nào</span>
+                    </label>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )
+          }} />
           <FormField name="currentJobTitle" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>Current Job Title *</FormLabel>
+              <FormLabel>{t('ui.education.job.label', 'Current Job Title *')}</FormLabel>
               <FormControl>
-                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('currentJobTitle', (e.target as HTMLInputElement).value) }} placeholder="Enter your current job title" />
+                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('currentJobTitle', (e.target as HTMLInputElement).value) }} placeholder={t('ui.education.job.placeholder', 'Enter your current job title')} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
           <FormField name="employerName" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>Employer Name *</FormLabel>
+              <FormLabel>{t('ui.education.employer.label', 'Employer Name *')}</FormLabel>
               <FormControl>
-                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employerName', (e.target as HTMLInputElement).value) }} placeholder="Enter your employer name" />
+                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employerName', (e.target as HTMLInputElement).value) }} placeholder={t('ui.education.employer.placeholder', 'Enter your employer name')} />
               </FormControl>
               <FormMessage />
             </FormItem>
