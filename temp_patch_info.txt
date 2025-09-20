@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Progress } from "@/components/atoms/Progress";
 import { Input } from "@/components/atoms/Input";
 import { Select } from "@/components/atoms/Select";
@@ -190,7 +190,7 @@ export function LegacyWizard() {
           {currentStep <= totalSteps && (
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `BÆ°á»›c ${currentStep} of ${totalSteps}`)}</span>
+                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `Bước ${currentStep} of ${totalSteps}`)}</span>
                 <span className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
               </div>
               <Progress value={(currentStep / totalSteps) * 100} />
@@ -236,11 +236,8 @@ const personalInfoSchema = z.object({
   email: z.string().min(1, 'Required').email('Invalid email'),
   dateOfBirth: z.string().min(1, 'Required'),
   gender: z.string().min(1, 'Required'),
-  // Keep as string for downstream mapping to countryOfResidence
   countryOfCitizenship: z.string().min(1, 'Required'),
   currentCity: z.string().min(1, 'Required'),
-  hasSpouseAuNzCitizenOrPR: z.boolean(),
-  hasCriminalRecordOrInvestigation: z.boolean(),
 });
 
 type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
@@ -259,8 +256,6 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
       gender: formData.gender ?? '',
       countryOfCitizenship: formData.countryOfCitizenship ?? '',
       currentCity: formData.currentCity ?? '',
-      hasSpouseAuNzCitizenOrPR: (formData.hasSpouseAuNzCitizenOrPR as any),
-      hasCriminalRecordOrInvestigation: (formData.hasCriminalRecordOrInvestigation as any),
     },
     mode: 'onChange',
   });
@@ -438,111 +433,25 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             name="countryOfCitizenship"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bạn có quốc tịch Việt Nam và đang cư trú tại Việt Nam *</FormLabel>
+                <FormLabel>{t('ui.citizenship.label', 'Country of Citizenship *')}</FormLabel>
                 <FormControl>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="Vietnam"
-                        checked={(field.value ?? '') === 'Vietnam'}
-                        onChange={() => {
-                          field.onChange('Vietnam');
-                          updateFormData('countryOfCitizenship', 'Vietnam');
-                        }}
-                      />
-                      <span>Có</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="Other"
-                        checked={(field.value ?? '') === 'Other'}
-                        onChange={() => {
-                          field.onChange('Other');
-                          updateFormData('countryOfCitizenship', 'Other');
-                        }}
-                      />
-                      <span>Không</span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="hasSpouseAuNzCitizenOrPR"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bạn có vợ/chồng mang quốc tịch hoặc PR Úc/New Zealand không? *</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="true"
-                        checked={field.value === true}
-                        onChange={() => {
-                          field.onChange(true);
-                          updateFormData('hasSpouseAuNzCitizenOrPR', true);
-                        }}
-                      />
-                      <span>Có</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="false"
-                        checked={field.value === false}
-                        onChange={() => {
-                          field.onChange(false);
-                          updateFormData('hasSpouseAuNzCitizenOrPR', false);
-                        }}
-                      />
-                      <span>Không</span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="hasCriminalRecordOrInvestigation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bạn có từng bị kết án hoặc đang bị điều tra vì các hành vi phạm tội không? *</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="true"
-                        checked={field.value === true}
-                        onChange={() => {
-                          field.onChange(true);
-                          updateFormData('hasCriminalRecordOrInvestigation', true);
-                        }}
-                      />
-                      <span>Có</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="false"
-                        checked={field.value === false}
-                        onChange={() => {
-                          field.onChange(false);
-                          updateFormData('hasCriminalRecordOrInvestigation', false);
-                        }}
-                      />
-                      <span>Không</span>
-                    </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Select
+                      className="w-full pl-10"
+                      value={field.value ?? ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('countryOfCitizenship', value);
+                      }}
+                    >
+                      <option value="">{t('ui.citizenship.select', 'Select your country')}</option>
+                      <option value="Vietnam">{t('ui.citizenship.vietnam', 'Vietnam')}</option>
+                      <option value="Other">{t('ui.citizenship.other', 'Other')}</option>
+                    </Select>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -904,13 +813,13 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
                 </div>
                 {sch.eligible ? (
                   <div className="flex items-center text-green-700 mb-4">
-                    <span className="text-2xl mr-2">✔</span>
+                    <span className="text-2xl mr-2">?</span>
                     <span className="font-semibold">You are eligible for {sch.name}!</span>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-center text-red-700 mb-4">
-                      <span className="text-2xl mr-2">✔</span>
+                      <span className="text-2xl mr-2">?</span>
                       <span className="font-semibold">You are not eligible for {sch.name}</span>
                     </div>
                     {sch.reasons.length > 0 && (
@@ -933,7 +842,7 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
       {hasScholarships && hasEligibleScholarship && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center mb-2">
-            <span className="text-2xl mr-2">🎉</span>
+            <span className="text-2xl mr-2">??</span>
             <h4 className="text-lg font-semibold text-green-800">Congratulations!</h4>
           </div>
           <p className="text-green-700">You are eligible for at least one scholarship! We recommend you start preparing your application early. Good luck with your scholarship journey!</p>
@@ -945,6 +854,7 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
     </div>
   );
 }
+
 
 
 
