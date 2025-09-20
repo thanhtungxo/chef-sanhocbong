@@ -5,6 +5,7 @@ import { t, setLang } from "@/lib/i18n";
 import { listAvailableRuleIds } from "@/lib/engine/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 export const RulesetRegistry: React.FC = () => {
   const publish = useMutation(api.scholarships.publishRuleset);
   const toggleScholarship = useMutation(api.scholarships.toggleScholarship);
+  const addScholarship = useMutation(api.scholarships.addScholarship);
   const scholarships = useQuery(api.scholarships.listScholarships, {});
 
   const [scholarshipId, setScholarshipId] = useState<'aas' | 'chevening'>('aas');
@@ -22,6 +24,8 @@ export const RulesetRegistry: React.FC = () => {
   const [result, setResult] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [newScholarshipName, setNewScholarshipName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const preview = useQuery(api.scholarships.getActiveRules, { scholarshipId });
 
@@ -83,6 +87,26 @@ export const RulesetRegistry: React.FC = () => {
       toast.error(`Failed to update ${name}`);
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const handleAddScholarship = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newScholarshipName.trim();
+    if (!name) {
+      toast.error("Please enter a scholarship name");
+      return;
+    }
+    setAdding(true);
+    try {
+      await addScholarship({ name });
+      toast.success("Scholarship added");
+      setNewScholarshipName("");
+      // list auto-refreshes via useQuery
+    } catch (err) {
+      toast.error("Failed to add scholarship");
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -218,6 +242,17 @@ export const RulesetRegistry: React.FC = () => {
           <CardDescription>Enable or disable scholarships in the public experience.</CardDescription>
         </CardHeader>
         <CardContent>
+          <form onSubmit={handleAddScholarship} className="flex gap-2 mb-4">
+            <Input
+              value={newScholarshipName}
+              onChange={(e) => setNewScholarshipName(e.target.value)}
+              placeholder="New scholarship name"
+              aria-label="New scholarship name"
+            />
+            <Button type="submit" disabled={adding}>
+              Add
+            </Button>
+          </form>
           {!scholarships ? (
             <p className="text-sm text-muted-foreground">Loading scholarships...</p>
           ) : scholarships.length === 0 ? (

@@ -241,3 +241,31 @@ export const toggleScholarship = mutation({
     return { id: existing.id, name: existing.name, isEnabled: args.enabled, _id: existing._id };
   },
 });
+
+export const addScholarship = mutation({
+  args: { name: v.string() },
+  handler: async (ctx, args) => {
+    const raw = args.name.trim();
+    if (!raw) throw new Error("Name is required");
+    const base = raw
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    let id = base || "scholarship";
+    let suffix = 1;
+    // ensure unique public id by checking index
+    while (true) {
+      const existing = await ctx.db
+        .query("scholarships")
+        .withIndex("by_public_id", (q) => q.eq("id", id))
+        .collect();
+      if (!existing.length) break;
+      suffix += 1;
+      id = `${base || "scholarship"}-${suffix}`;
+    }
+    const _id = await ctx.db.insert("scholarships", { id, name: raw, isEnabled: false });
+    return { id, name: raw, isEnabled: false, _id };
+  },
+});
