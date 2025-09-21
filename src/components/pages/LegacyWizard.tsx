@@ -33,8 +33,7 @@ interface FormData {
   yearsOfExperience: number;
   currentJobTitle: string;
   employerName: string;
-  isEmployerVietnameseOwned: boolean;
-  employmentSector: string;
+  employerType?: string;
   hasWorkedInMilitaryPolice: boolean;
   planToReturn: boolean;
   hasStudiedAbroadOnGovScholarship: boolean;
@@ -61,8 +60,7 @@ export function LegacyWizard() {
     yearsOfExperience: 0,
     currentJobTitle: "",
     employerName: "",
-    isEmployerVietnameseOwned: false,
-    employmentSector: "",
+    employerType: "",
     hasWorkedInMilitaryPolice: false,
     planToReturn: false,
     hasStudiedAbroadOnGovScholarship: false,
@@ -165,8 +163,7 @@ export function LegacyWizard() {
       yearsOfExperience: 0,
       currentJobTitle: "",
       employerName: "",
-      isEmployerVietnameseOwned: false,
-      employmentSector: "",
+      employerType: "",
       hasWorkedInMilitaryPolice: false,
       planToReturn: false,
       hasStudiedAbroadOnGovScholarship: false,
@@ -766,8 +763,7 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
   onPrev: () => void;
 }) {
   const schema = z.object({
-    isEmployerVietnameseOwned: z.boolean(),
-    employmentSector: z.string().min(1, 'Required'),
+    employerType: z.string().min(1, 'Required'),
     hasWorkedInMilitaryPolice: z.boolean(),
   })
   const form = useForm<z.infer<typeof schema>>({
@@ -783,51 +779,49 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.employment.title', 'Employment Details')}</h2>
       <Form {...form}>
         <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
-          <FormField name="isEmployerVietnameseOwned" control={form.control} render={() => (
+          <FormField name="employerType" control={form.control} render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('ui.employment.vnOwned.label', 'Is your employer Vietnamese-owned? *')}</FormLabel>
+              <FormLabel>{t('ui.employment.employerType.label', 'Cơ quan/đơn vị bạn đang làm việc')}</FormLabel>
               <FormControl>
                 <div className="space-y-2">
-                  <label className="flex items-center">
-                    <Radio name="isEmployerVietnameseOwned" value="true" checked={form.watch('isEmployerVietnameseOwned') === true} onChange={()=>{ form.setValue('isEmployerVietnameseOwned', true, { shouldValidate:true }); updateFormData('isEmployerVietnameseOwned', true) }} />
-                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-                  </label>
-                  <label className="flex items-center">
-                    <Radio name="isEmployerVietnameseOwned" value="false" checked={form.watch('isEmployerVietnameseOwned') === false} onChange={()=>{ form.setValue('isEmployerVietnameseOwned', false, { shouldValidate:true }); updateFormData('isEmployerVietnameseOwned', false) }} />
-                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
-                  </label>
+                  <Select value={field.value ?? ''} onChange={(e)=>{ const v = (e.target as any).value; field.onChange(e); updateFormData('employerType', v) }}>
+                    <option value="">{t('ui.employment.employerType.select', 'Chọn đơn vị công tác')}</option>
+                    <option value="gov_levels">{t('ui.employment.employerType.opt.gov_levels', 'Cơ quan trung ương / cấp tỉnh / cấp huyện')}</option>
+                    <option value="vocational_school">{t('ui.employment.employerType.opt.vocational_school', 'Trường / cơ sở giáo dục nghề nghiệp')}</option>
+                    <option value="research_institute">{t('ui.employment.employerType.opt.research_institute', 'Viện nghiên cứu (Nhà nước / VN)')}</option>
+                    <option value="provincial_university">{t('ui.employment.employerType.opt.provincial_university', 'Trường ĐH cấp tỉnh')}</option>
+                    <option value="major_city_university">{t('ui.employment.employerType.opt.major_city_university', 'Trường ĐH ở Hà Nội, HCM, Hải Phòng, Đà Nẵng, Cần Thơ')}</option>
+                    <option value="vn_ngo">{t('ui.employment.employerType.opt.vn_ngo', 'Tổ chức phi chính phủ VN')}</option>
+                    <option value="vn_company">{t('ui.employment.employerType.opt.vn_company', 'Công ty của Việt Nam')}</option>
+                    <option value="intl_ngo">{t('ui.employment.employerType.opt.intl_ngo', 'Tổ chức phi chính phủ quốc tế')}</option>
+                    <option value="foreign_company">{t('ui.employment.employerType.opt.foreign_company', 'Công ty nước ngoài')}</option>
+                  </Select>
+                  {form.watch('employerType') === 'vn_company' && (
+                    <p className="text-sm text-muted-foreground">
+                      {t(
+                        'ui.employment.employerType.note',
+                        'Lưu ý: "Công ty Việt Nam" nghĩa là doanh nghiệp được thành lập và đăng ký tại Việt Nam. Các chi nhánh công ty nước ngoài tại Việt Nam không được tính là công ty Việt Nam.'
+                      )}
+                    </p>
+                  )}
                 </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          <FormField name="employmentSector" control={form.control} render={({field}) => (
-            <FormItem>
-              <FormLabel>{t('ui.employment.sector.label', 'Employment Sector *')}</FormLabel>
-              <FormControl>
-                <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employmentSector', (e.target as any).value) }}>
-                  <option value="">{t('ui.employment.sector.select', 'Select sector')}</option>
-                  <option value="Government">{t('ui.employment.sector.government', 'Government')}</option>
-                  <option value="Private">{t('ui.employment.sector.private', 'Private')}</option>
-                  <option value="NGO">{t('ui.employment.sector.ngo', 'NGO')}</option>
-                  <option value="Military/Security">{t('ui.employment.sector.military', 'Military/Security')}</option>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          {null}
           <FormField name="hasWorkedInMilitaryPolice" control={form.control} render={() => (
             <FormItem>
-              <FormLabel>{t('ui.employment.military.label', 'Have you ever worked for or served in the military or police? *')}</FormLabel>
+              <FormLabel>{t('ui.employment.military.label', 'Bạn có đang hoặc đã từng là nhân sự thuộc quân đội/công an không?')}</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <Radio name="hasWorkedInMilitaryPolice" value="true" checked={form.watch('hasWorkedInMilitaryPolice') === true} onChange={()=>{ form.setValue('hasWorkedInMilitaryPolice', true, { shouldValidate:true }); updateFormData('hasWorkedInMilitaryPolice', true) }} />
-                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
+                    <span className="ml-3">{t('ui.common.yes', 'Có')}</span>
                   </label>
                   <label className="flex items-center">
                     <Radio name="hasWorkedInMilitaryPolice" value="false" checked={form.watch('hasWorkedInMilitaryPolice') === false} onChange={()=>{ form.setValue('hasWorkedInMilitaryPolice', false, { shouldValidate:true }); updateFormData('hasWorkedInMilitaryPolice', false) }} />
-                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
+                    <span className="ml-3">{t('ui.common.no', 'Không')}</span>
                   </label>
                 </div>
               </FormControl>
