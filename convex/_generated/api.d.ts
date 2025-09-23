@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as forms from "../forms.js";
 import type * as http from "../http.js";
 import type * as router from "../router.js";
 import type * as scholarships from "../scholarships.js";
@@ -32,6 +33,7 @@ import type * as utils_rules from "../utils/rules.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  forms: typeof forms;
   http: typeof http;
   router: typeof router;
   scholarships: typeof scholarships;
