@@ -71,6 +71,7 @@ const FormBuilder: React.FC = () => {
   const updateQuestion = useMutation(api.forms.updateQuestion);
   const deleteQuestion = useMutation(api.forms.deleteQuestion);
   const reorderQuestions = useMutation(api.forms.reorderQuestions);
+  const seedLegacyForm = useMutation(api.forms.seedLegacyForm);
 
   const [selectedStepId, setSelectedStepId] = React.useState<string | null>(null);
   const [editing, setEditing] = React.useState<null | { mode: 'add'|'edit'; question?: any }>(null);
@@ -99,6 +100,9 @@ const FormBuilder: React.FC = () => {
           >
             Tạo & kích hoạt Form Set
           </button>
+        </div>
+        <div>
+          <button className="text-blue-600 underline text-sm" onClick={async ()=>{ await seedLegacyForm({ forceNew: false } as any); alert('Đã seed form mặc định. Reload tab để thấy dữ liệu.'); }}>Seed form từ Legacy</button>
         </div>
         {!formSets ? (
           <div className="text-sm text-muted-foreground">Đang tải...</div>
