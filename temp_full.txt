@@ -1,0 +1,558 @@
+import React, { useMemo, useState } from "react";
+    hasSpouseAuNzCitizenOrPR: z.boolean(),
+    hasCriminalRecordOrInvestigation: z.boolean(),
+import { Progress } from "@/components/atoms/Progress";
+import { Input } from "@/components/atoms/Input";
+import { Select } from "@/components/atoms/Select";
+import { Radio } from "@/components/atoms/Radio";
+import { Label } from "@/components/atoms/Label";
+import { Button } from "@/components/atoms/Button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/atoms/Card";
+import { toast } from "sonner";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { EligibilityResult } from "../../../types/eligibility";
+import { evaluateScholarshipsLocally } from "@/lib/submit";
+import { t } from "@/lib/i18n";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
+import { AlertCircle, User, Mail, CalendarDays, Briefcase, Building2, Globe, GraduationCap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+type IdString = string;
+
+interface FormData {
+  fullName: string;
+  email: string;
+  dateOfBirth: string;
+  gender: string;
+  countryOfCitizenship: string;
+  currentProvince: string;
+  highestQualification: string;
+  gpa: number;
+  yearsOfExperience: number;
+  employerName: string;
+  employerType?: string;
+  hasWorkedInMilitaryPolice: boolean;
+  governmentScholarship: boolean;
+  governmentScholarshipCountry?: string;
+  englishTest: {
+    type: string;
+    overall?: number;
+    listening?: number;
+    reading?: number;
+    writing?: number;
+    speaking?: number;
+  };
+  // New fields for Personal Info step
+  hasSpouseAuNzCitizenOrPR?: boolean;
+  hasCriminalRecordOrInvestigation?: boolean;
+  // New fields for Education & Work step
+  vulnerableGroups: string[];
+}
+
+export function LegacyWizard() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<FormData>({
+    fullName: "",
+    email: "",
+    dateOfBirth: "",
+    gender: "",
+    countryOfCitizenship: "",
+    currentProvince: "",
+    highestQualification: "",
+    gpa: 0,
+    yearsOfExperience: 0,
+    employerName: "",
+    employerType: "",
+    hasWorkedInMilitaryPolice: false,
+    governmentScholarship: false,
+    governmentScholarshipCountry: '',
+    englishTest: { type: '', overall: undefined, listening: undefined, reading: undefined, writing: undefined, speaking: undefined },
+    hasSpouseAuNzCitizenOrPR: undefined,
+    hasCriminalRecordOrInvestigation: undefined,
+    vulnerableGroups: [],
+  });
+  const [result, setResult] = useState<EligibilityResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const scholarships = useQuery(api.scholarships.listScholarships, {});
+  const scholarshipConfig = useMemo(() => {
+    if (!scholarships) {
+      return {
+        aas: { enabled: true, name: "AAS" },
+        chevening: { enabled: true, name: "Chevening" },
+        activeNames: null as string[] | null,
+      };
+    }
+    const byId = new Map(scholarships.map((s) => [s.id, s]));
+    return {
+      aas: {
+        enabled: byId.get("aas")?.isEnabled ?? false,
+        name: byId.get("aas")?.name ?? "AAS",
+      },
+      chevening: {
+        enabled: byId.get("chevening")?.isEnabled ?? false,
+        name: byId.get("chevening")?.name ?? "Chevening",
+      },
+      activeNames: scholarships.filter((s) => s.isEnabled).map((s) => s.name),
+    };
+  }, [scholarships]);
+
+  const isAasEnabled = scholarshipConfig.aas.enabled;
+  const aasName = scholarshipConfig.aas.name;
+  const isCheveningEnabled = scholarshipConfig.chevening.enabled;
+  const cheveningName = scholarshipConfig.chevening.name;
+  const hasAnyScholarship = isAasEnabled || isCheveningEnabled;
+  const subtitleText = scholarshipConfig.activeNames === null
+    ? t('ui.subtitle', 'Check your eligibility for AAS and Chevening scholarships')
+    : scholarshipConfig.activeNames.length
+      ? `Check your eligibility for ${scholarshipConfig.activeNames.join(' & ')}`
+      : 'Currently no scholarships are enabled.';
+
+  const totalSteps = 4;
+
+  const updateFormData = (field: keyof FormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
+  };
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      if (!hasAnyScholarship) {
+        toast.warning('No scholarships are currently enabled.');
+        setIsSubmitting(false);
+        return;
+      }
+      const enabledIds: string[] = [];
+      const nameOverrides: Record<string, string> = {};
+      if (isAasEnabled) {
+        enabledIds.push('aas');
+        nameOverrides.aas = aasName;
+      }
+      if (isCheveningEnabled) {
+        enabledIds.push('chevening');
+        nameOverrides.chevening = cheveningName;
+      }
+      const res = await evaluateScholarshipsLocally(formData as any, enabledIds, nameOverrides);
+      setResult(res);
+      setCurrentStep(5);
+      toast.success('Application submitted successfully!');
+    } catch (e) {
+      toast.error('Failed to submit application. Please try again.');
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const resetForm = () => {
+    setCurrentStep(1);
+    setFormData({
+      fullName: "",
+      email: "",
+      dateOfBirth: "",
+      gender: "",
+      countryOfCitizenship: "",
+      currentProvince: "",
+      highestQualification: "",
+      gpa: 0,
+      yearsOfExperience: 0,
+      employerName: "",
+      employerType: "",
+      hasWorkedInMilitaryPolice: false,
+      governmentScholarship: false,
+      governmentScholarshipCountry: '',
+      englishTest: { type: '', overall: undefined, listening: undefined, reading: undefined, writing: undefined, speaking: undefined },
+      hasSpouseAuNzCitizenOrPR: undefined,
+      hasCriminalRecordOrInvestigation: undefined,
+      vulnerableGroups: [],
+    });
+    setResult(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-start justify-center px-4 py-10">
+      <div className="w-full max-w-3xl">
+        <div className="text-center mb-8">
+          <span className="mx-auto inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary">??</span>
+          <h1 className="mt-2 text-2xl font-heading font-semibold bg-gradient-to-r from-green-500 to-orange-400 bg-clip-text text-transparent">{t('ui.title', 'Scholarship Eligibility Checker')}</h1>
+          <p className="text-sm text-muted-foreground">{subtitleText}</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          {!hasAnyScholarship && (
+            <div className="mb-6 rounded border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+              All scholarships are currently disabled in the admin dashboard. Enable at least one to use this wizard.
+            </div>
+          )}
+          {currentStep <= totalSteps && (
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-muted-foreground">{t('ui.step.progress', `BÆ°á»›c ${currentStep} of ${totalSteps}`)}</span>
+                <span className="text-sm text-muted-foreground">{Math.round((currentStep / totalSteps) * 100)}% {t('ui.complete', 'Complete')}</span>
+              </div>
+              <Progress value={(currentStep / totalSteps) * 100} />
+              <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+                {[1,2,3,4].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { if (idx <= currentStep) setCurrentStep(idx) }}
+                    className={`px-3 py-1 rounded-full border ${idx < currentStep ? 'bg-primary/10 text-foreground hover:bg-primary/20' : idx === currentStep ? 'bg-primary text-white' : 'bg-muted text-muted-foreground cursor-not-allowed'} transition-colors`}
+                    disabled={idx > currentStep}
+                    aria-disabled={idx > currentStep}
+                  >
+                    {idx}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <PersonalInfoStep formData={formData} updateFormData={updateFormData} onNext={nextStep} />
+          )}
+          {currentStep === 2 && (
+            <EducationWorkStep formData={formData} updateFormData={updateFormData} onNext={nextStep} onPrev={prevStep} />
+          )}
+          {currentStep === 3 && (
+            <EmploymentStep formData={formData} updateFormData={updateFormData} onNext={nextStep} onPrev={prevStep} />
+          )}
+          {currentStep === 4 && (
+            <FinalQuestionsStep formData={formData} updateFormData={updateFormData} onSubmit={handleSubmit} onPrev={prevStep} isSubmitting={isSubmitting} isSubmitAllowed={hasAnyScholarship} />
+          )}
+          {currentStep === 5 && result && (
+            <ResultsPage result={result} onReset={resetForm} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const personalInfoSchema = z.object({
+  fullName: z.string().min(1, 'Required'),
+  email: z.string().min(1, 'Required').email('Invalid email'),
+  dateOfBirth: z.string().min(1, 'Required'),
+  gender: z.string().min(1, 'Required'),
+  // Keep as string for downstream mapping to countryOfResidence
+  countryOfCitizenship: z.string().min(1, 'Required'),
+  currentProvince: z.string().min(1, 'Vui lòng ch?n t?nh/thành ph? b?n dang sinh s?ng.'),
+  });
+
+type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
+
+function PersonalInfoStep({ formData, updateFormData, onNext }: {
+  formData: FormData;
+  updateFormData: (field: keyof FormData, value: any) => void;
+  onNext: () => void;
+}) {
+  const form = useForm<PersonalInfoFormValues>({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: {
+      fullName: formData.fullName ?? '',
+      email: formData.email ?? '',
+      dateOfBirth: formData.dateOfBirth ?? '',
+      gender: formData.gender ?? '',
+      countryOfCitizenship: formData.countryOfCitizenship ?? '',
+      currentProvince: formData.currentProvince ?? '',
+      },
+    mode: 'onChange',
+  });
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+  } = form;
+  const [shake, setShake] = useState(false);
+
+  // Hardcoded list of 34 provinces/cities in Vietnam
+  const PROVINCES = [
+    'Hà N?i',
+    'H?i Phòng',
+    'Qu?ng Ninh',
+    'Thái Nguyên',
+    'L?ng Son',
+    'Cao B?ng',
+    'B?c K?n',
+    'Tuyên Quang',
+    'Hà Giang',
+    'Lào Cai',
+    'Yên Bái',
+    'Son La',
+    'Ði?n Biên',
+    'Lai Châu',
+    'Hòa Bình',
+    'Thanh Hóa',
+    'Ngh? An',
+    'Hà Tinh',
+    'Qu?ng Bình',
+    'Qu?ng Tr?',
+    'Th?a Thiên Hu?',
+    'Ðà N?ng',
+    'Qu?ng Nam',
+    'Qu?ng Ngãi',
+    'Bình Ð?nh',
+    'Phú Yên',
+    'Khánh Hòa',
+    'Ninh Thu?n',
+    'Bình Thu?n',
+    'Thành ph? H? Chí Minh',
+    'Ð?ng Nai',
+    'Bình Duong',
+    'Bà R?a - Vung Tàu',
+    'C?n Tho',
+  ];
+  const [provinceOpen, setProvinceOpen] = useState(false);
+  const provinceQuery = watch('currentProvince') ?? '';
+  // Normalize text for accent-insensitive matching (e.g., d -> d)
+  const norm = (s: string) =>
+    String(s)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/d/g, 'd')
+      .replace(/Ð/g, 'd')
+      .toLowerCase();
+  const filteredProvinces = useMemo(() => {
+    const q = norm(provinceQuery).trim();
+    if (!q) return PROVINCES;
+    return PROVINCES.filter((p) => norm(p).startsWith(q));
+  }, [provinceQuery]);
+
+  const genderOptions = [
+    t('ui.gender.male', 'Male'),
+    t('ui.gender.female', 'Female'),
+    t('ui.gender.other', 'Other'),
+  ];
+  const genderValue = watch('gender');
+
+  const handleNext = handleSubmit(
+    () => {
+      onNext();
+    },
+    () => {
+      setShake(true);
+      setTimeout(() => setShake(false), 300);
+    }
+  );
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.personal.title', 'Personal Information')}</h2>
+      <Form {...form}>
+        <motion.form
+          className="space-y-4"
+          onSubmit={(event) => event.preventDefault()}
+          animate={shake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          
+
+          
+          
+          <FormField name="englishTest.type" control={form.control} render={({field}) => (
+            <FormItem>
+              <FormLabel>{t('ui.final.english.title', 'Ch?ng ch? ti?ng Anh c?a b?n')}</FormLabel>
+              <FormControl>
+                <Select value={field.value ?? ''} onChange={(e)=>{ const v=(e.target as any).value; field.onChange(e); form.setValue('englishTest.type', v as any, { shouldValidate:true }); updateFormData('englishTest', { ...form.watch('englishTest'), type: v }) }}>
+                  <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
+                  <option value="IELTS">IELTS</option>
+                  <option value="TOEFL">TOEFL iBT</option>
+                  <option value="PTE">PTE</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          {Boolean(form.watch('englishTest')?.type) && (
+            <div className="grid md:grid-cols-5 gap-3">
+              <FormField name="englishTest.overall" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>{t('ui.final.overall.label', 'Ði?m t?ng *')}</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), overall: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.listening" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Listening *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), listening: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.reading" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Reading *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), reading: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.writing" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Writing *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), writing: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.speaking" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Speaking *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), speaking: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+          )}
+        </motion.form>
+      </Form>
+      <div className="flex justify-between">
+        <Button onClick={onPrev} className="bg-gradient-to-r from-secondary to-secondary/80 text-white h-11 px-6 rounded-md">{t('ui.prev', 'Previous')}</Button>
+        <Button onClick={handleSubmitClick} disabled={!canProceed || isSubmitting || !isSubmitAllowed} className="bg-gradient-to-r from-primary to-primary/80 text-white h-11 px-6 rounded-md">
+          {isSubmitting ? t('ui.submitting', 'Submitting...') : t('ui.submit', 'Submit Application')}
+        </Button>
+      </div>
+    </div>
+  );
+}
+function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: () => void; }) {
+  const styleMap: Record<string, { gradient: string; accent: string; badge: string; title: string }> = {
+    aas: {
+      gradient: "from-orange-50 to-orange-100",
+      accent: "bg-orange-500",
+      badge: "AAS",
+      title: "Australia Awards",
+    },
+    chevening: {
+      gradient: "from-blue-50 to-blue-100",
+      accent: "bg-blue-500",
+      badge: "CHV",
+      title: "Chevening",
+    },
+  };
+
+  const hasScholarships = result.scholarships.length > 0;
+  const hasEligibleScholarship = result.scholarships.some((s) => s.eligible);
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Scholarship Eligibility Results</h2>
+        <p className="text-lg text-gray-600">
+          {hasScholarships ? 'Here are your eligibility results for active scholarships.' : 'No scholarships are currently enabled.'}
+        </p>
+      </div>
+      {hasScholarships && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {result.scholarships.map((sch) => {
+            const style = styleMap[sch.id] ?? {
+              gradient: "from-slate-50 to-slate-100",
+              accent: "bg-slate-500",
+              badge: sch.id.slice(0, 3).toUpperCase(),
+              title: sch.name,
+            };
+            return (
+              <div key={sch.id} className={`bg-gradient-to-br ${style.gradient} p-6 rounded-lg border`}>
+                <div className="flex items-center mb-4">
+                  <div className={`w-12 h-12 ${style.accent} rounded-full flex items-center justify-center mr-4`}>
+                    <span className="text-white font-bold text-lg">{style.badge}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">{style.title}</h3>
+                </div>
+                {sch.eligible ? (
+                  <div className="flex items-center text-green-700 mb-4">
+                    <span className="text-2xl mr-2">?</span>
+                    <span className="font-semibold">You are eligible for {sch.name}!</span>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center text-red-700 mb-4">
+                      <span className="text-2xl mr-2">?</span>
+                      <span className="font-semibold">You are not eligible for {sch.name}</span>
+                    </div>
+                    {sch.reasons.length > 0 && (
+                      <div className="text-sm text-gray-700">
+                        <p className="font-medium mb-2">Reasons:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {sch.reasons.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {hasScholarships && hasEligibleScholarship && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-center mb-2">
+            <span className="text-2xl mr-2">??</span>
+            <h4 className="text-lg font-semibold text-green-800">Congratulations!</h4>
+          </div>
+          <p className="text-green-700">You are eligible for at least one scholarship! We recommend you start preparing your application early. Good luck with your scholarship journey!</p>
+        </div>
+      )}
+      <div className="text-center">
+        <button onClick={onReset} className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Check Another Application</button>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

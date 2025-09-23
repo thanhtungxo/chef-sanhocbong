@@ -244,8 +244,9 @@ const personalInfoSchema = z.object({
   // Keep as string for downstream mapping to countryOfResidence
   countryOfCitizenship: z.string().min(1, 'Required'),
   currentProvince: z.string().min(1, 'Vui lòng ch?n t?nh/thành ph? b?n dang sinh s?ng.'),
-  hasSpouseAuNzCitizenOrPR: z.boolean(),
-  hasCriminalRecordOrInvestigation: z.boolean(),
+  // moved to Final step
+  // hasSpouseAuNzCitizenOrPR: z.boolean(),
+  // hasCriminalRecordOrInvestigation: z.boolean(),
 });
 
 type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
@@ -264,8 +265,6 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
       gender: formData.gender ?? '',
       countryOfCitizenship: formData.countryOfCitizenship ?? '',
       currentProvince: formData.currentProvince ?? '',
-      hasSpouseAuNzCitizenOrPR: (formData.hasSpouseAuNzCitizenOrPR as any),
-      hasCriminalRecordOrInvestigation: (formData.hasCriminalRecordOrInvestigation as any),
     },
     mode: 'onChange',
   });
@@ -278,58 +277,58 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
   const [shake, setShake] = useState(false);
 
   // Hardcoded list of 34 provinces/cities in Vietnam
+  // Hardcoded list of 34 provinces/cities in Vietnam
   const PROVINCES = [
-    'Hà N?i',
-    'H?i Phòng',
-    'Qu?ng Ninh',
+    'Hà Nội',
+    'Hải Phòng',
+    'Quảng Ninh',
     'Thái Nguyên',
-    'L?ng Son',
-    'Cao B?ng',
-    'B?c K?n',
+    'Lạng Sơn',
+    'Cao Bằng',
+    'Bắc Kạn',
     'Tuyên Quang',
     'Hà Giang',
     'Lào Cai',
     'Yên Bái',
-    'Son La',
-    'Ði?n Biên',
+    'Sơn La',
+    'Điện Biên',
     'Lai Châu',
     'Hòa Bình',
     'Thanh Hóa',
-    'Ngh? An',
-    'Hà Tinh',
-    'Qu?ng Bình',
-    'Qu?ng Tr?',
-    'Th?a Thiên Hu?',
-    'Ðà N?ng',
-    'Qu?ng Nam',
-    'Qu?ng Ngãi',
-    'Bình Ð?nh',
+    'Nghệ An',
+    'Hà Tĩnh',
+    'Quảng Bình',
+    'Quảng Trị',
+    'Thừa Thiên Huế',
+    'Đà Nẵng',
+    'Quảng Nam',
+    'Quảng Ngãi',
+    'Bình Định',
     'Phú Yên',
     'Khánh Hòa',
-    'Ninh Thu?n',
-    'Bình Thu?n',
-    'Thành ph? H? Chí Minh',
-    'Ð?ng Nai',
-    'Bình Duong',
-    'Bà R?a - Vung Tàu',
-    'C?n Tho',
+    'Ninh Thuận',
+    'Bình Thuận',
+    'Thành phố Hồ Chí Minh',
+    'Đồng Nai',
+    'Bình Dương',
+    'Bà Rịa - Vũng Tàu',
+    'Cần Thơ',
   ];
   const [provinceOpen, setProvinceOpen] = useState(false);
   const provinceQuery = watch('currentProvince') ?? '';
-  // Normalize text for accent-insensitive matching (e.g., d -> d)
+  // Normalize text for accent-insensitive matching (e.g., đ -> d)
   const norm = (s: string) =>
     String(s)
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .replace(/d/g, 'd')
-      .replace(/Ð/g, 'd')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'd')
       .toLowerCase();
   const filteredProvinces = useMemo(() => {
     const q = norm(provinceQuery).trim();
     if (!q) return PROVINCES;
     return PROVINCES.filter((p) => norm(p).startsWith(q));
   }, [provinceQuery]);
-
   const genderOptions = [
     t('ui.gender.male', 'Male'),
     t('ui.gender.female', 'Female'),
@@ -364,34 +363,25 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               <FormItem>
                 <FormLabel>{t('ui.fullName.label', 'Full Name *')}</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                    <Input
-                      ref={field.ref}
-                      name={field.name}
-                      value={field.value ?? ''}
-                      onBlur={field.onBlur}
-                      aria-invalid={Boolean(errors.fullName)}
-                      aria-describedby="lw-fullname"
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        field.onChange(value);
-                        updateFormData('fullName', value);
-                      }}
-                      placeholder={t('ui.fullName.placeholder', 'Enter your full name')}
-                      className="pl-10"
-                    />
-                    {errors.fullName && (
-                      <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                    )}
-                  </div>
+                  <Input
+                    ref={field.ref}
+                    name={field.name}
+                    value={field.value ?? ''}
+                    onBlur={field.onBlur}
+                    aria-invalid={Boolean(errors.fullName)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value);
+                      updateFormData('fullName', value);
+                    }}
+                    placeholder={t('ui.fullName.placeholder', 'Enter your full name')}
+                  />
                 </FormControl>
-                <FormMessage id="lw-fullname" />
+                <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={control}
             name="email"
@@ -399,36 +389,26 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               <FormItem>
                 <FormLabel>{t('ui.email.label', 'Email Address *')}</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                    <Input
-                      ref={field.ref}
-                      name={field.name}
-                      type="email"
-                      value={field.value ?? ''}
-                      onBlur={field.onBlur}
-                      aria-invalid={Boolean(errors.email)}
-                      aria-describedby="lw-email"
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        field.onChange(value);
-                        updateFormData('email', value);
-                      }}
-                      placeholder={t('ui.email.placeholder', 'Enter your email address')}
-                      className="pl-10"
-                    />
-                    {errors.email && (
-                      <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
-                    )}
-                  </div>
+                  <Input
+                    ref={field.ref}
+                    name={field.name}
+                    type="email"
+                    value={field.value ?? ''}
+                    onBlur={field.onBlur}
+                    aria-invalid={Boolean(errors.email)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      field.onChange(value);
+                      updateFormData('email', value);
+                    }}
+                    placeholder={t('ui.email.placeholder', 'Enter your email address')}
+                  />
                 </FormControl>
-                <p className="text-xs text-muted-foreground mt-1">{t('ui.email.help', 'We only use this to email your results.')}</p>
-                <FormMessage id="lw-email" />
+                <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={control}
             name="dateOfBirth"
@@ -436,74 +416,56 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               <FormItem>
                 <FormLabel>{t('ui.dob.label', 'Date of Birth *')}</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                    <Input
-                      ref={field.ref}
-                      name={field.name}
-                      type="date"
-                      value={field.value ?? ''}
-                      onBlur={field.onBlur}
-                      aria-invalid={Boolean(errors.dateOfBirth)}
-                      aria-describedby="lw-dob"
-                      onChange={(event) => {
-                        let value = event.target.value;
-                        // Enforce 4-digit year for type=date (format yyyy-mm-dd)
-                        if (value) {
-                          const parts = String(value).split('-');
-                          if (parts.length >= 1) {
-                            const year = (parts[0] ?? '').replace(/[^0-9]/g, '').slice(0, 4);
-                            parts[0] = year;
-                            value = parts.join('-');
-                          }
+                  <Input
+                    ref={field.ref}
+                    name={field.name}
+                    type="date"
+                    value={field.value ?? ''}
+                    onBlur={field.onBlur}
+                    aria-invalid={Boolean(errors.dateOfBirth)}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (value) {
+                        const parts = String(value).split('-');
+                        if (parts.length >= 1) {
+                          const year = (parts[0] ?? '').replace(/[^0-9]/g, '').slice(0, 4);
+                          parts[0] = year;
+                          value = parts.join('-');
                         }
-                        field.onChange(value);
-                        updateFormData('dateOfBirth', value);
-                      }}
-                      className="pl-10"
-                    />
-                  </div>
+                      }
+                      field.onChange(value);
+                      updateFormData('dateOfBirth', value);
+                    }}
+                  />
                 </FormControl>
-                <FormMessage id="lw-dob" />
+                <FormMessage />
               </FormItem>
             )}
           />
-          {/* Current Province Autocomplete */}
+
           <FormField
             control={control}
             name="currentProvince"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bạn đang sinh sống tại tỉnh/thành phố nào?</FormLabel>
+                <FormLabel>{t('ui.province.label', 'Bạn đang sinh sống tại tỉnh/thành phố nào?')}</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                    </span>
                     <Input
                       ref={field.ref}
                       name={field.name}
                       type="text"
                       value={field.value ?? ''}
-                      onBlur={(e) => {
-                        // Delay closing to allow click on option
-                        setTimeout(() => setProvinceOpen(false), 100);
-                        field.onBlur();
-                      }}
+                      onBlur={() => setTimeout(() => setProvinceOpen(false), 100)}
                       aria-invalid={Boolean(errors.currentProvince)}
-                      aria-describedby="lw-province"
                       onFocus={() => setProvinceOpen(true)}
-                      onChange={(event) => {
-                        const value = event.target.value;
+                      onChange={(e) => {
+                        const value = e.target.value;
                         field.onChange(value);
                         updateFormData('currentProvince', value);
-                        if ((value ?? '').length >= 1) setProvinceOpen(true);
-                        else setProvinceOpen(false);
+                        setProvinceOpen((value ?? '').length >= 1);
                       }}
                       placeholder={t('ui.province.placeholder', 'Nhập tên tỉnh/thành phố')}
-                      className="pl-10"
                     />
                     {provinceOpen && filteredProvinces.length > 0 && (
                       <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow">
@@ -529,10 +491,11 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                     )}
                   </div>
                 </FormControl>
-                <FormMessage id="lw-province" />
+                <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={control}
             name="gender"
@@ -547,8 +510,8 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                           name={field.name}
                           value={option}
                           checked={genderValue === option}
-                          onChange={(event) => {
-                            const value = event.target.value;
+                          onChange={(e) => {
+                            const value = e.target.value;
                             field.onChange(value);
                             updateFormData('gender', value);
                           }}
@@ -562,6 +525,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               </FormItem>
             )}
           />
+
           <FormField
             control={control}
             name="countryOfCitizenship"
@@ -580,7 +544,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                           updateFormData('countryOfCitizenship', 'Vietnam');
                         }}
                       />
-                      <span>Có</span>
+                      <span>{t('ui.common.yes', 'Có')}</span>
                     </label>
                     <label className="flex items-center gap-3">
                       <Radio
@@ -592,7 +556,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                           updateFormData('countryOfCitizenship', 'Other');
                         }}
                       />
-                      <span>Không</span>
+                      <span>{t('ui.common.no', 'Không')}</span>
                     </label>
                   </div>
                 </FormControl>
@@ -600,86 +564,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               </FormItem>
             )}
           />
-
-          <FormField
-            control={control}
-            name="hasSpouseAuNzCitizenOrPR"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('ui.personal.spouse.label', 'Bạn có vợ/chồng mang quốc tịch hoặc PR Úc/New Zealand không? *')}</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="true"
-                        checked={field.value === true}
-                        onChange={() => {
-                          field.onChange(true);
-                          updateFormData('hasSpouseAuNzCitizenOrPR', true);
-                        }}
-                      />
-                      <span>Có</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="false"
-                        checked={field.value === false}
-                        onChange={() => {
-                          field.onChange(false);
-                          updateFormData('hasSpouseAuNzCitizenOrPR', false);
-                        }}
-                      />
-                      <span>Không</span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="hasCriminalRecordOrInvestigation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('ui.personal.criminal.label', 'Bạn có từng bị kết án hoặc đang bị điều tra vì các hành vi phạm tội không? *')}</FormLabel>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="true"
-                        checked={field.value === true}
-                        onChange={() => {
-                          field.onChange(true);
-                          updateFormData('hasCriminalRecordOrInvestigation', true);
-                        }}
-                      />
-                      <span>Có</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <Radio
-                        name={field.name}
-                        value="false"
-                        checked={field.value === false}
-                        onChange={() => {
-                          field.onChange(false);
-                          updateFormData('hasCriminalRecordOrInvestigation', false);
-                        }}
-                      />
-                      <span>Không</span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-        </motion.form>
+          </motion.form>
       </Form>
       <div className="flex justify-end">
         <Button
@@ -913,6 +798,8 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
   const schema = z.object({
     governmentScholarship: z.boolean(),
     governmentScholarshipCountry: z.string().optional(),
+    hasSpouseAuNzCitizenOrPR: z.boolean(),
+    hasCriminalRecordOrInvestigation: z.boolean(),
     englishTest: z.object({
       type: z.enum(['IELTS','TOEFL','PTE']),
       overall: z.coerce.number(),
@@ -996,6 +883,42 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
               </motion.div>
             )}
           </AnimatePresence>
+          <FormField name="hasSpouseAuNzCitizenOrPR" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.personal.spouse.label', 'Bạn có vợ/chồng mang quốc tịch hoặc PR Úc/New Zealand không? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="hasSpouseAuNzCitizenOrPR" value="true" checked={form.watch('hasSpouseAuNzCitizenOrPR') === true} onChange={()=>{ form.setValue('hasSpouseAuNzCitizenOrPR', true, { shouldValidate:true }); updateFormData('hasSpouseAuNzCitizenOrPR', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Có')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="hasSpouseAuNzCitizenOrPR" value="false" checked={form.watch('hasSpouseAuNzCitizenOrPR') === false} onChange={()=>{ form.setValue('hasSpouseAuNzCitizenOrPR', false, { shouldValidate:true }); updateFormData('hasSpouseAuNzCitizenOrPR', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'Không')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
+          <FormField name="hasCriminalRecordOrInvestigation" control={form.control} render={() => (
+            <FormItem>
+              <FormLabel>{t('ui.personal.criminal.label', 'Bạn có từng bị kết án hoặc đang bị điều tra vì các hành vi phạm tội không? *')}</FormLabel>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <Radio name="hasCriminalRecordOrInvestigation" value="true" checked={form.watch('hasCriminalRecordOrInvestigation') === true} onChange={()=>{ form.setValue('hasCriminalRecordOrInvestigation', true, { shouldValidate:true }); updateFormData('hasCriminalRecordOrInvestigation', true) }} />
+                    <span className="ml-3">{t('ui.common.yes', 'Có')}</span>
+                  </label>
+                  <label className="flex items-center">
+                    <Radio name="hasCriminalRecordOrInvestigation" value="false" checked={form.watch('hasCriminalRecordOrInvestigation') === false} onChange={()=>{ form.setValue('hasCriminalRecordOrInvestigation', false, { shouldValidate:true }); updateFormData('hasCriminalRecordOrInvestigation', false) }} />
+                    <span className="ml-3">{t('ui.common.no', 'Không')}</span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
           <FormField name="englishTest.type" control={form.control} render={({field}) => (
             <FormItem>
               <FormLabel>{t('ui.final.english.title', 'Chứng chỉ tiếng Anh của bạn')}</FormLabel>
@@ -1157,6 +1080,10 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
     </div>
   );
 }
+
+
+
+
 
 
 
