@@ -27,18 +27,23 @@ interface FormData {
   dateOfBirth: string;
   gender: string;
   countryOfCitizenship: string;
-  currentCity: string;
+  currentProvince: string;
   highestQualification: string;
   gpa: number;
   yearsOfExperience: number;
-  currentJobTitle: string;
   employerName: string;
   employerType?: string;
   hasWorkedInMilitaryPolice: boolean;
-  planToReturn: boolean;
-  hasStudiedAbroadOnGovScholarship: boolean;
-  englishTestType: string;
-  englishScore?: number;
+  governmentScholarship: boolean;
+  governmentScholarshipCountry?: string;
+  englishTest: {
+    type: string;
+    overall?: number;
+    listening?: number;
+    reading?: number;
+    writing?: number;
+    speaking?: number;
+  };
   // New fields for Personal Info step
   hasSpouseAuNzCitizenOrPR?: boolean;
   hasCriminalRecordOrInvestigation?: boolean;
@@ -54,18 +59,16 @@ export function LegacyWizard() {
     dateOfBirth: "",
     gender: "",
     countryOfCitizenship: "",
-    currentCity: "",
+    currentProvince: "",
     highestQualification: "",
     gpa: 0,
     yearsOfExperience: 0,
-    currentJobTitle: "",
     employerName: "",
     employerType: "",
     hasWorkedInMilitaryPolice: false,
-    planToReturn: false,
-    hasStudiedAbroadOnGovScholarship: false,
-    englishTestType: "",
-    englishScore: undefined,
+    governmentScholarship: false,
+    governmentScholarshipCountry: '',
+    englishTest: { type: '', overall: undefined, listening: undefined, reading: undefined, writing: undefined, speaking: undefined },
     hasSpouseAuNzCitizenOrPR: undefined,
     hasCriminalRecordOrInvestigation: undefined,
     vulnerableGroups: [],
@@ -157,18 +160,16 @@ export function LegacyWizard() {
       dateOfBirth: "",
       gender: "",
       countryOfCitizenship: "",
-      currentCity: "",
+      currentProvince: "",
       highestQualification: "",
       gpa: 0,
       yearsOfExperience: 0,
-      currentJobTitle: "",
       employerName: "",
       employerType: "",
       hasWorkedInMilitaryPolice: false,
-      planToReturn: false,
-      hasStudiedAbroadOnGovScholarship: false,
-      englishTestType: "",
-      englishScore: undefined,
+      governmentScholarship: false,
+      governmentScholarshipCountry: '',
+      englishTest: { type: '', overall: undefined, listening: undefined, reading: undefined, writing: undefined, speaking: undefined },
       hasSpouseAuNzCitizenOrPR: undefined,
       hasCriminalRecordOrInvestigation: undefined,
       vulnerableGroups: [],
@@ -242,7 +243,7 @@ const personalInfoSchema = z.object({
   gender: z.string().min(1, 'Required'),
   // Keep as string for downstream mapping to countryOfResidence
   countryOfCitizenship: z.string().min(1, 'Required'),
-  currentCity: z.string().min(1, 'Required'),
+  currentProvince: z.string().min(1, 'Vui lòng ch?n t?nh/thành ph? b?n dang sinh s?ng.'),
   hasSpouseAuNzCitizenOrPR: z.boolean(),
   hasCriminalRecordOrInvestigation: z.boolean(),
 });
@@ -262,7 +263,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
       dateOfBirth: formData.dateOfBirth ?? '',
       gender: formData.gender ?? '',
       countryOfCitizenship: formData.countryOfCitizenship ?? '',
-      currentCity: formData.currentCity ?? '',
+      currentProvince: formData.currentProvince ?? '',
       hasSpouseAuNzCitizenOrPR: (formData.hasSpouseAuNzCitizenOrPR as any),
       hasCriminalRecordOrInvestigation: (formData.hasCriminalRecordOrInvestigation as any),
     },
@@ -276,11 +277,63 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
   } = form;
   const [shake, setShake] = useState(false);
 
+  // Hardcoded list of 34 provinces/cities in Vietnam
+  const PROVINCES = [
+    'Hà N?i',
+    'H?i Phòng',
+    'Qu?ng Ninh',
+    'Thái Nguyên',
+    'L?ng Son',
+    'Cao B?ng',
+    'B?c K?n',
+    'Tuyên Quang',
+    'Hà Giang',
+    'Lào Cai',
+    'Yên Bái',
+    'Son La',
+    'Ði?n Biên',
+    'Lai Châu',
+    'Hòa Bình',
+    'Thanh Hóa',
+    'Ngh? An',
+    'Hà Tinh',
+    'Qu?ng Bình',
+    'Qu?ng Tr?',
+    'Th?a Thiên Hu?',
+    'Ðà N?ng',
+    'Qu?ng Nam',
+    'Qu?ng Ngãi',
+    'Bình Ð?nh',
+    'Phú Yên',
+    'Khánh Hòa',
+    'Ninh Thu?n',
+    'Bình Thu?n',
+    'Thành ph? H? Chí Minh',
+    'Ð?ng Nai',
+    'Bình Duong',
+    'Bà R?a - Vung Tàu',
+    'C?n Tho',
+  ];
+  const [provinceOpen, setProvinceOpen] = useState(false);
+  const provinceQuery = watch('currentProvince') ?? '';
+  // Normalize text for accent-insensitive matching (e.g., d -> d)
+  const norm = (s: string) =>
+    String(s)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/d/g, 'd')
+      .replace(/Ð/g, 'd')
+      .toLowerCase();
+  const filteredProvinces = useMemo(() => {
+    const q = norm(provinceQuery).trim();
+    if (!q) return PROVINCES;
+    return PROVINCES.filter((p) => norm(p).startsWith(q));
+  }, [provinceQuery]);
+
   const genderOptions = [
     t('ui.gender.male', 'Male'),
     t('ui.gender.female', 'Female'),
     t('ui.gender.other', 'Other'),
-    t('ui.gender.na', 'Prefer not to say'),
   ];
   const genderValue = watch('gender');
 
@@ -396,7 +449,16 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                       aria-invalid={Boolean(errors.dateOfBirth)}
                       aria-describedby="lw-dob"
                       onChange={(event) => {
-                        const value = event.target.value;
+                        let value = event.target.value;
+                        // Enforce 4-digit year for type=date (format yyyy-mm-dd)
+                        if (value) {
+                          const parts = String(value).split('-');
+                          if (parts.length >= 1) {
+                            const year = (parts[0] ?? '').replace(/[^0-9]/g, '').slice(0, 4);
+                            parts[0] = year;
+                            value = parts.join('-');
+                          }
+                        }
                         field.onChange(value);
                         updateFormData('dateOfBirth', value);
                       }}
@@ -405,6 +467,69 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
                   </div>
                 </FormControl>
                 <FormMessage id="lw-dob" />
+              </FormItem>
+            )}
+          />
+          {/* Current Province Autocomplete */}
+          <FormField
+            control={control}
+            name="currentProvince"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bạn đang sinh sống tại tỉnh/thành phố nào?</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                    <Input
+                      ref={field.ref}
+                      name={field.name}
+                      type="text"
+                      value={field.value ?? ''}
+                      onBlur={(e) => {
+                        // Delay closing to allow click on option
+                        setTimeout(() => setProvinceOpen(false), 100);
+                        field.onBlur();
+                      }}
+                      aria-invalid={Boolean(errors.currentProvince)}
+                      aria-describedby="lw-province"
+                      onFocus={() => setProvinceOpen(true)}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(value);
+                        updateFormData('currentProvince', value);
+                        if ((value ?? '').length >= 1) setProvinceOpen(true);
+                        else setProvinceOpen(false);
+                      }}
+                      placeholder={t('ui.province.placeholder', 'Nhập tên tỉnh/thành phố')}
+                      className="pl-10"
+                    />
+                    {provinceOpen && filteredProvinces.length > 0 && (
+                      <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow">
+                        <ul className="max-h-56 overflow-auto py-1">
+                          {filteredProvinces.map((p) => (
+                            <li key={p}>
+                              <button
+                                type="button"
+                                className="w-full text-left px-3 py-2 hover:bg-muted"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  field.onChange(p);
+                                  updateFormData('currentProvince', p);
+                                  setProvinceOpen(false);
+                                }}
+                              >
+                                {p}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage id="lw-province" />
               </FormItem>
             )}
           />
@@ -442,7 +567,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             name="countryOfCitizenship"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bạn có quốc tịch Việt Nam và đang cư trú tại Việt Nam *</FormLabel>
+                <FormLabel>{t('ui.personal.vnres.label', 'Bạn có quốc tịch Việt Nam và đang cư trú tại Việt Nam *')}</FormLabel>
                 <FormControl>
                   <div className="space-y-2">
                     <label className="flex items-center gap-3">
@@ -481,7 +606,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             name="hasSpouseAuNzCitizenOrPR"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bạn có vợ/chồng mang quốc tịch hoặc PR Úc/New Zealand không? *</FormLabel>
+                <FormLabel>{t('ui.personal.spouse.label', 'Bạn có vợ/chồng mang quốc tịch hoặc PR Úc/New Zealand không? *')}</FormLabel>
                 <FormControl>
                   <div className="space-y-2">
                     <label className="flex items-center gap-3">
@@ -520,7 +645,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
             name="hasCriminalRecordOrInvestigation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bạn có từng bị kết án hoặc đang bị điều tra vì các hành vi phạm tội không? *</FormLabel>
+                <FormLabel>{t('ui.personal.criminal.label', 'Bạn có từng bị kết án hoặc đang bị điều tra vì các hành vi phạm tội không? *')}</FormLabel>
                 <FormControl>
                   <div className="space-y-2">
                     <label className="flex items-center gap-3">
@@ -553,37 +678,7 @@ function PersonalInfoStep({ formData, updateFormData, onNext }: {
               </FormItem>
             )}
           />
-          <FormField
-            control={control}
-            name="currentCity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('ui.city.label', 'Current City of Residence *')}</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                    <Input
-                      ref={field.ref}
-                      name={field.name}
-                      value={field.value ?? ''}
-                      onBlur={field.onBlur}
-                      aria-invalid={Boolean(errors.currentCity)}
-                      onChange={(event) => {
-                        const value = event.target.value;
-                        field.onChange(value);
-                        updateFormData('currentCity', value);
-                      }}
-                      placeholder={t('ui.city.placeholder', 'Enter your current city')}
-                      className="pl-10"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          
         </motion.form>
       </Form>
       <div className="flex justify-end">
@@ -609,12 +704,9 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
   const schema = z.object({
     highestQualification: z.string().min(1, 'Required'),
     gpa: z.coerce.number(),
-    yearsOfExperience: z.coerce.number().min(0, 'Required'),
     vulnerableGroups: z.array(z.string())
       .nonempty('Required')
       .refine(arr => !(arr.includes('none') && arr.some(v => v !== 'none')), 'Invalid selection'),
-    currentJobTitle: z.string().min(1, 'Required'),
-    employerName: z.string().min(1, 'Required'),
   })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -632,6 +724,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
           <FormField name="highestQualification" control={form.control} render={({field}) => (
             <FormItem>
               <FormLabel>{t('ui.education.highest.label', 'Highest Completed Qualification *')}</FormLabel>
+              <p className="text-xs text-muted-foreground">(thang điểm 10)</p>
               <FormControl>
                 <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('highestQualification', (e.target as any).value) }}>
                   <option value="">{t('ui.education.highest.select', 'Select qualification')}</option>
@@ -646,7 +739,8 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
           )} />
           <FormField name="gpa" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>Điểm trung bình (GPA) bậc đại học *</FormLabel>
+              <FormLabel>{t('ui.education.gpa.label', 'GPA (10-point scale) *')}</FormLabel>
+              <p className="text-xs text-muted-foreground">{t('ui.education.gpa.note', '(10-point scale)')}</p>
               <FormControl>
                 <Input
                   type="number"
@@ -657,17 +751,8 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
                     field.onChange(Number.isNaN(v) ? undefined : v);
                     updateFormData('gpa', Number.isNaN(v) ? 0 : v);
                   }}
-                  placeholder="Theo thang 10"
+                  placeholder={t('ui.education.gpa.placeholder', 'On a 10-point scale')}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField name="yearsOfExperience" control={form.control} render={({field}) => (
-            <FormItem>
-              <FormLabel>{t('ui.education.years.label', 'Years of Full-time Work Experience *')}</FormLabel>
-              <FormControl>
-                <Input type="number" min={0} value={field.value as any} onChange={(e)=>{ field.onChange(e); updateFormData('yearsOfExperience', parseInt((e.target as HTMLInputElement).value) || 0) }} placeholder={t('ui.education.years.placeholder', 'Enter years of experience')} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -688,7 +773,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
             };
             return (
               <FormItem>
-                <FormLabel>Bạn có thuộc một trong các nhóm sau? *</FormLabel>
+                <FormLabel>{t('ui.education.vulnerable.label', 'Bạn có thuộc một trong các nhóm sau? *')}</FormLabel>
                 <FormControl>
                   <div className="space-y-2">
                     <label className="flex items-center gap-3">
@@ -698,7 +783,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
                         onChange={(e)=>toggle('disability')(e.target.checked)}
                         disabled={hasNone}
                       />
-                      <span className="text-sm font-medium leading-none">Người khuyết tật</span>
+                      <span className="text-sm font-medium leading-none">{t('ui.vulnerable.disability', 'Người khuyết tật')}</span>
                     </label>
                     <label className="flex items-center gap-3">
                       <input
@@ -707,11 +792,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
                         onChange={(e)=>toggle('hardship_area')(e.target.checked)}
                         disabled={hasNone}
                       />
-                      <span className="text-sm font-medium leading-none">
-                        Sinh sống/làm việc tại địa phương khó khăn (
-                        <span className="text-blue-600 underline">Xem danh sách địa phương ở đây</span>
-                        )
-                      </span>
+                      <span className="text-sm font-medium leading-none">{t('ui.vulnerable.hardship', 'Sinh sống/làm việc tại địa phương khó khăn (Xem danh sách địa phương ở đây)')}</span>
                     </label>
                     <label className="flex items-center gap-3">
                       <input
@@ -720,7 +801,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
                         onChange={(e)=>toggle('none')(e.target.checked)}
                         disabled={hasOthers}
                       />
-                      <span className="text-sm font-medium leading-none">Không thuộc nhóm nào</span>
+                      <span className="text-sm font-medium leading-none">{t('ui.vulnerable.none', 'Không thuộc nhóm nào')}</span>
                     </label>
                   </div>
                 </FormControl>
@@ -728,24 +809,7 @@ function EducationWorkStep({ formData, updateFormData, onNext, onPrev }: {
               </FormItem>
             )
           }} />
-          <FormField name="currentJobTitle" control={form.control} render={({field}) => (
-            <FormItem>
-              <FormLabel>{t('ui.education.job.label', 'Current Job Title *')}</FormLabel>
-              <FormControl>
-                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('currentJobTitle', (e.target as HTMLInputElement).value) }} placeholder={t('ui.education.job.placeholder', 'Enter your current job title')} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField name="employerName" control={form.control} render={({field}) => (
-            <FormItem>
-              <FormLabel>{t('ui.education.employer.label', 'Employer Name *')}</FormLabel>
-              <FormControl>
-                <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('employerName', (e.target as HTMLInputElement).value) }} placeholder={t('ui.education.employer.placeholder', 'Enter your employer name')} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          
         </motion.form>
       </Form>
       <div className="flex justify-between">
@@ -781,26 +845,26 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
         <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
           <FormField name="employerType" control={form.control} render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('ui.employment.employerType.label', 'Cơ quan/đơn vị bạn đang làm việc')}</FormLabel>
+              <FormLabel>{t('ui.employment.employerType.label', 'Co quan/don v? b?n dang làm vi?c')}</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   <Select value={field.value ?? ''} onChange={(e)=>{ const v = (e.target as any).value; field.onChange(e); updateFormData('employerType', v) }}>
-                    <option value="">{t('ui.employment.employerType.select', 'Chọn đơn vị công tác')}</option>
-                    <option value="gov_levels">{t('ui.employment.employerType.opt.gov_levels', 'Cơ quan trung ương / cấp tỉnh / cấp huyện')}</option>
-                    <option value="vocational_school">{t('ui.employment.employerType.opt.vocational_school', 'Trường / cơ sở giáo dục nghề nghiệp')}</option>
-                    <option value="research_institute">{t('ui.employment.employerType.opt.research_institute', 'Viện nghiên cứu (Nhà nước / VN)')}</option>
-                    <option value="provincial_university">{t('ui.employment.employerType.opt.provincial_university', 'Trường ĐH cấp tỉnh')}</option>
-                    <option value="major_city_university">{t('ui.employment.employerType.opt.major_city_university', 'Trường ĐH ở Hà Nội, HCM, Hải Phòng, Đà Nẵng, Cần Thơ')}</option>
-                    <option value="vn_ngo">{t('ui.employment.employerType.opt.vn_ngo', 'Tổ chức phi chính phủ VN')}</option>
-                    <option value="vn_company">{t('ui.employment.employerType.opt.vn_company', 'Công ty của Việt Nam')}</option>
-                    <option value="intl_ngo">{t('ui.employment.employerType.opt.intl_ngo', 'Tổ chức phi chính phủ quốc tế')}</option>
-                    <option value="foreign_company">{t('ui.employment.employerType.opt.foreign_company', 'Công ty nước ngoài')}</option>
+                    <option value="">{t('ui.employment.employerType.select', 'Ch?n don v? công tác')}</option>
+                    <option value="gov_levels">{t('ui.employment.employerType.opt.gov_levels', 'Co quan trung uong / c?p t?nh / c?p huy?n')}</option>
+                    <option value="vocational_school">{t('ui.employment.employerType.opt.vocational_school', 'Tru?ng / co s? giáo d?c ngh? nghi?p')}</option>
+                    <option value="research_institute">{t('ui.employment.employerType.opt.research_institute', 'Vi?n nghiên c?u (Nhà nu?c / VN)')}</option>
+                    <option value="provincial_university">{t('ui.employment.employerType.opt.provincial_university', 'Tru?ng ÐH c?p t?nh')}</option>
+                    <option value="major_city_university">{t('ui.employment.employerType.opt.major_city_university', 'Tru?ng ÐH ? Hà N?i, HCM, H?i Phòng, Ðà N?ng, C?n Tho')}</option>
+                    <option value="vn_ngo">{t('ui.employment.employerType.opt.vn_ngo', 'T? ch?c phi chính ph? VN')}</option>
+                    <option value="vn_company">{t('ui.employment.employerType.opt.vn_company', 'Công ty c?a Vi?t Nam')}</option>
+                    <option value="intl_ngo">{t('ui.employment.employerType.opt.intl_ngo', 'T? ch?c phi chính ph? qu?c t?')}</option>
+                    <option value="foreign_company">{t('ui.employment.employerType.opt.foreign_company', 'Công ty nu?c ngoài')}</option>
                   </Select>
                   {form.watch('employerType') === 'vn_company' && (
                     <p className="text-sm text-muted-foreground">
                       {t(
                         'ui.employment.employerType.note',
-                        'Lưu ý: "Công ty Việt Nam" nghĩa là doanh nghiệp được thành lập và đăng ký tại Việt Nam. Các chi nhánh công ty nước ngoài tại Việt Nam không được tính là công ty Việt Nam.'
+                        'Luu ý: "Công ty Vi?t Nam" nghia là doanh nghi?p du?c thành l?p và dang ký t?i Vi?t Nam. Các chi nhánh công ty nu?c ngoài t?i Vi?t Nam không du?c tính là công ty Vi?t Nam.'
                       )}
                     </p>
                   )}
@@ -812,7 +876,7 @@ function EmploymentStep({ formData, updateFormData, onNext, onPrev }: {
           {null}
           <FormField name="hasWorkedInMilitaryPolice" control={form.control} render={() => (
             <FormItem>
-              <FormLabel>{t('ui.employment.military.label', 'Bạn có đang hoặc đã từng là nhân sự thuộc quân đội/công an không?')}</FormLabel>
+              <FormLabel>{t('ui.employment.military.label', 'B?n có dang ho?c dã t?ng là nhân s? thu?c quân d?i/công an không?')}</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   <label className="flex items-center">
@@ -847,11 +911,37 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
   isSubmitAllowed: boolean;
 }) {
   const schema = z.object({
-    planToReturn: z.boolean(),
-    hasStudiedAbroadOnGovScholarship: z.boolean(),
-    englishTestType: z.string().min(1,'Required'),
-    englishScore: z.union([z.number(), z.undefined()]),
-  }).refine((v)=> v.englishTestType==='None' || typeof v.englishScore === 'number', { message:'Overall Score required', path:['englishScore'] })
+    governmentScholarship: z.boolean(),
+    governmentScholarshipCountry: z.string().optional(),
+    englishTest: z.object({
+      type: z.enum(['IELTS','TOEFL','PTE']),
+      overall: z.coerce.number(),
+      listening: z.coerce.number(),
+      reading: z.coerce.number(),
+      writing: z.coerce.number(),
+      speaking: z.coerce.number(),
+    })
+  }).superRefine((v, ctx) => {
+    if (v.governmentScholarship && !v.governmentScholarshipCountry) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Vui lòng chọn quốc gia', path: ['governmentScholarshipCountry'] });
+    }
+    const t = v.englishTest?.type;
+    const ranges: Record<string, { overall: [number, number]; sub: [number, number] }> = {
+      IELTS: { overall: [0, 9], sub: [0, 9] },
+      TOEFL: { overall: [0, 120], sub: [0, 30] },
+      PTE: { overall: [10, 90], sub: [10, 90] },
+    };
+    const r = ranges[t as keyof typeof ranges];
+    if (r) {
+      const { overall, listening, reading, writing, speaking } = v.englishTest;
+      const inRange = (n: number, [min, max]: [number, number]) => Number.isFinite(n) && n >= min && n <= max;
+      if (!inRange(overall, r.overall)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Điểm tổng phải trong khoảng ${r.overall[0]}-${r.overall[1]}`, path: ['englishTest','overall'] });
+      if (!inRange(listening, r.sub)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Listening phải trong khoảng ${r.sub[0]}-${r.sub[1]}`, path: ['englishTest','listening'] });
+      if (!inRange(reading, r.sub)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Reading phải trong khoảng ${r.sub[0]}-${r.sub[1]}`, path: ['englishTest','reading'] });
+      if (!inRange(writing, r.sub)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Writing phải trong khoảng ${r.sub[0]}-${r.sub[1]}`, path: ['englishTest','writing'] });
+      if (!inRange(speaking, r.sub)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Speaking phải trong khoảng ${r.sub[0]}-${r.sub[1]}`, path: ['englishTest','speaking'] });
+    }
+  })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: formData as any,
@@ -865,17 +955,17 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">{t('ui.final.title', 'Final Questions')}</h2>
       <Form {...form}>
         <motion.form className="space-y-4" onSubmit={(e)=>e.preventDefault()} animate={shake ? { x:[0,-6,6,-4,4,0] } : {}} transition={{ duration: 0.3 }}>
-          <FormField name="planToReturn" control={form.control} render={() => (
+          <FormField name="governmentScholarship" control={form.control} render={() => (
             <FormItem>
-              <FormLabel>{t('ui.final.return.label', 'Do you plan to return to your country after finishing the scholarship? *')}</FormLabel>
+              <FormLabel>{t('ui.final.govscholar2.label', 'Bạn đã từng du học bằng học bổng chính phủ (của bất kì nước nào) chưa? *')}</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   <label className="flex items-center">
-                    <Radio name="planToReturn" value="true" checked={form.watch('planToReturn') === true} onChange={()=>{ form.setValue('planToReturn', true, { shouldValidate:true }); updateFormData('planToReturn', true) }} />
+                    <Radio name="governmentScholarship" value="true" checked={form.watch('governmentScholarship') === true} onChange={()=>{ form.setValue('governmentScholarship', true, { shouldValidate:true }); updateFormData('governmentScholarship', true) }} />
                     <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
                   </label>
                   <label className="flex items-center">
-                    <Radio name="planToReturn" value="false" checked={form.watch('planToReturn') === false} onChange={()=>{ form.setValue('planToReturn', false, { shouldValidate:true }); updateFormData('planToReturn', false) }} />
+                    <Radio name="governmentScholarship" value="false" checked={form.watch('governmentScholarship') === false} onChange={()=>{ form.setValue('governmentScholarship', false, { shouldValidate:true }); updateFormData('governmentScholarship', false); form.setValue('governmentScholarshipCountry',''); updateFormData('governmentScholarshipCountry',''); }} />
                     <span className="ml-3">{t('ui.common.no', 'No')}</span>
                   </label>
                 </div>
@@ -883,49 +973,91 @@ function FinalQuestionsStep({ formData, updateFormData, onSubmit, onPrev, isSubm
               <FormMessage />
             </FormItem>
           )} />
-          <FormField name="hasStudiedAbroadOnGovScholarship" control={form.control} render={() => (
+          <AnimatePresence>
+            {form.watch('governmentScholarship') === true && (
+              <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
+                <FormField name="governmentScholarshipCountry" control={form.control} render={({field}) => (
+                  <FormItem>
+                    <FormLabel>{t('ui.final.govscholar.country', 'Bạn đã nhận học bổng chính phủ của nước nào?')}</FormLabel>
+                    <FormControl>
+                      <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('governmentScholarshipCountry', (e.target as any).value) }}>
+                        <option value="">{t('ui.select', 'Chọn')}</option>
+                        <option value="Úc">Úc</option>
+                        <option value="Mỹ">Mỹ</option>
+                        <option value="Anh">Anh</option>
+                        <option value="Pháp">Pháp</option>
+                        <option value="New Zealand">New Zealand</option>
+                        <option value="Nhật">Nhật</option>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <FormField name="englishTest.type" control={form.control} render={({field}) => (
             <FormItem>
-              <FormLabel>{t('ui.final.govscholar.label', 'Have you ever studied abroad on a government-funded scholarship? *')}</FormLabel>
+              <FormLabel>{t('ui.final.english.title', 'Chứng chỉ tiếng Anh của bạn')}</FormLabel>
               <FormControl>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <Radio name="hasStudiedAbroadOnGovScholarship" value="true" checked={form.watch('hasStudiedAbroadOnGovScholarship') === true} onChange={()=>{ form.setValue('hasStudiedAbroadOnGovScholarship', true, { shouldValidate:true }); updateFormData('hasStudiedAbroadOnGovScholarship', true) }} />
-                    <span className="ml-3">{t('ui.common.yes', 'Yes')}</span>
-                  </label>
-                  <label className="flex items-center">
-                    <Radio name="hasStudiedAbroadOnGovScholarship" value="false" checked={form.watch('hasStudiedAbroadOnGovScholarship') === false} onChange={()=>{ form.setValue('hasStudiedAbroadOnGovScholarship', false, { shouldValidate:true }); updateFormData('hasStudiedAbroadOnGovScholarship', false) }} />
-                    <span className="ml-3">{t('ui.common.no', 'No')}</span>
-                  </label>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField name="englishTestType" control={form.control} render={({field}) => (
-            <FormItem>
-              <FormLabel>{t('ui.final.testType.label', 'English Proficiency Test Type *')}</FormLabel>
-              <FormControl>
-                <Select value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); updateFormData('englishTestType', (e.target as any).value) }}>
+                <Select value={field.value ?? ''} onChange={(e)=>{ const v=(e.target as any).value; field.onChange(e); form.setValue('englishTest.type', v as any, { shouldValidate:true }); updateFormData('englishTest', { ...form.watch('englishTest'), type: v }) }}>
                   <option value="">{t('ui.final.testType.select', 'Select test type')}</option>
-                  <option value="IELTS">{t('ui.final.testType.ielts', 'IELTS')}</option>
-                  <option value="TOEFL">{t('ui.final.testType.toefl', 'TOEFL')}</option>
-                  <option value="PTE">{t('ui.final.testType.pte', 'PTE')}</option>
-                  <option value="None">{t('ui.final.testType.none', 'None')}</option>
+                  <option value="IELTS">IELTS</option>
+                  <option value="TOEFL">TOEFL iBT</option>
+                  <option value="PTE">PTE</option>
                 </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
           )} />
-          {form.watch('englishTestType') && form.watch('englishTestType') !== 'None' && (
-            <FormField name="englishScore" control={form.control} render={({field}) => (
-              <FormItem>
-                <FormLabel>{t('ui.final.overall.label', 'Overall Score *')}</FormLabel>
-                <FormControl>
-                  <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v = parseFloat((e.target as HTMLInputElement).value); field.onChange(Number.isNaN(v)? undefined : v); updateFormData('englishScore', Number.isNaN(v)? undefined : v) }} placeholder="Enter your overall score" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+          {Boolean(form.watch('englishTest')?.type) && (
+            <div className="grid md:grid-cols-5 gap-3">
+              <FormField name="englishTest.overall" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>{t('ui.final.overall.label', 'Điểm tổng *')}</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), overall: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.listening" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Listening *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), listening: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.reading" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Reading *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), reading: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.writing" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Writing *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), writing: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField name="englishTest.speaking" control={form.control} render={({field}) => (
+                <FormItem>
+                  <FormLabel>Speaking *</FormLabel>
+                  <FormControl>
+                    <Input type="number" step={0.1} value={(field.value as any) ?? ''} onChange={(e)=>{ const v=parseFloat((e.target as HTMLInputElement).value); field.onChange(v); updateFormData('englishTest', { ...form.watch('englishTest'), speaking: v }); }} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
           )}
         </motion.form>
       </Form>
@@ -984,13 +1116,13 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
                 </div>
                 {sch.eligible ? (
                   <div className="flex items-center text-green-700 mb-4">
-                    <span className="text-2xl mr-2">✔</span>
+                    <span className="text-2xl mr-2">?</span>
                     <span className="font-semibold">You are eligible for {sch.name}!</span>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-center text-red-700 mb-4">
-                      <span className="text-2xl mr-2">✔</span>
+                      <span className="text-2xl mr-2">?</span>
                       <span className="font-semibold">You are not eligible for {sch.name}</span>
                     </div>
                     {sch.reasons.length > 0 && (
@@ -1013,7 +1145,7 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
       {hasScholarships && hasEligibleScholarship && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <div className="flex items-center mb-2">
-            <span className="text-2xl mr-2">🎉</span>
+            <span className="text-2xl mr-2">??</span>
             <h4 className="text-lg font-semibold text-green-800">Congratulations!</h4>
           </div>
           <p className="text-green-700">You are eligible for at least one scholarship! We recommend you start preparing your application early. Good luck with your scholarship journey!</p>
@@ -1025,6 +1157,14 @@ function ResultsPage({ result, onReset }: { result: EligibilityResult; onReset: 
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

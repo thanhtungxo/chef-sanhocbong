@@ -13,8 +13,16 @@ export function toAnswerSet(input: Record<string, any>): AnswerSet {
   }
 
   // English score -> IELTS score used by current rules
-  if (out.ielts == null && out.englishScore != null) {
-    out.ielts = Number(out.englishScore);
+  if (out.ielts == null) {
+    if (out.englishScore != null) {
+      out.ielts = Number(out.englishScore);
+    } else if (out.englishTest && typeof out.englishTest === "object") {
+      const t = String(out.englishTest.type || "").toUpperCase();
+      if (t === "IELTS" && out.englishTest.overall != null) {
+        const n = Number(out.englishTest.overall);
+        if (Number.isFinite(n)) out.ielts = n;
+      }
+    }
   }
 
   // Military background
