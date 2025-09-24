@@ -40,11 +40,12 @@ export const EnglishInfoStep: React.FC<Props> = ({
   hasField,
 }) => {
   const schema = z.object({
-    testType: z.string().min(1, 'Chọn bài kiểm tra'),
-    score: z
-      .union([z.string(), z.number()])
-      .transform((v) => (v === '' ? undefined : Number(v)))
-      .refine((v) => v === undefined || (!Number.isNaN(v) && v >= 0), 'Điểm không hợp lệ'),
+    testType: (hasField?.('englishTestType') ? z.string().min(1, 'Chọn bài kiểm tra') : z.string().optional()) as any,
+    score: (hasField?.('englishOverall')
+      ? z.union([z.string(), z.number()])
+          .transform((v) => (v === '' ? undefined : Number(v)))
+          .refine((v) => v === undefined || (!Number.isNaN(v) && v >= 0), 'Điểm không hợp lệ')
+      : z.union([z.string(), z.number()]).optional()) as any,
   })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),

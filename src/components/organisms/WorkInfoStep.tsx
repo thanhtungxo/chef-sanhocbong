@@ -42,12 +42,13 @@ export const WorkInfoStep: React.FC<Props> = ({
   hasField,
 }) => {
   const schema = z.object({
-    jobTitle: z.string().min(1, 'Job title is required'),
-    employer: z.string().min(1, 'Employer is required'),
+    jobTitle: (hasField?.('currentJobTitle') ? z.string().min(1, 'Job title is required') : z.string().optional()) as any,
+    employer: (hasField?.('employerName') ? z.string().min(1, 'Employer is required') : z.string().optional()) as any,
+    employerType: (hasField?.('employerType') ? z.string().min(1, 'Employer type is required') : z.string().optional()) as any,
   })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { jobTitle, employer },
+    defaultValues: { jobTitle, employer, employerType },
     mode: 'onChange',
   })
   const [shake, setShake] = React.useState(false)
