@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { FormPreview } from '@/components/pages/FormPreview';
+import { t } from '@/lib/i18n';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -124,7 +125,7 @@ export const FormBuilder: React.FC = () => {
                   <div key={(s._id?.id ?? s._id) + '-' + s.order} className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}>
                     <div className="flex items-center gap-2">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
-                      <span className="font-medium">{s.titleKey}</span>
+                      <span className="font-medium">{t(s.titleKey, s.titleKey)}</span>
                       <span className="text-xs text-muted-foreground">#{s.order}</span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -147,25 +148,28 @@ export const FormBuilder: React.FC = () => {
               </div>
             </Section>
 
-            <Section title={`Questions ${selectedStep ? `– ${selectedStep.titleKey}`: ''}`}>
+            <Section title={`Questions ${selectedStep ? `– ${t(selectedStep.titleKey, selectedStep.titleKey)}`: ''}`}>
               <div ref={qSectionRef} />
               {!selectedStep ? (
                 <div className="text-sm text-muted-foreground">Chọn một Step để xem câu hỏi.</div>
               ) : (
                 <div className="space-y-2">
-                  {(questionsByStep[selectedStep._id.id] ?? []).map((q:any)=> (
-                    <div key={(q._id?.id ?? q._id) + '-' + q.order} className="flex items-center justify-between border rounded px-2 py-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{q.labelKey}</span>
-                        <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
+                  {((questionsByStep[selectedStep._id.id] ?? []) as any[])
+                    .filter((q:any)=> String(q.stepId?.id) === String(selectedStep._id.id))
+                    .sort((a:any,b:any)=> a.order - b.order)
+                    .map((q:any)=> (
+                      <div key={(q._id?.id ?? q._id) + '-' + q.order} className="flex items-center justify-between border rounded px-2 py-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{t(q.labelKey, q.labelKey)}</span>
+                          <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
+                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
+                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
+                          <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
-                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
-                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
-                        <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
-                      </div>
-                    </div>
                   ))}
                   <div>
                     <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={openAddQuestion}>Thêm câu hỏi</button>
