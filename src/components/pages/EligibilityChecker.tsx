@@ -205,11 +205,13 @@ export const EligibilityChecker: React.FC = () => {
               <WorkInfoStep
                 jobTitle={formData.jobTitle}
                 employer={formData.employer}
+                employerType={(formData as any).employerType ?? ''}
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
                 getOptions={getOptions}
                 onChangeJobTitle={(v) => updateField('jobTitle', v)}
                 onChangeEmployer={(v) => updateField('employer', v)}
+                onChangeEmployerType={(v) => updateField('employerType' as any, v)}
                 onBack={onBack}
                 onNext={onNext}
               />

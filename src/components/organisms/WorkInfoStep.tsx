@@ -15,23 +15,29 @@ import { AlertCircle } from 'lucide-react'
 interface Props {
   jobTitle: string;
   employer: string;
+  employerType?: string;
   onChangeJobTitle: (val: string) => void;
   onChangeEmployer: (val: string) => void;
+  onChangeEmployerType?: (val: string) => void;
   onBack: () => void;
   onNext: () => void;
   getLabel?: (key: string, fallback: string) => string;
   getPlaceholder?: (key: string, fallback: string) => string;
+  getOptions?: (key: string) => { value: string; label: string }[] | null;
 }
 
 export const WorkInfoStep: React.FC<Props> = ({
   jobTitle,
   employer,
+  employerType,
   onChangeJobTitle,
   onChangeEmployer,
+  onChangeEmployerType,
   onBack,
   onNext,
   getLabel,
   getPlaceholder,
+  getOptions,
 }) => {
   const schema = z.object({
     jobTitle: z.string().min(1, 'Job title is required'),
@@ -126,6 +132,39 @@ export const WorkInfoStep: React.FC<Props> = ({
                       </FormItem>
                     )}
                   />
+                  {/* Optional employerType select if provided by Active Form */}
+                  {Array.isArray(getOptions?.('employerType')) && (
+                    <FormField
+                      control={form.control}
+                      name="employerType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{getLabel?.('employerType','Employer Type') ?? 'Employer Type'}</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
+                                <Building2 className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <select
+                                className={'pl-10 w-full border rounded px-3 py-2'}
+                                value={employerType ?? ''}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  onChangeEmployerType?.((e.target as HTMLSelectElement).value);
+                                }}
+                              >
+                                <option value="">{getPlaceholder?.('employerType','--') ?? '--'}</option>
+                                {(getOptions?.('employerType') ?? []).map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </form>
               </Form>
             </CardContent>

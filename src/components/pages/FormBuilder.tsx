@@ -31,6 +31,8 @@ export const FormBuilder: React.FC = () => {
 
   const [selectedStepId, setSelectedStepId] = React.useState<string | null>(null);
   const [editingQ, setEditingQ] = React.useState<null | { mode: 'add'|'edit'; q?: any }>(null);
+  const [dragStepId, setDragStepId] = React.useState<string | null>(null);
+  const [dragQuestionId, setDragQuestionId] = React.useState<string | null>(null);
 
   const steps = active?.steps ?? [];
   const questionsByStep = active?.questionsByStep ?? {};
@@ -52,6 +54,16 @@ export const FormBuilder: React.FC = () => {
     await reorderSteps({ formSetId: active!.formSet._id as any, orderedStepIds: ordered.map((s:any)=> s._id) } as any);
   };
 
+  const moveStep = async (sourceId: string, targetId: string) => {
+    const ordered = steps.slice().sort((a:any,b:any)=> a.order-b.order);
+    const from = ordered.findIndex((s:any)=> String(s._id.id)===String(sourceId));
+    const to = ordered.findIndex((s:any)=> String(s._id.id)===String(targetId));
+    if (from < 0 || to < 0 || from === to) return;
+    const item = ordered.splice(from,1)[0];
+    ordered.splice(to,0,item);
+    await reorderSteps({ formSetId: active!.formSet._id as any, orderedStepIds: ordered.map((s:any)=> s._id) } as any);
+  };
+
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
     if (!selectedStep) return;
     const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
@@ -61,6 +73,17 @@ export const FormBuilder: React.FC = () => {
     const swap = list[j];
     list[j] = list[idx];
     list[idx] = swap;
+    await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
+  };
+
+  const moveQuestion = async (sourceQId: string, targetQId: string) => {
+    if (!selectedStep) return;
+    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const from = list.findIndex((q:any)=> String(q._id.id)===String(sourceQId));
+    const to = list.findIndex((q:any)=> String(q._id.id)===String(targetQId));
+    if (from < 0 || to < 0 || from === to) return;
+    const item = list.splice(from,1)[0];
+    list.splice(to,0,item);
     await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
   };
 
@@ -122,7 +145,14 @@ export const FormBuilder: React.FC = () => {
             <Section title={`Steps – ${active.formSet.name} (v${active.formSet.version})`}>
               <div className="space-y-2">
                 {(steps ?? []).map((s:any)=> (
-                  <div key={(s._id?.id ?? s._id) + '-' + s.order} className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}>
+                  <div
+                    key={(s._id?.id ?? s._id) + '-' + s.order}
+                    className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}
+                    draggable
+                    onDragStart={()=> setDragStepId(String(s._id.id))}
+                    onDragOver={(e)=> e.preventDefault()}
+                    onDrop={async ()=>{ if (dragStepId) await moveStep(dragStepId, String(s._id.id)); setDragStepId(null); }}
+                  >
                     <div className="flex items-center gap-2">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
                       <span className="font-medium">{t(s.titleKey, s.titleKey)}</span>
@@ -158,9 +188,16 @@ export const FormBuilder: React.FC = () => {
                     .filter((q:any)=> String(q.stepId?.id) === String(selectedStep._id.id))
                     .sort((a:any,b:any)=> a.order - b.order)
                     .map((q:any)=> (
-                      <div key={(q._id?.id ?? q._id) + '-' + q.order} className="flex items-center justify-between border rounded px-2 py-1">
+                      <div
+                        key={(q._id?.id ?? q._id) + '-' + q.order}
+                        className="flex items-center justify-between border rounded px-2 py-1"
+                        draggable
+                        onDragStart={()=> setDragQuestionId(String(q._id.id))}
+                        onDragOver={(e)=> e.preventDefault()}
+                        onDrop={async ()=>{ if (dragQuestionId) await moveQuestion(dragQuestionId, String(q._id.id)); setDragQuestionId(null); }}
+                      >
                         <div className="flex items-center gap-2">
-                           <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
+                          <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
                           <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
                         </div>
                         <div className="flex items-center gap-1">
