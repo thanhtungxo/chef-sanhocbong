@@ -211,7 +211,12 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
         labelText: question.ui?.labelText ?? '',
         type: question.type,
         required: !!question.required,
-        optionsText: (question.options ?? []).map((o:any)=> `${o.value}|${o.labelKey}`).join('\n'),
+        optionsText: (question.options ?? []).map((o:any)=> {
+          if (o.labelKey && o.labelText) return `${o.value}|${o.labelKey}|${o.labelText}`;
+          if (o.labelKey) return `${o.value}|${o.labelKey}`;
+          if (o.labelText) return `${o.value}|${o.labelText}`;
+          return `${o.value}|`;
+        }).join('\n'),
         mapTo: question.mapTo ?? '',
         widget: question.ui?.widget ?? '',
         placeholderKey: question.ui?.placeholderKey ?? '',
@@ -223,10 +228,25 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
     return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', min: '', max: '', pattern: '' };
   });
   const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: v }));
-  const parseOptions = () => form.optionsText.split('\n').map((l:string)=> l.trim()).filter(Boolean).map((line:string)=>{
-    const [value, labelKey] = line.split('|');
-    return { value: value?.trim() ?? '', labelKey: (labelKey ?? '').trim() };
-  });
+  const parseOptions = () => form.optionsText
+    .split('\n')
+    .map((l:string)=> l.trim())
+    .filter(Boolean)
+    .map((line:string)=>{
+      const parts = line.split('|');
+      const value = (parts[0] ?? '').trim();
+      const second = (parts[1] ?? '').trim();
+      const third = (parts[2] ?? '').trim();
+      if (!value) return null as any;
+      if (third) return { value, labelKey: second || undefined, labelText: third };
+      // nếu chỉ có 2 phần: nếu phần 2 trông như key i18n (bắt đầu bằng 'ui.'), coi là labelKey; ngược lại coi là labelText
+      if (second) {
+        if (second.startsWith('ui.')) return { value, labelKey: second } as any;
+        return { value, labelText: second } as any;
+      }
+      return { value } as any;
+    })
+    .filter(Boolean);
   const [saving, setSaving] = React.useState(false);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
@@ -270,8 +290,8 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
             </select>
           </label>
           {(form.type==='select' || form.type==='radio' || form.type==='multi-select' || form.type==='autocomplete') && (
-            <label className="col-span-2">Options (mỗi dòng: value|labelKey)
-              <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="vn|ui.country.vn"/>
+            <label className="col-span-2">Options (mỗi dòng: value|labelKey hoặc value|labelText hoặc value|labelKey|labelText)
+              <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cử nhân hoặc Bachelor|ui.education.highest.bachelor hoặc Bachelor|ui.education.highest.bachelor|Cử nhân"/>
             </label>
           )}
           <label>mapTo (tùy chọn)

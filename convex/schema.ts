@@ -82,7 +82,11 @@ export default defineSchema({
     type: v.string(), // text, number, radio, select, multi-select, checkbox, date, autocomplete, boolean, textarea
     required: v.boolean(),
     order: v.number(),
-    options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.string() }))),
+    options: v.optional(v.array(v.object({
+      value: v.string(),
+      labelKey: v.optional(v.string()),
+      labelText: v.optional(v.string()),
+    }))),
     validation: v.optional(v.object({
       min: v.optional(v.number()),
       max: v.optional(v.number()),

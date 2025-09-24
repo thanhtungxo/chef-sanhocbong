@@ -61,7 +61,7 @@ export function renderField(q: any, field: any, watch: any) {
           {(q.options ?? []).map((opt: any) => (
             <label key={opt.value} className="flex items-center gap-2">
               <Radio name={field.name} value={opt.value} checked={field.value === opt.value} onChange={(e)=> field.onChange((e.target as any).value)} />
-              <span>{t(opt.labelKey, opt.labelKey)}</span>
+              <span>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</span>
             </label>
           ))}
         </div>
@@ -71,7 +71,7 @@ export function renderField(q: any, field: any, watch: any) {
         <Select value={field.value ?? ''} onChange={(e)=> field.onChange(e)}>
           <option value="">--</option>
           {(q.options ?? []).map((opt: any)=> (
-            <option key={opt.value} value={opt.value}>{t(opt.labelKey, opt.labelKey)}</option>
+            <option key={opt.value} value={opt.value}>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</option>
           ))}
         </Select>
       );
@@ -87,7 +87,7 @@ export function renderField(q: any, field: any, watch: any) {
                   const next = e.target.checked ? [...selected, opt.value] : selected.filter(v=>v!==opt.value);
                   field.onChange(next);
                 }} />
-                <span>{t(opt.labelKey, opt.labelKey)}</span>
+                <span>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</span>
               </label>
             );
           })}

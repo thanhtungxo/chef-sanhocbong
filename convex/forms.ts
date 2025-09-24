@@ -106,7 +106,7 @@ export const reorderSteps = mutation({
 export const createQuestion = mutation({
   args: {
     formSetId: v.id("formSets"), stepId: v.id("formSteps"), key: v.string(), labelKey: v.string(), type: v.string(), required: v.boolean(),
-    options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.string() }))),
+    options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.optional(v.string()), labelText: v.optional(v.string()) }))),
     validation: v.optional(v.any()), ui: v.optional(v.any()), visibility: v.optional(v.any()), mapTo: v.optional(v.string()),
     order: v.optional(v.number()),
   },
@@ -134,7 +134,7 @@ export const createQuestion = mutation({
 export const updateQuestion = mutation({
   args: { questionId: v.id("formQuestions"), patch: v.object({
     labelKey: v.optional(v.string()), type: v.optional(v.string()), required: v.optional(v.boolean()),
-    options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.string() }))),
+    options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.optional(v.string()), labelText: v.optional(v.string()) }))),
     validation: v.optional(v.any()), ui: v.optional(v.any()), visibility: v.optional(v.any()), mapTo: v.optional(v.string()), order: v.optional(v.number()), stepId: v.optional(v.id("formSteps")),
   }) },
   handler: async (ctx: any, { questionId, patch }: any) => { await ctx.db.patch(questionId, patch as any); return { ok: true }; }
@@ -247,4 +247,3 @@ export const seedLegacyForm = mutation({
     return { ok: true, formSetId };
   }
 });
-
