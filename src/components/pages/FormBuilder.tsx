@@ -33,10 +33,11 @@ export const FormBuilder: React.FC = () => {
 
   const steps = active?.steps ?? [];
   const questionsByStep = active?.questionsByStep ?? {};
-  const selectedStep = selectedStepId ? steps.find((s: any) => s._id.id === selectedStepId) : null;
+  const selectedStep = selectedStepId ? steps.find((s: any) => String(s._id.id) === selectedStepId) : null;
+  const qSectionRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
-    if (!selectedStepId && steps.length) setSelectedStepId(steps[0]._id.id);
+    if (!selectedStepId && steps.length) setSelectedStepId(String(steps[0]._id.id));
   }, [steps, selectedStepId]);
 
   const doReorderSteps = async (sid: string, dir: -1 | 1) => {
@@ -71,7 +72,16 @@ export const FormBuilder: React.FC = () => {
       const p: any = { ...payload, formSetId: active.formSet._id };
       await createQuestion(p);
     } else if (editingQ?.mode === 'edit' && editingQ.q) {
-      await updateQuestion({ questionId: editingQ.q._id, patch: payload.patch } as any);
+      const patch = { ...(payload.patch || {}) } as any;
+      // If moved to another step, push to the end of destination step
+      const newStepId = patch.stepId?.id as string | undefined;
+      const oldStepId = editingQ.q.stepId?.id as string | undefined;
+      if (newStepId && newStepId !== oldStepId) {
+        const list = (questionsByStep[newStepId] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+        const lastOrder = list.length ? list[list.length - 1].order : 0;
+        patch.order = lastOrder + 1;
+      }
+      await updateQuestion({ questionId: editingQ.q._id, patch } as any);
     }
     setEditingQ(null);
   };
@@ -80,23 +90,23 @@ export const FormBuilder: React.FC = () => {
     <div className="space-y-6">
       <Section title="Form Sets">
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="px-3 py-2 rounded bg-primary text-white" onClick={async ()=>{
+          <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={async ()=>{
             const name = prompt('Tên Form Set', 'Default') || 'Default';
             const version = prompt('Version', '1.0.0') || '1.0.0';
             await createFormSet({ name, version, activate: true } as any);
             alert('Đã tạo & kích hoạt Form Set');
           }}>Tạo & kích hoạt</button>
-          <button className="px-3 py-2 rounded border" onClick={async ()=>{ await seedLegacyForm({ forceNew: false } as any); alert('Đã seed form Legacy (nếu chưa có).'); }}>Seed Legacy</button>
+          <button type="button" className="px-3 py-2 rounded border" onClick={async ()=>{ await seedLegacyForm({ forceNew: false } as any); alert('Đã seed form Legacy (nếu chưa có).'); }}>Seed Legacy</button>
         </div>
         <div className="mt-2 text-sm">
           {(formSets ?? []).map((fs:any)=> (
-            <div key={fs._id.id} className="flex items-center justify-between py-1">
+            <div key={(fs._id?.id ?? fs._id) + ''} className="flex items-center justify-between py-1">
               <div>
                 <span className="font-medium">{fs.name}</span> <span className="text-muted-foreground">(v{fs.version})</span>
                 {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">• active</span>}
               </div>
               <div className="flex gap-2">
-                <button className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await publishFormSet({ formSetId: fs._id } as any); }}>Activate</button>
+                <button type="button" className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await publishFormSet({ formSetId: fs._id } as any); }}>Activate</button>
               </div>
             </div>
           ))}
@@ -111,26 +121,26 @@ export const FormBuilder: React.FC = () => {
             <Section title={`Steps – ${active.formSet.name} (v${active.formSet.version})`}>
               <div className="space-y-2">
                 {(steps ?? []).map((s:any)=> (
-                  <div key={s._id.id} className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}>
+                  <div key={(s._id?.id ?? s._id) + '-' + s.order} className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}>
                     <div className="flex items-center gap-2">
-                      <button className="px-2 py-1 text-xs border rounded" onClick={()=> setSelectedStepId(s._id.id)}>Chọn</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
                       <span className="font-medium">{s.titleKey}</span>
                       <span className="text-xs text-muted-foreground">#{s.order}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, -1)}>Up</button>
-                      <button className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, 1)}>Down</button>
-                      <button className="px-2 py-1 text-xs border rounded" onClick={async()=>{
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, -1)}>Up</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, 1)}>Down</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={async()=>{
                         const titleKey = prompt('Title key', s.titleKey) || s.titleKey;
                         await updateStep({ stepId: s._id, titleKey } as any);
                       }}>Edit</button>
-                      <button className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa step và toàn bộ câu hỏi?')) await deleteStep({ stepId: s._id } as any); }}>Delete</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa step và toàn bộ câu hỏi?')) await deleteStep({ stepId: s._id } as any); }}>Delete</button>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="mt-2">
-                <button className="px-3 py-2 rounded bg-primary text-white" onClick={async()=>{
+                <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={async()=>{
                   const titleKey = prompt('Title key', 'ui.step.title') || 'ui.step.title';
                   await createStep({ formSetId: active.formSet._id as any, titleKey } as any);
                 }}>Thêm Step</button>
@@ -138,26 +148,27 @@ export const FormBuilder: React.FC = () => {
             </Section>
 
             <Section title={`Questions ${selectedStep ? `– ${selectedStep.titleKey}`: ''}`}>
+              <div ref={qSectionRef} />
               {!selectedStep ? (
                 <div className="text-sm text-muted-foreground">Chọn một Step để xem câu hỏi.</div>
               ) : (
                 <div className="space-y-2">
                   {(questionsByStep[selectedStep._id.id] ?? []).map((q:any)=> (
-                    <div key={q._id.id} className="flex items-center justify-between border rounded px-2 py-1">
+                    <div key={(q._id?.id ?? q._id) + '-' + q.order} className="flex items-center justify-between border rounded px-2 py-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{q.labelKey}</span>
                         <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
-                        <button className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
-                        <button className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
-                        <button className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
                       </div>
                     </div>
                   ))}
                   <div>
-                    <button className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={openAddQuestion}>Thêm câu hỏi</button>
+                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={openAddQuestion}>Thêm câu hỏi</button>
                   </div>
                 </div>
               )}
@@ -313,4 +324,3 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
     </div>
   );
 }
-

@@ -226,7 +226,7 @@ export const seedLegacyForm = mutation({
     await mkQ(s4, { key: 'hasCriminalRecordOrInvestigation', labelKey: 'ui.personal.criminal.label', type: 'boolean', required: true, order: 2 });
     await mkQ(s4, { key: 'governmentScholarship', labelKey: 'ui.final.govscholar2.label', type: 'boolean', required: true, order: 3 });
     await mkQ(s4, { key: 'governmentScholarshipCountry', labelKey: 'ui.final.govscholar.country', type: 'select', required: false, order: 4, options: [
-      { value: 'Asc', labelKey: 'Asc' },
+      { value: 'Úc', labelKey: 'Úc' },
       { value: 'Mỹ', labelKey: 'Mỹ' },
       { value: 'Anh', labelKey: 'Anh' },
       { value: 'Pháp', labelKey: 'Pháp' },
@@ -247,4 +247,3 @@ export const seedLegacyForm = mutation({
     return { ok: true, formSetId };
   }
 });
-
