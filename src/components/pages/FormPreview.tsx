@@ -67,10 +67,10 @@ export const FormPreview: React.FC<{ active: ActiveForm | null }>= ({ active }) 
         <form className="space-y-3" onSubmit={(e)=> e.preventDefault()}>
           {questions.length === 0 ? (
             <div className="text-sm text-muted-foreground">Step này chưa có câu hỏi.</div>
-            ) : questions.map((q: any) => (
+          ) : questions.map((q: any) => (
             <FormField key={q.key} name={q.key} control={form.control} render={({ field }) => (
               <FormItem>
-                <FormLabel>{t(q.labelKey, q.labelKey)}</FormLabel>
+                <FormLabel>{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</FormLabel>
                 <FormControl>
                   {renderField(q, field, form.watch)}
                 </FormControl>

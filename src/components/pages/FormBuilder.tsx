@@ -160,7 +160,7 @@ export const FormBuilder: React.FC = () => {
                     .map((q:any)=> (
                       <div key={(q._id?.id ?? q._id) + '-' + q.order} className="flex items-center justify-between border rounded px-2 py-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{t(q.labelKey, q.labelKey)}</span>
+                           <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
                           <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -208,6 +208,7 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
         stepId: question.stepId.id,
         key: question.key,
         labelKey: question.labelKey,
+        labelText: question.ui?.labelText ?? '',
         type: question.type,
         required: !!question.required,
         optionsText: (question.options ?? []).map((o:any)=> `${o.value}|${o.labelKey}`).join('\n'),
@@ -219,13 +220,14 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
         pattern: question.validation?.pattern ?? '',
       };
     }
-    return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', min: '', max: '', pattern: '' };
+    return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', min: '', max: '', pattern: '' };
   });
   const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: v }));
   const parseOptions = () => form.optionsText.split('\n').map((l:string)=> l.trim()).filter(Boolean).map((line:string)=>{
     const [value, labelKey] = line.split('|');
     return { value: value?.trim() ?? '', labelKey: (labelKey ?? '').trim() };
   });
+  const [saving, setSaving] = React.useState(false);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div className="bg-white rounded shadow-lg w-full max-w-2xl p-4 space-y-3">
@@ -243,6 +245,9 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
           )}
           <label>Label key
             <input className="w-full border rounded px-2 py-1" value={form.labelKey} onChange={(e)=>update('labelKey', e.target.value)} placeholder="ui.xxx.label"/>
+          </label>
+          <label>Label (hiển thị)
+            <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=>update('labelText', e.target.value)} placeholder="Nhập câu hỏi hiển thị cho người dùng"/>
           </label>
           <label>Type
             <select className="w-full border rounded px-2 py-1" value={form.type} onChange={(e)=>update('type', e.target.value)}>
@@ -289,38 +294,48 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
           </label>
         </div>
         <div className="flex justify-end gap-2">
-          <button className="px-3 py-2" onClick={onClose}>Hủy</button>
-          <button className="px-3 py-2 rounded bg-primary text-white" onClick={async ()=>{
-            if (mode==='add'){
-              if (!form.stepId || !form.key || !form.labelKey || !form.type){ alert('Thiếu stepId/key/labelKey/type'); return; }
-              const payload:any = {
-                formSetId,
-                stepId: steps.find((s:any)=>s._id.id===form.stepId)?._id,
-                key: form.key, labelKey: form.labelKey, type: form.type, required: !!form.required,
-                options: parseOptions(),
-                validation: {
-                  min: form.min!=='' ? Number(form.min) : undefined,
-                  max: form.max!=='' ? Number(form.max) : undefined,
-                  pattern: form.pattern || undefined,
-                },
-                ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined },
-                mapTo: form.mapTo || undefined,
-              };
-              await onSave(payload);
-            } else {
-              const patch:any = {
-                stepId: form.stepId ? steps.find((s:any)=>s._id.id===form.stepId)?._id : undefined,
-                labelKey: form.labelKey, type: form.type, required: !!form.required,
-                options: parseOptions(),
-                validation: {
-                  min: form.min!=='' ? Number(form.min) : undefined,
-                  max: form.max!=='' ? Number(form.max) : undefined,
-                  pattern: form.pattern || undefined,
-                },
-                ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined },
-                mapTo: form.mapTo || undefined,
-              };
-              await onSave({ patch });
+          <button className="px-3 py-2" onClick={onClose} disabled={saving}>Hủy</button>
+          <button className="px-3 py-2 rounded bg-primary text-white" disabled={saving} onClick={async ()=>{
+            try {
+              setSaving(true);
+              if (mode==='add'){
+                if (!form.stepId || !form.key || !form.labelKey || !form.type){ alert('Thiếu stepId/key/labelKey/type'); setSaving(false); return; }
+                const payload:any = {
+                  formSetId,
+                  stepId: steps.find((s:any)=> String(s._id.id)===String(form.stepId))?._id,
+                  key: form.key, labelKey: form.labelKey, type: form.type, required: !!form.required,
+                  options: parseOptions(),
+                  validation: {
+                    min: form.min!=='' ? Number(form.min) : undefined,
+                    max: form.max!=='' ? Number(form.max) : undefined,
+                    pattern: form.pattern || undefined,
+                  },
+                  ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, labelText: form.labelText || undefined },
+                  mapTo: form.mapTo || undefined,
+                };
+                await onSave(payload);
+              } else {
+                const patch:any = {
+                  stepId: form.stepId ? steps.find((s:any)=> String(s._id.id)===String(form.stepId))?._id : undefined,
+                  labelKey: form.labelKey, type: form.type, required: !!form.required,
+                  options: parseOptions(),
+                  validation: {
+                    min: form.min!=='' ? Number(form.min) : undefined,
+                    max: form.max!=='' ? Number(form.max) : undefined,
+                    pattern: form.pattern || undefined,
+                  },
+                  ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, labelText: form.labelText || undefined },
+                  mapTo: form.mapTo || undefined,
+                };
+                await onSave({ patch });
+              }
+              alert('Đã lưu');
+              onClose();
+            } catch (e:any) {
+              console.error('Save question failed', e);
+              alert('Lưu thất bại: ' + (e?.message || String(e)));
+            } finally {
+              setSaving(false);
             }
           }}>Lưu</button>
         </div>

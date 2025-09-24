@@ -90,7 +90,12 @@ export default defineSchema({
       scale: v.optional(v.object({ overall: v.optional(v.array(v.number())), sub: v.optional(v.array(v.number())) })),
       requiredWhen: v.optional(v.object({ field: v.string(), equals: v.any() })),
     })),
-    ui: v.optional(v.object({ widget: v.optional(v.string()), placeholderKey: v.optional(v.string()), icon: v.optional(v.string()) })),
+    ui: v.optional(v.object({
+      widget: v.optional(v.string()),
+      placeholderKey: v.optional(v.string()),
+      icon: v.optional(v.string()),
+      labelText: v.optional(v.string()),
+    })),
     visibility: v.optional(v.object({ when: v.optional(v.object({ field: v.string(), equals: v.any() })) })),
     mapTo: v.optional(v.string()),
     createdAt: v.number(),

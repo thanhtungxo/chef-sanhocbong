@@ -67,7 +67,7 @@ export const DynamicForm: React.FC = () => {
             ) : questions.map((q: any) => (
               <FormField key={q.key} name={q.key} control={form.control} render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t(q.labelKey, q.labelKey)}</FormLabel>
+                  <FormLabel>{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</FormLabel>
                   <FormControl>
                     {renderField(q, field, form.watch)}
                   </FormControl>
