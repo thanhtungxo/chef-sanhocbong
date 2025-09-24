@@ -150,8 +150,18 @@ export const EligibilityChecker: React.FC = () => {
           <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.25 }}>
             {step === 0 && (
               <PersonalInfoStep
-                fullName={formData.fullName}
-                setFullName={(v) => updateField('fullName', v)}
+                fullName={(formData as any).fullName ?? ''}
+                setFullName={(v) => updateField('fullName' as any, v)}
+                email={(formData as any).email ?? ''}
+                setEmail={(v) => updateField('email' as any, v)}
+                dateOfBirth={(formData as any).dateOfBirth ?? ''}
+                setDateOfBirth={(v) => updateField('dateOfBirth' as any, v)}
+                gender={(formData as any).gender ?? ''}
+                setGender={(v) => updateField('gender' as any, v)}
+                countryOfCitizenship={(formData as any).countryOfCitizenship ?? ''}
+                setCountryOfCitizenship={(v) => updateField('countryOfCitizenship' as any, v)}
+                currentCity={(formData as any).currentCity ?? ''}
+                setCurrentCity={(v) => updateField('currentCity' as any, v)}
                 age={formData.age?.toString() ?? ''}
                 setAge={(v) => updateField('age', v ? Number(v) : null)}
                 onNext={onNext}

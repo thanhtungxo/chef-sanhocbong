@@ -1,7 +1,7 @@
 // src/store/eligibilityStore.ts
 import { create } from 'zustand';
 import { z } from 'zod';
-import { schema } from '@/ts/schema';
+import { schema } from '@/schema';
 
 type FormData = z.infer<typeof schema>;
 
@@ -16,6 +16,12 @@ interface EligibilityState {
 export const useEligibilityStore = create<EligibilityState>((set) => ({
   step: 0,
   formData: {
+    fullName: '',
+    email: '',
+    dateOfBirth: '',
+    gender: '',
+    countryOfCitizenship: '',
+    currentCity: '',
     age: 0,
     englishScore: 0,
     country: '',
@@ -34,6 +40,12 @@ export const useEligibilityStore = create<EligibilityState>((set) => ({
     set({
       step: 0,
       formData: {
+        fullName: '',
+        email: '',
+        dateOfBirth: '',
+        gender: '',
+        countryOfCitizenship: '',
+        currentCity: '',
         age: 0,
         englishScore: 0,
         country: '',

@@ -1,6 +1,6 @@
 import { Toaster } from "sonner";
 import { EligibilityChecker } from "@/components/pages/EligibilityChecker";
-import { LegacyWizard } from "@/components/pages/LegacyWizard";
+import { DynamicForm } from "@/components/pages/DynamicForm";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { AdminDashboard } from "@/components/pages/AdminDashboard";
 
@@ -20,7 +20,8 @@ export default function App() {
           </div>
         )
       ) : (
-        ui === 'simple' ? <EligibilityChecker /> : <LegacyWizard />
+        // Default to the branded EligibilityChecker unless ui=dynamic
+        ui === 'dynamic' ? <DynamicForm /> : <EligibilityChecker />
       )}
       <Toaster />
     </div>

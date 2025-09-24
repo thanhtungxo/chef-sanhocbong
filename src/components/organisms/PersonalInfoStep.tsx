@@ -1,5 +1,4 @@
 import React from 'react'
-import { FormInput } from '../atoms/FormInput'
 import { SectionTitle } from '../atoms/SectionTitle'
 import { StepNavigation } from '../molecules/StepNavigation'
 import { Card, CardHeader, CardContent, CardFooter } from '../atoms/Card'
@@ -15,19 +14,34 @@ import { AlertCircle } from 'lucide-react'
 interface Props {
   fullName: string
   setFullName: (val: string) => void
+  email: string
+  setEmail: (val: string) => void
+  dateOfBirth: string
+  setDateOfBirth: (val: string) => void
+  gender: string
+  setGender: (val: string) => void
+  countryOfCitizenship: string
+  setCountryOfCitizenship: (val: string) => void
+  currentCity: string
+  setCurrentCity: (val: string) => void
   age: string
   setAge: (val: string) => void
   onNext: () => void
 }
 
-export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, setAge, onNext }) => {
+export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email, setEmail, dateOfBirth, setDateOfBirth, gender, setGender, countryOfCitizenship, setCountryOfCitizenship, currentCity, setCurrentCity, age, setAge, onNext }) => {
   const schema = z.object({
     fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
+    email: z.string().email('Email không hợp lệ').optional(),
+    dateOfBirth: z.string().optional(),
+    gender: z.string().optional(),
+    countryOfCitizenship: z.string().optional(),
+    currentCity: z.string().optional(),
     age: z.coerce.number().min(1, 'Tuổi không hợp lệ'),
   })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { fullName, age },
+    defaultValues: { fullName, email, dateOfBirth, gender, countryOfCitizenship, currentCity, age },
     mode: 'onChange',
   })
   const [shake, setShake] = React.useState(false)
@@ -66,9 +80,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, 
                             <Input
                               aria-invalid={!!form.formState.errors.fullName}
                               aria-describedby="fullName-message"
-                              className={
-                                'pl-10 ' + (form.formState.errors.fullName ? 'border-destructive focus-visible:ring-destructive' : '')
-                              }
+                              className={'pl-10 ' + (form.formState.errors.fullName ? 'border-destructive focus-visible:ring-destructive' : '')}
                               value={field.value?.toString() ?? ''}
                               onChange={(e) => {
                                 field.onChange(e)
@@ -101,9 +113,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, 
                               type="number"
                               aria-invalid={!!form.formState.errors.age}
                               aria-describedby="age-message"
-                              className={
-                                'pl-10 ' + (form.formState.errors.age ? 'border-destructive focus-visible:ring-destructive' : '')
-                              }
+                              className={'pl-10 ' + (form.formState.errors.age ? 'border-destructive focus-visible:ring-destructive' : '')}
                               value={field.value?.toString() ?? ''}
                               onChange={(e) => {
                                 field.onChange(e)
@@ -120,6 +130,87 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, 
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            value={field.value ?? ''}
+                            onChange={(e)=>{ field.onChange(e); setEmail((e.target as HTMLInputElement).value); }}
+                            placeholder="name@example.com"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ngày sinh</FormLabel>
+                        <FormControl>
+                          <Input type="date" value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setDateOfBirth((e.target as HTMLInputElement).value); }} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Giới tính</FormLabel>
+                        <FormControl>
+                          <select className="w-full border rounded px-3 py-2" value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setGender((e.target as HTMLSelectElement).value); }}>
+                            <option value="">--</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                            <option value="other">Khác</option>
+                            <option value="na">Không tiết lộ</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="countryOfCitizenship"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quốc tịch</FormLabel>
+                        <FormControl>
+                          <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setCountryOfCitizenship((e.target as HTMLInputElement).value); }} placeholder="Việt Nam" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="currentCity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Thành phố đang sinh sống</FormLabel>
+                        <FormControl>
+                          <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setCurrentCity((e.target as HTMLInputElement).value); }} placeholder="Hà Nội" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </form>
               </Form>
             </CardContent>
@@ -132,3 +223,4 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, age, 
     </div>
   )
 }
+
