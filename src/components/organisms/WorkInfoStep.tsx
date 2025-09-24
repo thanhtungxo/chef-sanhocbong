@@ -19,6 +19,8 @@ interface Props {
   onChangeEmployer: (val: string) => void;
   onBack: () => void;
   onNext: () => void;
+  getLabel?: (key: string, fallback: string) => string;
+  getPlaceholder?: (key: string, fallback: string) => string;
 }
 
 export const WorkInfoStep: React.FC<Props> = ({
@@ -28,6 +30,8 @@ export const WorkInfoStep: React.FC<Props> = ({
   onChangeEmployer,
   onBack,
   onNext,
+  getLabel,
+  getPlaceholder,
 }) => {
   const schema = z.object({
     jobTitle: z.string().min(1, 'Job title is required'),
@@ -65,7 +69,7 @@ export const WorkInfoStep: React.FC<Props> = ({
                     name="jobTitle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Job Title</FormLabel>
+                        <FormLabel>{getLabel?.('currentJobTitle','Job Title') ?? 'Job Title'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -80,7 +84,7 @@ export const WorkInfoStep: React.FC<Props> = ({
                                 field.onChange(e)
                                 onChangeJobTitle((e.target as HTMLInputElement).value)
                               }}
-                              placeholder="Senior Developer"
+                              placeholder={getPlaceholder?.('currentJobTitle','Senior Developer') ?? 'Senior Developer'}
                             />
                             {form.formState.errors.jobTitle && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
@@ -96,7 +100,7 @@ export const WorkInfoStep: React.FC<Props> = ({
                     name="employer"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Employer Name</FormLabel>
+                        <FormLabel>{getLabel?.('employerName','Employer Name') ?? 'Employer Name'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -111,7 +115,7 @@ export const WorkInfoStep: React.FC<Props> = ({
                                 field.onChange(e)
                                 onChangeEmployer((e.target as HTMLInputElement).value)
                               }}
-                              placeholder="Acme Corp"
+                              placeholder={getPlaceholder?.('employerName','Acme Corp') ?? 'Acme Corp'}
                             />
                             {form.formState.errors.employer && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />

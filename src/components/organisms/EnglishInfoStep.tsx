@@ -21,6 +21,8 @@ interface Props {
   setScore: (val: string) => void;
   onBack: () => void;
   onNext: () => void;
+  getLabel?: (key: string, fallback: string) => string;
+  getPlaceholder?: (key: string, fallback: string) => string;
 }
 
 export const EnglishInfoStep: React.FC<Props> = ({
@@ -30,6 +32,8 @@ export const EnglishInfoStep: React.FC<Props> = ({
   setScore,
   onBack,
   onNext,
+  getLabel,
+  getPlaceholder,
 }) => {
   const schema = z.object({
     testType: z.string().min(1, 'Chọn bài kiểm tra'),
@@ -70,7 +74,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
                     name="testType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Test Type</FormLabel>
+                        <FormLabel>{getLabel?.('englishTestType','Test Type') ?? 'Test Type'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -86,7 +90,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
                                 setTestType((e.target as HTMLSelectElement).value)
                               }}
                             >
-                              <option value="">Select</option>
+                              <option value="">{getPlaceholder?.('englishTestType','Select') ?? 'Select'}</option>
                               <option value="IELTS">IELTS</option>
                               <option value="TOEFL">TOEFL</option>
                               <option value="PTE">PTE</option>
@@ -106,7 +110,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
                     name="score"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Score</FormLabel>
+                        <FormLabel>{getLabel?.('englishOverall','Score') ?? 'Score'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -122,7 +126,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
                                 field.onChange(e)
                                 setScore((e.target as HTMLInputElement).value)
                               }}
-                              placeholder="Overall score"
+                              placeholder={getPlaceholder?.('englishOverall','Overall score') ?? 'Overall score'}
                             />
                             {form.formState.errors.score && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />

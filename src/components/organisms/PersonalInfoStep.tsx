@@ -14,6 +14,8 @@ import { AlertCircle } from 'lucide-react'
 interface Props {
   fullName: string
   setFullName: (val: string) => void
+  getLabel?: (key: string, fallback: string) => string
+  getPlaceholder?: (key: string, fallback: string) => string
   email: string
   setEmail: (val: string) => void
   dateOfBirth: string
@@ -29,7 +31,7 @@ interface Props {
   onNext: () => void
 }
 
-export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email, setEmail, dateOfBirth, setDateOfBirth, gender, setGender, countryOfCitizenship, setCountryOfCitizenship, currentCity, setCurrentCity, age, setAge, onNext }) => {
+export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, getLabel, getPlaceholder, email, setEmail, dateOfBirth, setDateOfBirth, gender, setGender, countryOfCitizenship, setCountryOfCitizenship, currentCity, setCurrentCity, age, setAge, onNext }) => {
   const schema = z.object({
     fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
     email: z.string().email('Email không hợp lệ').optional(),
@@ -71,7 +73,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Họ và tên</FormLabel>
+                        <FormLabel>{getLabel?.('fullName','Họ và tên') ?? 'Họ và tên'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -86,7 +88,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                                 field.onChange(e)
                                 setFullName((e.target as HTMLInputElement).value)
                               }}
-                              placeholder="Nguyễn Văn A"
+                              placeholder={getPlaceholder?.('fullName','Nguyễn Văn A') ?? 'Nguyễn Văn A'}
                             />
                             {form.formState.errors.fullName && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
@@ -103,7 +105,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="age"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tuổi</FormLabel>
+                        <FormLabel>{getLabel?.('age','Tuổi') ?? 'Tuổi'}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 select-none">
@@ -119,7 +121,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                                 field.onChange(e)
                                 setAge((e.target as HTMLInputElement).value)
                               }}
-                              placeholder="18"
+                              placeholder={getPlaceholder?.('age','18') ?? '18'}
                             />
                             {form.formState.errors.age && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />
@@ -136,13 +138,13 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{getLabel?.('email','Email') ?? 'Email'}</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
                             value={field.value ?? ''}
                             onChange={(e)=>{ field.onChange(e); setEmail((e.target as HTMLInputElement).value); }}
-                            placeholder="name@example.com"
+                            placeholder={getPlaceholder?.('email','name@example.com') ?? 'name@example.com'}
                           />
                         </FormControl>
                         <FormMessage />
@@ -155,7 +157,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ngày sinh</FormLabel>
+                        <FormLabel>{getLabel?.('dateOfBirth','Ngày sinh') ?? 'Ngày sinh'}</FormLabel>
                         <FormControl>
                           <Input type="date" value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setDateOfBirth((e.target as HTMLInputElement).value); }} />
                         </FormControl>
@@ -169,7 +171,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Giới tính</FormLabel>
+                        <FormLabel>{getLabel?.('gender','Giới tính') ?? 'Giới tính'}</FormLabel>
                         <FormControl>
                           <select className="w-full border rounded px-3 py-2" value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setGender((e.target as HTMLSelectElement).value); }}>
                             <option value="">--</option>
@@ -189,7 +191,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="countryOfCitizenship"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quốc tịch</FormLabel>
+                        <FormLabel>{getLabel?.('countryOfCitizenship','Quốc tịch') ?? 'Quốc tịch'}</FormLabel>
                         <FormControl>
                           <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setCountryOfCitizenship((e.target as HTMLInputElement).value); }} placeholder="Việt Nam" />
                         </FormControl>
@@ -203,7 +205,7 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
                     name="currentCity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Thành phố đang sinh sống</FormLabel>
+                        <FormLabel>{getLabel?.('currentCity','Thành phố đang sinh sống') ?? 'Thành phố đang sinh sống'}</FormLabel>
                         <FormControl>
                           <Input value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setCurrentCity((e.target as HTMLInputElement).value); }} placeholder="Hà Nội" />
                         </FormControl>
@@ -223,4 +225,3 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, email
     </div>
   )
 }
-

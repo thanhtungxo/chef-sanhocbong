@@ -26,11 +26,34 @@ export const EligibilityChecker: React.FC = () => {
   const reset = useEligibilityStore((s) => s.reset);
 
   const scholarships = useQuery(api.scholarships.listScholarships, {});
+  const activeForm = useQuery(api.forms.getActiveForm, {});
   const isAasEnabled = scholarships ? scholarships.some((s) => s.id === 'aas' && s.isEnabled) : true;
   const isCheEnabled = scholarships ? scholarships.some((s) => s.id === 'chevening' && s.isEnabled) : true;
   const aasName = scholarships?.find((s) => s.id === 'aas')?.name ?? DEFAULT_SCHOLARSHIP_NAMES.aas;
   const cheName = scholarships?.find((s) => s.id === 'chevening')?.name ?? DEFAULT_SCHOLARSHIP_NAMES.chevening;
   const hasAnyScholarship = isAasEnabled || isCheEnabled;
+
+  // Build label/placeholder map from Convex active form
+  const getFromActive = React.useCallback((key: string) => {
+    if (!activeForm || !activeForm.questionsByStep) return null as any;
+    for (const stepId of Object.keys(activeForm.questionsByStep)) {
+      const arr = (activeForm.questionsByStep as any)[stepId] as any[];
+      const found = arr?.find((q: any) => q.key === key);
+      if (found) return found;
+    }
+    return null;
+  }, [activeForm]);
+  const getLabel = React.useCallback((key: string, fallback: string) => {
+    const q = getFromActive(key);
+    if (!q) return fallback;
+    return q.ui?.labelText ?? t(q.labelKey, q.labelKey ?? fallback) ?? fallback;
+  }, [getFromActive]);
+  const getPlaceholder = React.useCallback((key: string, fallback: string) => {
+    const q = getFromActive(key);
+    if (!q) return fallback;
+    const k = q.ui?.placeholderKey as string | undefined;
+    return k ? t(k, fallback) : fallback;
+  }, [getFromActive]);
 
   const engine = useEligibilityEngine();
   const [aasEligible, setAasEligible] = React.useState<boolean>(false);
@@ -152,6 +175,8 @@ export const EligibilityChecker: React.FC = () => {
               <PersonalInfoStep
                 fullName={(formData as any).fullName ?? ''}
                 setFullName={(v) => updateField('fullName' as any, v)}
+                getLabel={getLabel}
+                getPlaceholder={getPlaceholder}
                 email={(formData as any).email ?? ''}
                 setEmail={(v) => updateField('email' as any, v)}
                 dateOfBirth={(formData as any).dateOfBirth ?? ''}
@@ -171,6 +196,8 @@ export const EligibilityChecker: React.FC = () => {
               <WorkInfoStep
                 jobTitle={formData.jobTitle}
                 employer={formData.employer}
+                getLabel={getLabel}
+                getPlaceholder={getPlaceholder}
                 onChangeJobTitle={(v) => updateField('jobTitle', v)}
                 onChangeEmployer={(v) => updateField('employer', v)}
                 onBack={onBack}
@@ -181,6 +208,8 @@ export const EligibilityChecker: React.FC = () => {
               <EnglishInfoStep
                 testType={formData.englishTestType}
                 score={formData.englishScore?.toString() ?? ''}
+                getLabel={getLabel}
+                getPlaceholder={getPlaceholder}
                 setTestType={(v) => updateField('englishTestType', v)}
                 setScore={(v) => updateField('englishScore', v ? Number(v) : null)}
                 onBack={onBack}
