@@ -285,6 +285,17 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
       return { value } as any;
     })
     .filter(Boolean);
+  const serializeOptions = (arr:any[]) => arr.map((o:any)=> o.labelKey && o.labelText ? `${o.value}|${o.labelKey}|${o.labelText}` : o.labelKey ? `${o.value}|${o.labelKey}` : o.labelText ? `${o.value}|${o.labelText}` : `${o.value}|`).join('\n');
+
+  const [optList, setOptList] = React.useState<any[]>(parseOptions());
+  React.useEffect(()=>{
+    setOptList(parseOptions());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.optionsText]);
+  const commitOptions = (arr:any[]) => {
+    setOptList(arr);
+    update('optionsText', serializeOptions(arr));
+  };
   const [saving, setSaving] = React.useState(false);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
@@ -330,6 +341,21 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
           {(form.type==='select' || form.type==='radio' || form.type==='multi-select' || form.type==='autocomplete') && (
             <label className="col-span-2">Options (mỗi dòng: value|labelKey hoặc value|labelText hoặc value|labelKey|labelText)
               <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cử nhân hoặc Bachelor|ui.education.highest.bachelor hoặc Bachelor|ui.education.highest.bachelor|Cử nhân"/>
+              <div className="mt-2 border rounded p-2 space-y-2 bg-muted/20">
+                {optList.map((o:any, idx:number)=> (
+                  <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                    <input className="col-span-3 border rounded px-2 py-1" value={o.value} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], value:e.target.value}; commitOptions(arr);} } placeholder="value"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelKey (tùy chọn)"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelText (hiển thị)"/>
+                    <div className="col-span-1 flex gap-1">
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx>0){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx-1,0,it); commitOptions(arr);} }}>↑</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx<optList.length-1){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx+1,0,it); commitOptions(arr);} }}>↓</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={()=>{ const arr=[...optList]; arr.splice(idx,1); commitOptions(arr); }}>✕</button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ commitOptions([...(optList||[]), { value:'', labelText:'' }]); }}>+ Add option</button>
+              </div>
             </label>
           )}
           <label>mapTo (tùy chọn)

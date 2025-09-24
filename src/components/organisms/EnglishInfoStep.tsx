@@ -24,6 +24,7 @@ interface Props {
   getLabel?: (key: string, fallback: string) => string;
   getPlaceholder?: (key: string, fallback: string) => string;
   getOptions?: (key: string) => { value: string; label: string }[] | null;
+  hasField?: (key: string) => boolean;
 }
 
 export const EnglishInfoStep: React.FC<Props> = ({
@@ -36,6 +37,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
   getLabel,
   getPlaceholder,
   getOptions,
+  hasField,
 }) => {
   const schema = z.object({
     testType: z.string().min(1, 'Chọn bài kiểm tra'),
@@ -71,6 +73,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
             <CardContent>
               <Form {...form}>
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                  {hasField?.('englishTestType') && (
                   <FormField
                     control={form.control}
                     name="testType"
@@ -110,7 +113,9 @@ export const EnglishInfoStep: React.FC<Props> = ({
                       </FormItem>
                     )}
                   />
+                  )}
 
+                  {hasField?.('englishOverall') && (
                   <FormField
                     control={form.control}
                     name="score"
@@ -143,6 +148,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
                       </FormItem>
                     )}
                   />
+                  )}
                 </form>
               </Form>
             </CardContent>

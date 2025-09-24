@@ -63,6 +63,8 @@ export const EligibilityChecker: React.FC = () => {
     return (q.options as any[]).map((opt: any) => ({ value: opt.value, label: opt.labelText ?? t(opt.labelKey, opt.labelKey ?? opt.value) }));
   }, [getFromActive]);
 
+  const hasField = React.useCallback((key: string) => !!getFromActive(key), [getFromActive]);
+
   const engine = useEligibilityEngine();
   const [aasEligible, setAasEligible] = React.useState<boolean>(false);
   const [cheEligible, setCheEligible] = React.useState<boolean>(false);
@@ -186,6 +188,9 @@ export const EligibilityChecker: React.FC = () => {
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
                 getOptions={getOptions}
+                hasField={hasField}
+                currentProvince={(formData as any).currentProvince ?? ''}
+                setCurrentProvince={(v) => updateField('currentProvince' as any, v)}
                 email={(formData as any).email ?? ''}
                 setEmail={(v) => updateField('email' as any, v)}
                 dateOfBirth={(formData as any).dateOfBirth ?? ''}
@@ -209,6 +214,7 @@ export const EligibilityChecker: React.FC = () => {
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
                 getOptions={getOptions}
+                hasField={hasField}
                 onChangeJobTitle={(v) => updateField('jobTitle', v)}
                 onChangeEmployer={(v) => updateField('employer', v)}
                 onChangeEmployerType={(v) => updateField('employerType' as any, v)}
@@ -223,6 +229,7 @@ export const EligibilityChecker: React.FC = () => {
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
                 getOptions={getOptions}
+                hasField={hasField}
                 setTestType={(v) => updateField('englishTestType', v)}
                 setScore={(v) => updateField('englishScore', v ? Number(v) : null)}
                 onBack={onBack}

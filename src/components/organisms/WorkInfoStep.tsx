@@ -24,6 +24,7 @@ interface Props {
   getLabel?: (key: string, fallback: string) => string;
   getPlaceholder?: (key: string, fallback: string) => string;
   getOptions?: (key: string) => { value: string; label: string }[] | null;
+  hasField?: (key: string) => boolean;
 }
 
 export const WorkInfoStep: React.FC<Props> = ({
@@ -38,6 +39,7 @@ export const WorkInfoStep: React.FC<Props> = ({
   getLabel,
   getPlaceholder,
   getOptions,
+  hasField,
 }) => {
   const schema = z.object({
     jobTitle: z.string().min(1, 'Job title is required'),
@@ -70,6 +72,7 @@ export const WorkInfoStep: React.FC<Props> = ({
             <CardContent>
               <Form {...form}>
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                  {hasField?.('currentJobTitle') && (
                   <FormField
                     control={form.control}
                     name="jobTitle"
@@ -101,6 +104,8 @@ export const WorkInfoStep: React.FC<Props> = ({
                       </FormItem>
                     )}
                   />
+                  )}
+                  {hasField?.('employerName') && (
                   <FormField
                     control={form.control}
                     name="employer"
@@ -132,8 +137,9 @@ export const WorkInfoStep: React.FC<Props> = ({
                       </FormItem>
                     )}
                   />
+                  )}
                   {/* Optional employerType select if provided by Active Form */}
-                  {Array.isArray(getOptions?.('employerType')) && (
+              {hasField?.('employerType') && Array.isArray(getOptions?.('employerType')) && (
                     <FormField
                       control={form.control}
                       name="employerType"
