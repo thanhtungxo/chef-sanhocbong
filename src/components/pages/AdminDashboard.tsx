@@ -3,6 +3,7 @@ import { RulesetRegistry } from '@/components/pages/RulesetRegistry';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { FormPreview } from '@/components/pages/FormPreview';
+import { FormBuilder } from '@/components/pages/FormBuilder';
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -48,10 +49,9 @@ export const AdminDashboard: React.FC = () => {
         <RulesetRegistry />
       ) : (
         <SimpleBoundary>
-          <FormPreview active={active as any} />
+          <FormBuilder />
         </SimpleBoundary>
       )}
     </div>
   );
 };
-
