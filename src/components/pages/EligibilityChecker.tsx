@@ -52,7 +52,15 @@ export const EligibilityChecker: React.FC = () => {
     const q = getFromActive(key);
     if (!q) return fallback;
     const k = q.ui?.placeholderKey as string | undefined;
+    const direct = q.ui?.placeholderText as string | undefined;
+    if (direct) return direct;
     return k ? t(k, fallback) : fallback;
+  }, [getFromActive]);
+
+  const getOptions = React.useCallback((key: string): { value: string; label: string }[] | null => {
+    const q = getFromActive(key);
+    if (!q || !Array.isArray(q.options)) return null;
+    return (q.options as any[]).map((opt: any) => ({ value: opt.value, label: opt.labelText ?? t(opt.labelKey, opt.labelKey ?? opt.value) }));
   }, [getFromActive]);
 
   const engine = useEligibilityEngine();
@@ -177,6 +185,7 @@ export const EligibilityChecker: React.FC = () => {
                 setFullName={(v) => updateField('fullName' as any, v)}
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
+                getOptions={getOptions}
                 email={(formData as any).email ?? ''}
                 setEmail={(v) => updateField('email' as any, v)}
                 dateOfBirth={(formData as any).dateOfBirth ?? ''}
@@ -198,6 +207,7 @@ export const EligibilityChecker: React.FC = () => {
                 employer={formData.employer}
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
+                getOptions={getOptions}
                 onChangeJobTitle={(v) => updateField('jobTitle', v)}
                 onChangeEmployer={(v) => updateField('employer', v)}
                 onBack={onBack}
@@ -210,6 +220,7 @@ export const EligibilityChecker: React.FC = () => {
                 score={formData.englishScore?.toString() ?? ''}
                 getLabel={getLabel}
                 getPlaceholder={getPlaceholder}
+                getOptions={getOptions}
                 setTestType={(v) => updateField('englishTestType', v)}
                 setScore={(v) => updateField('englishScore', v ? Number(v) : null)}
                 onBack={onBack}

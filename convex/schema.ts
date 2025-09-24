@@ -97,6 +97,7 @@ export default defineSchema({
     ui: v.optional(v.object({
       widget: v.optional(v.string()),
       placeholderKey: v.optional(v.string()),
+      placeholderText: v.optional(v.string()),
       icon: v.optional(v.string()),
       labelText: v.optional(v.string()),
     })),

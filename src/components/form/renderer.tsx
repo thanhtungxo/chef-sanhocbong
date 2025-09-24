@@ -49,7 +49,7 @@ export function schemaForStep(questions: any[]): z.ZodSchema<any> {
 
 export function renderField(q: any, field: any, watch: any) {
   const common = { name: field.name, value: field.value ?? '', onBlur: field.onBlur, ref: field.ref } as any;
-  const placeholder = t(q?.ui?.placeholderKey, q?.ui?.placeholderKey ?? '');
+  const placeholder = (q?.ui?.placeholderText as string | undefined) ?? t(q?.ui?.placeholderKey, q?.ui?.placeholderKey ?? '');
   switch (q.type) {
     case 'number':
       return (

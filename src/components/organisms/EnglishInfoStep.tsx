@@ -23,6 +23,7 @@ interface Props {
   onNext: () => void;
   getLabel?: (key: string, fallback: string) => string;
   getPlaceholder?: (key: string, fallback: string) => string;
+  getOptions?: (key: string) => { value: string; label: string }[] | null;
 }
 
 export const EnglishInfoStep: React.FC<Props> = ({
@@ -34,6 +35,7 @@ export const EnglishInfoStep: React.FC<Props> = ({
   onNext,
   getLabel,
   getPlaceholder,
+  getOptions,
 }) => {
   const schema = z.object({
     testType: z.string().min(1, 'Chọn bài kiểm tra'),
@@ -91,9 +93,13 @@ export const EnglishInfoStep: React.FC<Props> = ({
                               }}
                             >
                               <option value="">{getPlaceholder?.('englishTestType','Select') ?? 'Select'}</option>
-                              <option value="IELTS">IELTS</option>
-                              <option value="TOEFL">TOEFL</option>
-                              <option value="PTE">PTE</option>
+                              {(getOptions?.('englishTestType') ?? [
+                                { value: 'IELTS', label: 'IELTS' },
+                                { value: 'TOEFL', label: 'TOEFL' },
+                                { value: 'PTE', label: 'PTE' },
+                              ]).map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
                             </Select>
                             {form.formState.errors.testType && (
                               <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />

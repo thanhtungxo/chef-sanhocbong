@@ -220,12 +220,13 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
         mapTo: question.mapTo ?? '',
         widget: question.ui?.widget ?? '',
         placeholderKey: question.ui?.placeholderKey ?? '',
+        placeholderText: question.ui?.placeholderText ?? '',
         min: question.validation?.min ?? '',
         max: question.validation?.max ?? '',
         pattern: question.validation?.pattern ?? '',
       };
     }
-    return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', min: '', max: '', pattern: '' };
+    return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '' };
   });
   const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: v }));
   const parseOptions = () => form.optionsText
@@ -300,6 +301,9 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
           <label>placeholderKey (tùy chọn)
             <input className="w-full border rounded px-2 py-1" value={form.placeholderKey} onChange={(e)=>update('placeholderKey', e.target.value)} placeholder="ui.xxx.placeholder"/>
           </label>
+          <label>Placeholder (hiển thị)
+            <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=>update('placeholderText', e.target.value)} placeholder="Nhập placeholder hiển thị cho người dùng"/>
+          </label>
           <label>widget (tùy chọn)
             <input className="w-full border rounded px-2 py-1" value={form.widget} onChange={(e)=>update('widget', e.target.value)} placeholder="text|number|radio|select|..."/>
           </label>
@@ -330,7 +334,7 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
                     max: form.max!=='' ? Number(form.max) : undefined,
                     pattern: form.pattern || undefined,
                   },
-                  ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, labelText: form.labelText || undefined },
+                ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, placeholderText: form.placeholderText || undefined, labelText: form.labelText || undefined },
                   mapTo: form.mapTo || undefined,
                 };
                 await onSave(payload);
@@ -344,7 +348,7 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
                     max: form.max!=='' ? Number(form.max) : undefined,
                     pattern: form.pattern || undefined,
                   },
-                  ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, labelText: form.labelText || undefined },
+                  ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, placeholderText: form.placeholderText || undefined, labelText: form.labelText || undefined },
                   mapTo: form.mapTo || undefined,
                 };
                 await onSave({ patch });

@@ -16,6 +16,7 @@ interface Props {
   setFullName: (val: string) => void
   getLabel?: (key: string, fallback: string) => string
   getPlaceholder?: (key: string, fallback: string) => string
+  getOptions?: (key: string) => { value: string; label: string }[] | null
   email: string
   setEmail: (val: string) => void
   dateOfBirth: string
@@ -31,7 +32,7 @@ interface Props {
   onNext: () => void
 }
 
-export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, getLabel, getPlaceholder, email, setEmail, dateOfBirth, setDateOfBirth, gender, setGender, countryOfCitizenship, setCountryOfCitizenship, currentCity, setCurrentCity, age, setAge, onNext }) => {
+export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, getLabel, getPlaceholder, getOptions, email, setEmail, dateOfBirth, setDateOfBirth, gender, setGender, countryOfCitizenship, setCountryOfCitizenship, currentCity, setCurrentCity, age, setAge, onNext }) => {
   const schema = z.object({
     fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
     email: z.string().email('Email không hợp lệ').optional(),
@@ -174,11 +175,15 @@ export const PersonalInfoStep: React.FC<Props> = ({ fullName, setFullName, getLa
                         <FormLabel>{getLabel?.('gender','Giới tính') ?? 'Giới tính'}</FormLabel>
                         <FormControl>
                           <select className="w-full border rounded px-3 py-2" value={field.value ?? ''} onChange={(e)=>{ field.onChange(e); setGender((e.target as HTMLSelectElement).value); }}>
-                            <option value="">--</option>
-                            <option value="male">Nam</option>
-                            <option value="female">Nữ</option>
-                            <option value="other">Khác</option>
-                            <option value="na">Không tiết lộ</option>
+                            <option value="">{getPlaceholder?.('gender','--') ?? '--'}</option>
+                            {(getOptions?.('gender') ?? [
+                              { value: 'male', label: 'Nam' },
+                              { value: 'female', label: 'Nữ' },
+                              { value: 'other', label: 'Khác' },
+                              { value: 'na', label: 'Không tiết lộ' },
+                            ]).map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
                           </select>
                         </FormControl>
                         <FormMessage />
