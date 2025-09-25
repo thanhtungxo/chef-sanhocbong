@@ -22,7 +22,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     // Extract options and detect a placeholder <option value=""> if present
     const allChildren = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement[]
     const placeholderOption = allChildren.find((opt) => (opt.props as any)?.value === '')
-    const resolvedPlaceholder = placeholder ?? (placeholderOption ? String(placeholderOption.props.children) : 'Select…')
+    const resolvedPlaceholder = placeholder ?? (placeholderOption ? String(placeholderOption.props.children) : undefined)
     const options = allChildren.filter((opt) => (opt.props as any)?.value !== '' && (opt.props as any)?.value != null)
 
     const handleValueChange = (val: string) => {

@@ -27,7 +27,14 @@ export function t(key?: string, fallback?: string): string {
   return dict[key] ?? fallback ?? key;
 }
 
+// Returns the translation if available; otherwise undefined (no fallback).
+export function tOptional(key?: string): string | undefined {
+  if (!key) return undefined;
+  const lang = detectLang();
+  const dict = dictionaries[lang] ?? {};
+  return dict[key];
+}
+
 export function setLang(lang: "vi" | "en") {
   try { localStorage.setItem("lang", lang); } catch {}
 }
-

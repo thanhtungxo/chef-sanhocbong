@@ -152,8 +152,11 @@ export const reorderQuestions = mutation({
 });
 
 export const seedLegacyForm = mutation({
-  args: { forceNew: v.optional(v.boolean()) },
-  handler: async (ctx: any, { forceNew }: any) => {
+  args: {},
+  handler: async (ctx: any) => {
+    const forceNew: any = undefined;
+    // Disabled legacy seeding: always return disabled and do nothing.
+    return { ok: false, disabled: true } as any;
     if (!forceNew) {
       const existing = await ctx.db
         .query("formSets")
@@ -244,6 +247,5 @@ export const seedLegacyForm = mutation({
     await mkQ(s4, { key: 'englishWriting', labelKey: 'Writing', type: 'number', required: true, order: 9, validation: { min: 0 } });
     await mkQ(s4, { key: 'englishSpeaking', labelKey: 'Speaking', type: 'number', required: true, order: 10, validation: { min: 0 } });
 
-    return { ok: true, formSetId };
   }
 });

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Input } from '@/components/atoms/Input';
 import { Select } from '@/components/atoms/Select';
 import { Radio } from '@/components/atoms/Radio';
-import { t } from '@/lib/i18n';
+import { tOptional } from '@/lib/i18n';
 
 export function buildZodField(q: any): z.ZodTypeAny {
   const required = !!q.required;
@@ -49,7 +49,7 @@ export function schemaForStep(questions: any[]): z.ZodSchema<any> {
 
 export function renderField(q: any, field: any, watch: any) {
   const common = { name: field.name, value: field.value ?? '', onBlur: field.onBlur, ref: field.ref } as any;
-  const placeholder = (q?.ui?.placeholderText as string | undefined) ?? t(q?.ui?.placeholderKey, q?.ui?.placeholderKey ?? '');
+  const placeholder = (q?.ui?.placeholderText as string | undefined) ?? tOptional(q?.ui?.placeholderKey);
   switch (q.type) {
     case 'number':
       return (
@@ -58,27 +58,34 @@ export function renderField(q: any, field: any, watch: any) {
     case 'radio':
       return (
         <div className="space-y-2">
-          {(q.options ?? []).map((opt: any) => (
+          {(q.options ?? []).map((opt: any) => {
+            const label = opt.labelText ?? tOptional(opt.labelKey);
+            if (!label) return null;
+            return (
             <label key={opt.value} className="flex items-center gap-2">
               <Radio name={field.name} value={opt.value} checked={field.value === opt.value} onChange={(e)=> field.onChange((e.target as any).value)} />
-              <span>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</span>
+              <span>{label}</span>
             </label>
-          ))}
+          )})}
         </div>
       );
     case 'select':
       return (
         <Select value={field.value ?? ''} onChange={(e)=> field.onChange(e)}>
           <option value="">--</option>
-          {(q.options ?? []).map((opt: any)=> (
-            <option key={opt.value} value={opt.value}>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</option>
-          ))}
+          {(q.options ?? []).map((opt: any)=> {
+            const label = opt.labelText ?? tOptional(opt.labelKey);
+            if (!label) return null;
+            return <option key={opt.value} value={opt.value}>{label}</option>;
+          })}
         </Select>
       );
     case 'multi-select':
       return (
         <div className="space-y-2">
           {(q.options ?? []).map((opt: any) => {
+            const label = opt.labelText ?? tOptional(opt.labelKey);
+            if (!label) return null;
             const selected: string[] = Array.isArray(field.value) ? field.value : [];
             const checked = selected.includes(opt.value);
             return (
@@ -87,7 +94,7 @@ export function renderField(q: any, field: any, watch: any) {
                   const next = e.target.checked ? [...selected, opt.value] : selected.filter(v=>v!==opt.value);
                   field.onChange(next);
                 }} />
-                <span>{opt.labelText ?? t(opt.labelKey, opt.labelKey)}</span>
+                <span>{label}</span>
               </label>
             );
           })}
@@ -96,10 +103,7 @@ export function renderField(q: any, field: any, watch: any) {
     case 'checkbox':
     case 'boolean':
       return (
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={!!field.value} onChange={(e)=> field.onChange(e.target.checked)} />
-          <span>{placeholder}</span>
-        </label>
+        <input type="checkbox" checked={!!field.value} onChange={(e)=> field.onChange(e.target.checked)} />
       );
     case 'date':
       return (<Input {...common} type="date" onChange={(e)=> field.onChange(e)} placeholder={placeholder} />);

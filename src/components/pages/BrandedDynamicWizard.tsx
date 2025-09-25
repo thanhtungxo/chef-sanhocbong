@@ -8,14 +8,12 @@ import { schemaForStep, renderField } from '@/components/form/renderer';
 import { tOptional } from '@/lib/i18n';
 import { Button } from '@/components/atoms/Button';
 
-export const DynamicForm: React.FC = () => {
+export const BrandedDynamicWizard: React.FC = () => {
   const active = useQuery(api.forms.getActiveForm, {});
   const [stepIdx, setStepIdx] = React.useState(0);
   const [allValues, setAllValues] = React.useState<Record<string, any>>({});
 
-  // Keep hooks order stable across renders
   const loading = !active;
-  const formSet = active?.formSet ?? null;
   const steps = React.useMemo(
     () => (active?.steps ?? []).slice().sort((a: any, b: any) => a.order - b.order),
     [active]
@@ -25,9 +23,12 @@ export const DynamicForm: React.FC = () => {
     () => (currentStep ? (active!.questionsByStep[currentStep._id.id] ?? []).slice().sort((a: any, b: any) => a.order - b.order) : []),
     [active, currentStep, stepIdx]
   );
+
+  // Only render questions that have a label from DB or i18n (no fallback)
   const questions = React.useMemo(() => {
     return questionsRaw.filter((q: any) => (q?.ui?.labelText as string | undefined) || tOptional(q?.labelKey));
   }, [questionsRaw]);
+
   const schema = React.useMemo(() => schemaForStep(questions), [questions]);
 
   const form = useForm<any>({
@@ -47,15 +48,16 @@ export const DynamicForm: React.FC = () => {
   const onFinish = form.handleSubmit((vals) => {
     const merged = { ...allValues, ...vals };
     (window as any).dynamicFormValues = merged;
-    alert('Đã hoàn tất. Xem window.dynamicFormValues trong console.');
   });
+
+  const stepTitle = currentStep ? tOptional(currentStep.titleKey) : undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-start justify-center px-4 py-10">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow p-6">
-        {!loading && formSet && (
+        {!loading && stepTitle && (
           <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-xl font-semibold">{formSet.name} (v{formSet.version})</h1>
+            <h1 className="text-xl font-semibold">{stepTitle}</h1>
             <div className="text-sm text-muted-foreground">{stepIdx + 1}/{steps.length}</div>
           </div>
         )}
@@ -90,3 +92,4 @@ export const DynamicForm: React.FC = () => {
     </div>
   );
 };
+

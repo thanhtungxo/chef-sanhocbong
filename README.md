@@ -1,29 +1,42 @@
 # Scholarship Eligibility Checker App
-  
-This is a project built with [Chef](https://chef.convex.dev) using [Convex](https://convex.dev) as its backend.
- You can find docs about Chef with useful information like how to deploy to production [here](https://docs.convex.dev/chef).
-  
-This project is connected to the Convex deployment named [`dependable-quail-10`](https://dashboard.convex.dev/d/dependable-quail-10).
-  
-## Project structure
-  
-The frontend code is in the `app` directory and is built with [Vite](https://vitejs.dev/).
-  
-The backend code is in the `convex` directory.
-  
-`npm run dev` will start the frontend and backend servers.
 
-## App authentication
+Ứng dụng kiểm tra điều kiện học bổng, frontend bằng Vite/React và backend bằng Convex.
 
-Chef apps use [Convex Auth](https://auth.convex.dev/) with Anonymous auth for easy sign in. You may wish to change this before deploying your app.
+Repo này đã loại bỏ hoàn toàn các form/step/question hardcode. Toàn bộ dữ liệu form được quản trị từ Admin UI và lưu trong Convex, Wizard phía client render động theo Active Form.
 
-## Developing and deploying your app
+## Pipeline Dữ Liệu (Mới)
 
-Check out the [Convex docs](https://docs.convex.dev/) for more information on how to develop with Convex.
-* If you're new to Convex, the [Overview](https://docs.convex.dev/understanding/) is a good place to start
-* Check out the [Hosting and Deployment](https://docs.convex.dev/production/) docs for how to deploy your app
-* Read the [Best Practices](https://docs.convex.dev/understanding/best-practices/) guide for tips on how to improve you app further
+- Admin UI (FormBuilder, FormPreview, AdminDashboard)
+- Convex DB (bảng `formSets`, `formSteps`, `formQuestions` và API trong `convex/forms.ts`)
+- Wizard động (BrandedDynamicWizard) trên client đọc Active Form qua `api.forms.getActiveForm`
 
-## HTTP API
+Nguyên tắc hiển thị:
+- Không render label/placeholder fallback trong mã nguồn. Field/option chỉ xuất hiện nếu có label từ DB (`ui.labelText`) hoặc có bản dịch cho `labelKey` (qua i18n). Nếu thiếu, field/option/step sẽ không hiển thị.
+- Không còn bất kỳ chuỗi tiếng Anh/nhãn/placeholder hardcode trong Wizard.
 
-User-defined http routes are defined in the `convex/router.ts` file. We split these routes into a separate file from `convex/http.ts` to allow us to prevent the LLM from modifying the authentication routes.
+## Cấu Trúc Dự Án
+
+- Frontend: thư mục `src`, build bằng [Vite](https://vitejs.dev/)
+- Backend: thư mục `convex`
+- Admin UI: các trang trong `src/components/pages` (FormBuilder, FormPreview, AdminDashboard)
+- Wizard động: `src/components/pages/BrandedDynamicWizard.tsx`, dùng trong `src/components/pages/EligibilityChecker.tsx`
+
+Chạy dev: `npm run dev` (song song frontend + Convex)
+Build: `npm run build`
+Test: `npm test`
+
+## Quản Trị Form (Convex)
+
+- Lấy Active Form: `api.forms.getActiveForm`
+- Tạo/Publish Form Set: `api.forms.createFormSet`, `api.forms.publishFormSet`
+- Bước (Step): `api.forms.createStep`, `api.forms.updateStep`, `api.forms.deleteStep`, `api.forms.reorderSteps`
+- Câu hỏi (Question): `api.forms.createQuestion`, `api.forms.updateQuestion`, `api.forms.deleteQuestion`, `api.forms.reorderQuestions`
+
+Sau khi publish một Form Set, Wizard động sẽ tự động đọc và render theo Form đó.
+
+## Ghi Chú
+
+- Thư mục phụ `chef-sanhocbong/` đã được xóa để làm sạch repo.
+- Các test loader rules tĩnh đã được dọn để phù hợp với pipeline mới (không còn phụ thuộc JSON rules phía client cho UI).
+
+Tham khảo thêm trong `docs/ADDING_SCHOLARSHIP.md` nếu cần quy trình làm việc với rules/eligibility ở phía Convex.
