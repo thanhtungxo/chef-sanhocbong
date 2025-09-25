@@ -357,6 +357,12 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     update('labelKey', `ui.${base}.label`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.labelText, adv]);
+  React.useEffect(()=>{
+    if (!form.stepId && Array.isArray(steps) && steps.length) {
+      update('stepId', steps[0]._id.id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps]);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div className="bg-white rounded shadow-lg w-full max-w-2xl p-4 space-y-3">
@@ -448,11 +454,23 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
             try {
               setSaving(true);
               if (mode==='add'){
-                if (!form.stepId || !form.key || !form.labelKey || !form.type){ alert('Thiếu stepId/key/labelKey/type'); setSaving(false); return; }
+                let stepObj = steps.find((s:any)=> String(s._id.id)===String(form.stepId));
+                if (!stepObj && steps.length) stepObj = steps[0];
+                if (!stepObj){ alert('Chưa có Step để thêm câu hỏi'); setSaving(false); return; }
+                let keyStr = String(form.key||'');
+                let labelKeyStr = String(form.labelKey||'');
+                if (!keyStr) {
+                  const base = toCamelKey(String(form.labelText||''));
+                  if (!base) { alert('Thiếu key'); setSaving(false); return; }
+                  keyStr = base;
+                }
+                if (!labelKeyStr) labelKeyStr = `ui.${keyStr}.label`;
+                if (!form.type) { alert('Thiếu type'); setSaving(false); return; }
+                if (false){ alert('Thiếu stepId/key/labelKey/type'); setSaving(false); return; }
                 const payload:any = {
                   formSetId,
-                  stepId: steps.find((s:any)=> String(s._id.id)===String(form.stepId))?._id,
-                  key: form.key, labelKey: form.labelKey, type: form.type, required: !!form.required,
+                  stepId: stepObj._id,
+                  key: keyStr, labelKey: labelKeyStr, type: form.type, required: !!form.required,
                   options: parseOptions(),
                   validation: {
                     min: form.min!=='' ? Number(form.min) : undefined,
