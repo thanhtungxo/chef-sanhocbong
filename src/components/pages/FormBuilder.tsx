@@ -39,6 +39,14 @@ export const FormBuilder: React.FC = () => {
   const questionsByStep = active?.questionsByStep ?? {};
   const selectedStep = selectedStepId ? steps.find((s: any) => String(s._id.id) === selectedStepId) : null;
   const qSectionRef = React.useRef<HTMLDivElement | null>(null);
+  const [showAddStep, setShowAddStep] = React.useState(false);
+  const [newStep, setNewStep] = React.useState<{ labelText: string; placeholderText: string; labelKey: string }>({ labelText: '', placeholderText: '', labelKey: '' });
+
+  const slugify = (s: string) => {
+    const noAccent = s.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
+    return noAccent.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+  };
+  const regenLabelKey = (labelText: string) => `ui.step.${slugify(labelText)}.title`;
 
   React.useEffect(() => {
     if (!selectedStepId && steps.length) setSelectedStepId(String(steps[0]._id.id));
@@ -155,10 +163,16 @@ export const FormBuilder: React.FC = () => {
                     onDragOver={(e)=> e.preventDefault()}
                     onDrop={async ()=>{ if (dragStepId) await moveStep(dragStepId, String(s._id.id)); setDragStepId(null); }}
                   >
-                    <div className="flex items-center gap-2">
-                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
-                      <span className="font-medium">{t(s.titleKey, s.titleKey)}</span>
-                      <span className="text-xs text-muted-foreground">#{s.order}</span>
+                    <div className="flex flex-col items-start gap-0">
+                      <div className="flex items-center gap-2">
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
+                        <span className="font-medium">{s.ui?.labelText ?? t(s.titleKey, s.titleKey)}</span>
+                        <span className="text-xs text-muted-foreground">#{s.order}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <span className="mr-2">Key: {s.titleKey}</span>
+                        {s.ui?.placeholderText && <span>• Placeholder: {s.ui.placeholderText}</span>}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, -1)}>Up</button>
@@ -173,9 +187,9 @@ export const FormBuilder: React.FC = () => {
                 ))}
               </div>
               <div className="mt-2">
-                <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={async()=>{
-                  const titleKey = prompt('Title key', 'ui.step.title') || 'ui.step.title';
-                  await createStep({ formSetId: active.formSet._id as any, titleKey } as any);
+                <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={()=>{
+                  setNewStep({ labelText: '', placeholderText: '', labelKey: regenLabelKey('') });
+                  setShowAddStep(true);
                 }}>Thêm Step</button>
               </div>
             </Section>
@@ -227,6 +241,39 @@ export const FormBuilder: React.FC = () => {
                 onSave={saveQuestion}
               />
             )}
+          </div>
+        </div>
+      )}
+      {showAddStep && active?.formSet && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={()=> setShowAddStep(false)}>
+          <div className="bg-white rounded shadow-lg w-full max-w-md p-4" onClick={(e)=> e.stopPropagation()}>
+            <div className="text-base font-semibold mb-3">Thêm Step</div>
+            <div className="space-y-3">
+              <label className="block">
+                <div className="text-sm mb-1">Label (hiển thị) <span className="text-red-500">*</span></div>
+                <input className="w-full border rounded px-2 py-1" value={newStep.labelText} onChange={(e)=>{
+                  const v = e.target.value;
+                  setNewStep({ ...newStep, labelText: v, labelKey: regenLabelKey(v) });
+                }} placeholder="Ví dụ: Thông tin cá nhân" />
+              </label>
+              <label className="block">
+                <div className="text-sm mb-1">Placeholder (hiển thị)</div>
+                <input className="w-full border rounded px-2 py-1" value={newStep.placeholderText} onChange={(e)=> setNewStep({ ...newStep, placeholderText: e.target.value })} placeholder="Tùy chọn" />
+              </label>
+              <label className="block">
+                <div className="text-sm mb-1">Label Key (tự sinh, không sửa)</div>
+                <input className="w-full border rounded px-2 py-1 bg-muted" value={newStep.labelKey} readOnly />
+              </label>
+              <div className="text-xs text-muted-foreground">Label Key được sinh tự động, không thể sửa trong Admin UI</div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="px-3 py-2" onClick={()=> setShowAddStep(false)}>Hủy</button>
+              <button className="px-3 py-2 rounded bg-primary text-white" onClick={async()=>{
+                if (!newStep.labelText.trim()) { alert('Vui lòng nhập Label'); return; }
+                await createStep({ formSetId: active.formSet._id as any, titleKey: newStep.labelKey, ui: { labelText: newStep.labelText, placeholderText: newStep.placeholderText || undefined } } as any);
+                setShowAddStep(false);
+              }}>Lưu</button>
+            </div>
           </div>
         </div>
       )}

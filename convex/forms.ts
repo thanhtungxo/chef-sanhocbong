@@ -75,8 +75,8 @@ export const activateFormSet = mutation({
 });
 
 export const createStep = mutation({
-  args: { formSetId: v.id("formSets"), titleKey: v.string(), order: v.optional(v.number()) },
-  handler: async (ctx: any, { formSetId, titleKey, order }: any) => {
+  args: { formSetId: v.id("formSets"), titleKey: v.string(), order: v.optional(v.number()), ui: v.optional(v.any()) },
+  handler: async (ctx: any, { formSetId, titleKey, order, ui }: any) => {
     let ord = order ?? 0;
     if (order == null) {
       const latest = await ctx.db
@@ -86,7 +86,7 @@ export const createStep = mutation({
         .first();
       ord = latest ? latest.order + 1 : 1;
     }
-    return await ctx.db.insert("formSteps", { formSetId, titleKey, order: ord, createdAt: Date.now() });
+    return await ctx.db.insert("formSteps", { formSetId, titleKey, order: ord, createdAt: Date.now(), ui });
   }
 });
 

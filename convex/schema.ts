@@ -73,6 +73,10 @@ export default defineSchema({
     titleKey: v.string(),
     order: v.number(),
     createdAt: v.number(),
+    ui: v.optional(v.object({
+      labelText: v.optional(v.string()),
+      placeholderText: v.optional(v.string()),
+    })),
   }).index('by_formSet', ['formSetId']).index('by_formSet_order', ['formSetId','order']),
   formQuestions: defineTable({
     formSetId: v.id('formSets'),
