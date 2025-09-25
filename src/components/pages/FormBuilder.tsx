@@ -236,6 +236,7 @@ export const FormBuilder: React.FC = () => {
                 mode={editingQ.mode}
                 steps={steps as any}
                 formSetId={active.formSet._id as any}
+                questionsByStep={questionsByStep as any}
                 question={editingQ.q}
                 onClose={()=> setEditingQ(null)}
                 onSave={saveQuestion}
@@ -281,7 +282,7 @@ export const FormBuilder: React.FC = () => {
   );
 };
 
-function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: { mode: 'add'|'edit'; steps: any[]; formSetId: any; question?: any; onClose: ()=>void; onSave: (payload: any)=>Promise<void>; }){
+function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onClose, onSave }: { mode: 'add'|'edit'; steps: any[]; formSetId: any; questionsByStep: Record<string, any[]>; question?: any; onClose: ()=>void; onSave: (payload: any)=>Promise<void>; }){
   const [form, setForm] = React.useState<any>(()=>{
     if (mode==='edit' && question) {
       return {
@@ -340,6 +341,22 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
     update('optionsText', serializeOptions(arr));
   };
   const [saving, setSaving] = React.useState(false);
+  const [adv, setAdv] = React.useState(false);
+  const removeDiacritics = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
+  const toCamelKey = (s: string) => {
+    const base = removeDiacritics(s).toLowerCase().replace(/[^a-z0-9\s]+/g, ' ').trim().split(/\s+/);
+    if (base.length === 0) return '';
+    return base[0] + base.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+  };
+  React.useEffect(()=>{
+    if (adv) return;
+    const base = toCamelKey(String(form.labelText||''));
+    if (!base) return;
+    // key/labelKey sẽ được Convex đảm bảo unique khi insert; ở UI chỉ hiển thị dự kiến
+    update('key', base);
+    update('labelKey', `ui.${base}.label`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.labelText, adv]);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div className="bg-white rounded shadow-lg w-full max-w-2xl p-4 space-y-3">
@@ -350,13 +367,15 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
               {steps.map((s:any)=> (<option key={s._id.id} value={s._id.id}>{s.titleKey}</option>))}
             </select>
           </label>
-          {mode==='add' && (
-            <label>Key
-              <input className="w-full border rounded px-2 py-1" value={form.key} onChange={(e)=>update('key', e.target.value)} placeholder="camelCase"/>
-            </label>
-          )}
+          <div className="col-span-2 flex items-center gap-2">
+            <input id="advToggleQ" type="checkbox" checked={adv} onChange={(e)=> setAdv(e.target.checked)} />
+            <label htmlFor="advToggleQ">Allow edit advanced fields</label>
+          </div>
+          <label>Key
+            <input className="w-full border rounded px-2 py-1" value={form.key} onChange={(e)=>update('key', e.target.value)} placeholder="camelCase" readOnly={!adv}/>
+          </label>
           <label>Label key
-            <input className="w-full border rounded px-2 py-1" value={form.labelKey} onChange={(e)=>update('labelKey', e.target.value)} placeholder="ui.xxx.label"/>
+            <input className="w-full border rounded px-2 py-1" value={form.labelKey} onChange={(e)=>update('labelKey', e.target.value)} placeholder="ui.xxx.label" readOnly={!adv}/>
           </label>
           <label>Label (hiển thị)
             <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=>update('labelText', e.target.value)} placeholder="Nhập câu hỏi hiển thị cho người dùng"/>
@@ -447,7 +466,7 @@ function QuestionEditor({ mode, steps, formSetId, question, onClose, onSave }: {
               } else {
                 const patch:any = {
                   stepId: form.stepId ? steps.find((s:any)=> String(s._id.id)===String(form.stepId))?._id : undefined,
-                  labelKey: form.labelKey, type: form.type, required: !!form.required,
+                  key: form.key, labelKey: form.labelKey, type: form.type, required: !!form.required,
                   options: parseOptions(),
                   validation: {
                     min: form.min!=='' ? Number(form.min) : undefined,

@@ -125,12 +125,21 @@ export const createQuestion = mutation({
     order: v.optional(v.number()),
   },
   handler: async (ctx: any, args: any) => {
-    const exists = await ctx.db
-      .query("formQuestions")
-      .withIndex("by_formSet_key", (q: any)=> q.eq("formSetId", args.formSetId))
-      .filter((q: any) => q.eq(q.field("key"), args.key))
-      .first();
-    if (exists) return { ok: false, error: "DUPLICATE_KEY" } as any;
+    // Ensure unique key within formSet by suffixing -2, -3, ... if needed
+    let baseKey = String(args.key || '').trim();
+    if (!baseKey) return { ok: false, error: 'EMPTY_KEY' } as any;
+    let finalKey = baseKey;
+    let i = 2;
+    while (true) {
+      const exists = await ctx.db
+        .query("formQuestions")
+        .withIndex("by_formSet_key", (q: any)=> q.eq("formSetId", args.formSetId))
+        .filter((q: any) => q.eq(q.field("key"), finalKey))
+        .first();
+      if (!exists) break;
+      finalKey = `${baseKey}-${i++}`;
+    }
+    args.key = finalKey;
     let ord = args.order ?? 0;
     if (args.order == null) {
       const last = await ctx.db
@@ -147,11 +156,34 @@ export const createQuestion = mutation({
 
 export const updateQuestion = mutation({
   args: { questionId: v.id("formQuestions"), patch: v.object({
-    labelKey: v.optional(v.string()), type: v.optional(v.string()), required: v.optional(v.boolean()),
+    key: v.optional(v.string()), labelKey: v.optional(v.string()), type: v.optional(v.string()), required: v.optional(v.boolean()),
     options: v.optional(v.array(v.object({ value: v.string(), labelKey: v.optional(v.string()), labelText: v.optional(v.string()) }))),
     validation: v.optional(v.any()), ui: v.optional(v.any()), visibility: v.optional(v.any()), mapTo: v.optional(v.string()), order: v.optional(v.number()), stepId: v.optional(v.id("formSteps")),
   }) },
-  handler: async (ctx: any, { questionId, patch }: any) => { await ctx.db.patch(questionId, patch as any); return { ok: true }; }
+  handler: async (ctx: any, { questionId, patch }: any) => {
+    // If key is provided, ensure uniqueness within the same formSet (excluding current)
+    if (typeof patch.key === 'string' && patch.key.trim()) {
+      const current = await ctx.db.get(questionId);
+      const formSetId = current?.formSetId;
+      if (formSetId) {
+        let base = String(patch.key).trim();
+        let finalKey = base;
+        let i = 2;
+        while (true) {
+          const dup = await ctx.db
+            .query("formQuestions")
+            .withIndex("by_formSet_key", (q: any)=> q.eq("formSetId", formSetId))
+            .filter((q: any) => q.eq(q.field("key"), finalKey))
+            .first();
+          if (!dup || dup._id.id === questionId.id) break;
+          finalKey = `${base}-${i++}`;
+        }
+        patch.key = finalKey;
+      }
+    }
+    await ctx.db.patch(questionId, patch as any);
+    return { ok: true };
+  }
 });
 
 export const deleteQuestion = mutation({ args: { questionId: v.id("formQuestions") }, handler: async (ctx: any, { questionId }: any) => { await ctx.db.delete(questionId); return { ok: true }; } });
