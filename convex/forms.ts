@@ -91,7 +91,7 @@ export const createStep = mutation({
 });
 
 export const updateStep = mutation({
-  args: { stepId: v.id("formSteps"), titleKey: v.optional(v.string()), order: v.optional(v.number()) },
+  args: { stepId: v.id("formSteps"), titleKey: v.optional(v.string()), order: v.optional(v.number()), ui: v.optional(v.any()) },
   handler: async (ctx: any, { stepId, ...patch }: any) => { await ctx.db.patch(stepId, patch as any); return { ok: true }; }
 });
 

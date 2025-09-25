@@ -39,6 +39,8 @@ export const FormBuilder: React.FC = () => {
   const questionsByStep = active?.questionsByStep ?? {};
   const selectedStep = selectedStepId ? steps.find((s: any) => String(s._id.id) === selectedStepId) : null;
   const qSectionRef = React.useRef<HTMLDivElement | null>(null);
+  
+  const [editStep, setEditStep] = React.useState<{ step?: any } | null>(null);
   const [showAddStep, setShowAddStep] = React.useState(false);
   const [newStep, setNewStep] = React.useState<{ labelText: string; placeholderText: string; labelKey: string }>({ labelText: '', placeholderText: '', labelKey: '' });
 
@@ -170,17 +172,14 @@ export const FormBuilder: React.FC = () => {
                         <span className="text-xs text-muted-foreground">#{s.order}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        <span className="mr-2">Key: {s.ui?.labelText ?? s.titleKey}</span>
+                        <span className="mr-2">Key: {s.titleKey}</span>
                         {s.ui?.placeholderText && <span>• Placeholder: {s.ui.placeholderText}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, -1)}>Up</button>
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, 1)}>Down</button>
-                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={async()=>{
-                        const titleKey = prompt('Title key', s.titleKey) || s.titleKey;
-                        await updateStep({ stepId: s._id, titleKey } as any);
-                      }}>Edit</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> setEditStep({ step: s })}>Edit</button>
                       <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa step và toàn bộ câu hỏi?')) await deleteStep({ stepId: s._id } as any); }}>Delete</button>
                     </div>
                   </div>
@@ -243,6 +242,15 @@ export const FormBuilder: React.FC = () => {
               />
             )}
           </div>
+
+        </div>
+      )}
+      {editStep?.step && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={()=> setEditStep(null)}>
+          <div className="bg-white rounded shadow-lg w-full max-w-md p-4" onClick={(e)=> e.stopPropagation()}>
+            <div className="text-base font-semibold mb-3">Sửa Step</div>
+            <EditStepInner step={editStep.step} onClose={()=> setEditStep(null)} onSave={async (patch)=>{ await updateStep({ stepId: editStep.step._id, ...patch } as any); setEditStep(null); }} />
+          </div>
         </div>
       )}
       {showAddStep && active?.formSet && (
@@ -281,6 +289,42 @@ export const FormBuilder: React.FC = () => {
     </div>
   );
 };
+
+function EditStepInner({ step, onClose, onSave }: { step: any; onClose: ()=>void; onSave: (patch: any)=>Promise<void>; }){
+  const [form, setForm] = React.useState<{ titleKey: string; labelText: string; placeholderText: string }>(()=> ({
+    titleKey: step.titleKey,
+    labelText: step.ui?.labelText ?? '',
+    placeholderText: step.ui?.placeholderText ?? '',
+  }));
+  const update = (k: string, v: string)=> setForm(p=> ({ ...p, [k]: v }));
+  const [saving, setSaving] = React.useState(false);
+  return (
+    <div className="space-y-3">
+      <label className="block">
+        <div className="text-sm mb-1">Label (hiển thị)</div>
+        <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=> update('labelText', e.target.value)} placeholder="Nhập tiêu đề Step hiển thị" />
+      </label>
+      <label className="block">
+        <div className="text-sm mb-1">Placeholder (hiển thị)</div>
+        <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=> update('placeholderText', e.target.value)} placeholder="Nhập placeholder cho Step (tuỳ chọn)" />
+      </label>
+      <label className="block">
+        <div className="text-sm mb-1">Title key</div>
+        <input className="w-full border rounded px-2 py-1" value={form.titleKey} onChange={(e)=> update('titleKey', e.target.value)} placeholder="ui.step.xxx.title" />
+      </label>
+      <div className="flex justify-end gap-2">
+        <button className="px-3 py-2" onClick={onClose} disabled={saving}>Hủy</button>
+        <button className="px-3 py-2 rounded bg-primary text-white" disabled={saving} onClick={async ()=>{
+          try {
+            setSaving(true);
+            await onSave({ titleKey: form.titleKey, ui: { labelText: form.labelText || undefined, placeholderText: form.placeholderText || undefined } });
+            onClose();
+          } finally { setSaving(false); }
+        }}>Lưu</button>
+      </div>
+    </div>
+  );
+}
 
 function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onClose, onSave }: { mode: 'add'|'edit'; steps: any[]; formSetId: any; questionsByStep: Record<string, any[]>; question?: any; onClose: ()=>void; onSave: (payload: any)=>Promise<void>; }){
   const [form, setForm] = React.useState<any>(()=>{
@@ -510,6 +554,8 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     </div>
   );
 }
+
+
 
 
 
