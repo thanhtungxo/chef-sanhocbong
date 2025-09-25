@@ -96,7 +96,7 @@ export const FormBuilder: React.FC = () => {
     await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
   };
 
-  const openAddQuestion = () => setEditingQ({ mode: 'add' });
+  const openAddQuestion = (presetStepId?: string) => setEditingQ({ mode: 'add', q: { stepId: presetStepId ? { id: presetStepId } : undefined } as any });
   const openEditQuestion = (q: any) => setEditingQ({ mode: 'edit', q });
 
   const saveQuestion = async (payload: any) => {
@@ -170,7 +170,7 @@ export const FormBuilder: React.FC = () => {
                         <span className="text-xs text-muted-foreground">#{s.order}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        <span className="mr-2">Key: {s.titleKey}</span>
+                        <span className="mr-2">Key: {s.ui?.labelText ?? s.titleKey}</span>
                         {s.ui?.placeholderText && <span>• Placeholder: {s.ui.placeholderText}</span>}
                       </div>
                     </div>
@@ -225,7 +225,7 @@ export const FormBuilder: React.FC = () => {
                       </div>
                   ))}
                   <div>
-                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={openAddQuestion}>Thêm câu hỏi</button>
+                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(String(selectedStep._id.id))}>Thêm câu hỏi</button>
                   </div>
                 </div>
               )}
@@ -354,7 +354,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (!base) return;
     // key/labelKey sẽ được Convex đảm bảo unique khi insert; ở UI chỉ hiển thị dự kiến
     update('key', base);
-    update('labelKey', `ui.${base}.label`);
+    update('labelKey', "ui." + base + ".label");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.labelText, adv]);
   React.useEffect(()=>{
@@ -370,7 +370,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
         <div className="grid grid-cols-2 gap-3 text-sm">
           <label className="col-span-2">Step
             <select className="w-full border rounded px-2 py-1" value={form.stepId} onChange={(e)=> update('stepId', e.target.value)}>
-              {steps.map((s:any)=> (<option key={s._id.id} value={s._id.id}>{s.titleKey}</option>))}
+              {steps.map((s:any)=> (<option key={s._id.id} value={s._id.id}>{s.ui?.labelText ?? s.titleKey}</option>))}
             </select>
           </label>
           <div className="col-span-2 flex items-center gap-2">
@@ -411,7 +411,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
               <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cử nhân hoặc Bachelor|ui.education.highest.bachelor hoặc Bachelor|ui.education.highest.bachelor|Cử nhân"/>
               <div className="mt-2 border rounded p-2 space-y-2 bg-muted/20">
                 {optList.map((o:any, idx:number)=> (
-                  <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                  <div key={String(o.value ?? 'opt') + '-' + String(idx)} className="grid grid-cols-12 gap-2 items-center">
                     <input className="col-span-3 border rounded px-2 py-1" value={o.value} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], value:e.target.value}; commitOptions(arr);} } placeholder="value"/>
                     <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelKey (tùy chọn)"/>
                     <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelText (hiển thị)"/>
@@ -455,7 +455,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
               setSaving(true);
               if (mode==='add'){
                 let stepObj = steps.find((s:any)=> String(s._id.id)===String(form.stepId));
-                if (!stepObj && steps.length) stepObj = steps[0];
+                
                 if (!stepObj){ alert('Chưa có Step để thêm câu hỏi'); setSaving(false); return; }
                 let keyStr = String(form.key||'');
                 let labelKeyStr = String(form.labelKey||'');
@@ -464,7 +464,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                   if (!base) { alert('Thiếu key'); setSaving(false); return; }
                   keyStr = base;
                 }
-                if (!labelKeyStr) labelKeyStr = `ui.${keyStr}.label`;
+                if (!labelKeyStr) labelKeyStr = "ui." + keyStr + ".label";
                 if (!form.type) { alert('Thiếu type'); setSaving(false); return; }
                 if (false){ alert('Thiếu stepId/key/labelKey/type'); setSaving(false); return; }
                 const payload:any = {
@@ -510,3 +510,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     </div>
   );
 }
+
+
+
+
