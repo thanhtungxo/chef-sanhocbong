@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { FormPreview } from '@/components/pages/FormPreview';
 import { t } from '@/lib/i18n';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -19,6 +18,7 @@ export const FormBuilder: React.FC = () => {
 
   const createFormSet = useMutation(api.forms.createFormSet);
   const publishFormSet = useMutation(api.forms.publishFormSet);
+  const activateFormSet = useMutation(api.forms.activateFormSet);
   const createStep = useMutation(api.forms.createStep);
   const updateStep = useMutation(api.forms.updateStep);
   const deleteStep = useMutation(api.forms.deleteStep);
@@ -28,6 +28,7 @@ export const FormBuilder: React.FC = () => {
   const deleteQuestion = useMutation(api.forms.deleteQuestion);
   const reorderQuestions = useMutation(api.forms.reorderQuestions);
   const seedLegacyForm = useMutation(api.forms.seedLegacyForm);
+  const deleteFormSet = useMutation(api.forms.deleteFormSet);
 
   const [selectedStepId, setSelectedStepId] = React.useState<string | null>(null);
   const [editingQ, setEditingQ] = React.useState<null | { mode: 'add'|'edit'; q?: any }>(null);
@@ -130,7 +131,8 @@ export const FormBuilder: React.FC = () => {
                 {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">• active</span>}
               </div>
               <div className="flex gap-2">
-                <button type="button" className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await publishFormSet({ formSetId: fs._id } as any); }}>Activate</button>
+                <button type="button" className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await activateFormSet({ formSetId: fs._id } as any); }}>Activate</button>
+                <button type="button" className="px-2 py-1 text-sm border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa Form Set này và toàn bộ Steps/Questions?')) await deleteFormSet({ formSetId: fs._id } as any); }}>Delete</button>
               </div>
             </div>
           ))}
@@ -140,7 +142,7 @@ export const FormBuilder: React.FC = () => {
       {!active?.formSet ? (
         <div className="text-sm text-muted-foreground">Chưa có Form Set active.</div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-1 gap-6">
           <div className="space-y-6">
             <Section title={`Steps – ${active.formSet.name} (v${active.formSet.version})`}>
               <div className="space-y-2">
@@ -225,12 +227,6 @@ export const FormBuilder: React.FC = () => {
                 onSave={saveQuestion}
               />
             )}
-          </div>
-
-          <div className="space-y-6">
-            <Section title="Preview">
-              <FormPreview active={active as any} />
-            </Section>
           </div>
         </div>
       )}

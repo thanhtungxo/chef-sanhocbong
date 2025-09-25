@@ -13,7 +13,7 @@ export const BrandedDynamicWizard: React.FC = () => {
   const [stepIdx, setStepIdx] = React.useState(0);
   const [allValues, setAllValues] = React.useState<Record<string, any>>({});
 
-  const loading = !active;
+  const loading = active === undefined;
   const steps = React.useMemo(
     () => (active?.steps ?? []).slice().sort((a: any, b: any) => a.order - b.order),
     [active]
@@ -55,12 +55,16 @@ export const BrandedDynamicWizard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-start justify-center px-4 py-10">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow p-6">
-        {!loading && stepTitle && (
+        {active === null && (
+          <div className="text-sm text-red-600">Chưa có Form Set nào được kích hoạt.</div>
+        )}
+        {!loading && active && stepTitle && (
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-xl font-semibold">{stepTitle}</h1>
             <div className="text-sm text-muted-foreground">{stepIdx + 1}/{steps.length}</div>
           </div>
         )}
+        {active && (
         <Form {...form}>
           <form className="space-y-3" onSubmit={(e)=> e.preventDefault()}>
             {questions.map((q: any) => (
@@ -88,8 +92,8 @@ export const BrandedDynamicWizard: React.FC = () => {
             </div>
           </form>
         </Form>
+        )}
       </div>
     </div>
   );
 };
-

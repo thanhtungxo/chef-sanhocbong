@@ -4,11 +4,12 @@ import { v } from "convex/values";
 export const getActiveForm = query({
   args: {},
   handler: async (ctx: any) => {
-    const active = await ctx.db
+    const actives = await ctx.db
       .query("formSets")
       .withIndex("by_active", (q: any) => q.eq("isActive", true))
-      .first();
-    if (!active) return null;
+      .collect();
+    if (!actives || actives.length === 0) return null;
+    const active = actives.slice().sort((a: any, b: any) => (a.createdAt ?? 0) - (b.createdAt ?? 0)).at(-1);
     const steps = await ctx.db
       .query("formSteps")
       .withIndex("by_formSet", (q: any) => q.eq("formSetId", active._id))
@@ -48,6 +49,19 @@ export const createFormSet = mutation({
 });
 
 export const publishFormSet = mutation({
+  args: { formSetId: v.id("formSets") },
+  handler: async (ctx: any, { formSetId }: any) => {
+    const actives = await ctx.db
+      .query("formSets")
+      .withIndex("by_active", (q: any) => q.eq("isActive", true))
+      .collect();
+    for (const a of actives) await ctx.db.patch(a._id, { isActive: false });
+    await ctx.db.patch(formSetId, { isActive: true });
+    return { ok: true };
+  }
+});
+
+export const activateFormSet = mutation({
   args: { formSetId: v.id("formSets") },
   handler: async (ctx: any, { formSetId }: any) => {
     const actives = await ctx.db
@@ -247,5 +261,31 @@ export const seedLegacyForm = mutation({
     await mkQ(s4, { key: 'englishWriting', labelKey: 'Writing', type: 'number', required: true, order: 9, validation: { min: 0 } });
     await mkQ(s4, { key: 'englishSpeaking', labelKey: 'Speaking', type: 'number', required: true, order: 10, validation: { min: 0 } });
 
+  }
+});
+
+// Xóa Form Set và toàn bộ dữ liệu liên quan (steps + questions)
+export const deleteFormSet = mutation({
+  args: { formSetId: v.id("formSets") },
+  handler: async (ctx: any, { formSetId }: any) => {
+    const steps = await ctx.db
+      .query("formSteps")
+      .withIndex("by_formSet", (q: any) => q.eq("formSetId", formSetId))
+      .collect();
+    for (const s of steps) {
+      const qs = await ctx.db
+        .query("formQuestions")
+        .withIndex("by_step", (q: any) => q.eq("stepId", s._id))
+        .collect();
+      for (const qn of qs) await ctx.db.delete(qn._id);
+      await ctx.db.delete(s._id);
+    }
+    const leftovers = await ctx.db
+      .query("formQuestions")
+      .withIndex("by_formSet_step_order", (q: any) => q.eq("formSetId", formSetId))
+      .collect();
+    for (const qn of leftovers) await ctx.db.delete(qn._id);
+    await ctx.db.delete(formSetId);
+    return { ok: true };
   }
 });
