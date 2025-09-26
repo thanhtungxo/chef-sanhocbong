@@ -36,8 +36,17 @@ export const FormBuilder: React.FC = () => {
   const [dragQuestionId, setDragQuestionId] = React.useState<string | null>(null);
 
   const steps = active?.steps ?? [];
+  const stepIdToStringRoot = (step: any): string => {
+    if (!step) return '';
+    const raw = step?._id ?? step;
+    if (typeof raw === 'string') return raw;
+    if (typeof raw === 'object' && raw) {
+      if ('id' in raw && raw.id) return String(raw.id);
+    }
+    return String(raw ?? '');
+  };
   const questionsByStep = active?.questionsByStep ?? {};
-  const selectedStep = selectedStepId ? steps.find((s: any) => String(s._id.id) === selectedStepId) : null;
+  const selectedStep = selectedStepId ? steps.find((s: any) => stepIdToStringRoot(s) === selectedStepId) : null;
   const qSectionRef = React.useRef<HTMLDivElement | null>(null);
   
   const [editStep, setEditStep] = React.useState<{ step?: any } | null>(null);
@@ -51,12 +60,12 @@ export const FormBuilder: React.FC = () => {
   const regenLabelKey = (labelText: string) => `ui.step.${slugify(labelText)}.title`;
 
   React.useEffect(() => {
-    if (!selectedStepId && steps.length) setSelectedStepId(String(steps[0]._id.id));
+    if (!selectedStepId && steps.length) setSelectedStepId(stepIdToStringRoot(steps[0]));
   }, [steps, selectedStepId]);
 
   const doReorderSteps = async (sid: string, dir: -1 | 1) => {
     const ordered = steps.slice().sort((a: any,b:any)=>a.order-b.order);
-    const idx = ordered.findIndex((s:any)=> s._id.id===sid);
+    const idx = ordered.findIndex((s:any)=> stepIdToStringRoot(s)===sid);
     const j = idx + dir;
     if (idx < 0 || j < 0 || j >= ordered.length) return;
     const swap = ordered[j];
@@ -67,8 +76,8 @@ export const FormBuilder: React.FC = () => {
 
   const moveStep = async (sourceId: string, targetId: string) => {
     const ordered = steps.slice().sort((a:any,b:any)=> a.order-b.order);
-    const from = ordered.findIndex((s:any)=> String(s._id.id)===String(sourceId));
-    const to = ordered.findIndex((s:any)=> String(s._id.id)===String(targetId));
+    const from = ordered.findIndex((s:any)=> stepIdToStringRoot(s)===String(sourceId));
+    const to = ordered.findIndex((s:any)=> stepIdToStringRoot(s)===String(targetId));
     if (from < 0 || to < 0 || from === to) return;
     const item = ordered.splice(from,1)[0];
     ordered.splice(to,0,item);
@@ -159,15 +168,15 @@ export const FormBuilder: React.FC = () => {
                 {(steps ?? []).map((s:any)=> (
                   <div
                     key={(s._id?.id ?? s._id) + '-' + s.order}
-                    className={`flex items-center justify-between border rounded px-2 py-1 ${selectedStepId===s._id.id ? 'bg-primary/5 border-primary' : ''}`}
+                    className={`flex items-center justify-between border rounded px-2 py-1 ${stepIdToStringRoot(s)===selectedStepId ? 'bg-primary/5 border-primary' : ''}`}
                     draggable
-                    onDragStart={()=> setDragStepId(String(s._id.id))}
+                    onDragStart={()=> setDragStepId(stepIdToStringRoot(s))}
                     onDragOver={(e)=> e.preventDefault()}
-                    onDrop={async ()=>{ if (dragStepId) await moveStep(dragStepId, String(s._id.id)); setDragStepId(null); }}
+                    onDrop={async ()=>{ if (dragStepId) await moveStep(dragStepId, stepIdToStringRoot(s)); setDragStepId(null); }}
                   >
                     <div className="flex flex-col items-start gap-0">
                       <div className="flex items-center gap-2">
-                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(String(s._id.id)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(stepIdToStringRoot(s)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
                         <span className="font-medium">{s.ui?.labelText ?? t(s.titleKey, s.titleKey)}</span>
                         <span className="text-xs text-muted-foreground">#{s.order}</span>
                       </div>
@@ -200,7 +209,7 @@ export const FormBuilder: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {((questionsByStep[selectedStep._id.id] ?? []) as any[])
-                    .filter((q:any)=> String(q.stepId?.id) === String(selectedStep._id.id))
+                    .filter((q:any)=> String(q.stepId?.id ?? q.stepId) === stepIdToStringRoot(selectedStep))
                     .sort((a:any,b:any)=> a.order - b.order)
                     .map((q:any)=> (
                       <div
@@ -327,10 +336,33 @@ function EditStepInner({ step, onClose, onSave }: { step: any; onClose: ()=>void
 }
 
 function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onClose, onSave }: { mode: 'add'|'edit'; steps: any[]; formSetId: any; questionsByStep: Record<string, any[]>; question?: any; onClose: ()=>void; onSave: (payload: any)=>Promise<void>; }){
+  const stepIdToString = (step: any): string => {
+    if (!step) return '';
+    const raw = step._id ?? step;
+    if (typeof raw === 'string') return raw;
+    if (typeof raw === 'object' && raw) {
+      if ('id' in raw && raw.id) return String(raw.id);
+    }
+    return String(raw ?? '');
+  };
+  const normalizeStepId = (val: any): string => {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      if ('id' in val && (val as any).id) return String((val as any).id);
+      if ('_id' in val && (val as any)._id) return normalizeStepId((val as any)._id);
+    }
+    return String(val ?? '');
+  };
+  const fallbackStepId = steps.length ? stepIdToString(steps[0]) : '';
+  const initialStepId = normalizeStepId(question?.stepId) || fallbackStepId;
+
+  const findStepById = (id: string) => steps.find((s:any)=> stepIdToString(s) === id);
+
   const [form, setForm] = React.useState<any>(()=>{
     if (mode==='edit' && question) {
       return {
-        stepId: question.stepId.id,
+        stepId: initialStepId,
         key: question.key,
         labelKey: question.labelKey,
         labelText: question.ui?.labelText ?? '',
@@ -351,7 +383,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
         pattern: question.validation?.pattern ?? '',
       };
     }
-    return { stepId: steps[0]?._id.id ?? '', key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '' };
+    return { stepId: initialStepId, key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '' };
   });
   const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: v }));
   const parseOptions = () => form.optionsText
@@ -402,11 +434,11 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.labelText, adv]);
   React.useEffect(()=>{
-    if (!form.stepId && Array.isArray(steps) && steps.length) {
-      update('stepId', steps[0]._id.id);
+    if (!form.stepId && fallbackStepId) {
+      update('stepId', fallbackStepId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps]);
+  }, [fallbackStepId]);
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div className="bg-white rounded shadow-lg w-full max-w-2xl p-4 space-y-3">
@@ -414,7 +446,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
         <div className="grid grid-cols-2 gap-3 text-sm">
           <label className="col-span-2">Step
             <select className="w-full border rounded px-2 py-1" value={form.stepId} onChange={(e)=> update('stepId', e.target.value)}>
-              {steps.map((s:any)=> (<option key={s._id.id} value={s._id.id}>{s.ui?.labelText ?? s.titleKey}</option>))}
+              {steps.map((s:any)=> (<option key={stepIdToString(s)} value={stepIdToString(s)}>{s.ui?.labelText ?? s.titleKey}</option>))}
             </select>
           </label>
           <div className="col-span-2 flex items-center gap-2">
@@ -498,9 +530,15 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
             try {
               setSaving(true);
               if (mode==='add'){
-                let stepObj = steps.find((s:any)=> String(s._id.id)===String(form.stepId));
-                
-                if (!stepObj){ alert('Chưa có Step để thêm câu hỏi'); setSaving(false); return; }
+                const selectedStepId = normalizeStepId(form.stepId);
+                const stepObj = selectedStepId ? findStepById(selectedStepId) : undefined;
+
+                if (!stepObj){
+                  console.debug('question-add-save-no-step', { rawStepId: form.stepId, selectedStepId, availableSteps: steps.map((s:any)=> ({ id: stepIdToString(s), rawId: s._id, label: s.ui?.labelText ?? s.titleKey })) });
+                  alert('Vui lòng chọn Step trước khi lưu');
+                  setSaving(false);
+                  return;
+                }
                 let keyStr = String(form.key||'');
                 let labelKeyStr = String(form.labelKey||'');
                 if (!keyStr) {
@@ -527,7 +565,12 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                 await onSave(payload);
               } else {
                 const patch:any = {
-                  stepId: form.stepId ? steps.find((s:any)=> String(s._id.id)===String(form.stepId))?._id : undefined,
+                  stepId: (() => {
+                    const selectedStepId = normalizeStepId(form.stepId);
+                    if (!selectedStepId) return undefined;
+                    const stepObj = findStepById(selectedStepId);
+                    return stepObj?._id;
+                  })(),
                   key: form.key, labelKey: form.labelKey, type: form.type, required: !!form.required,
                   options: parseOptions(),
                   validation: {
@@ -554,6 +597,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     </div>
   );
 }
+
 
 
 
