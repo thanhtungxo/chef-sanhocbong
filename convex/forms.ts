@@ -15,18 +15,18 @@ export const getActiveForm = query({
       .withIndex("by_formSet", (q: any) => q.eq("formSetId", active._id))
       .collect();
     const byStep: Record<string, any[]> = {};
-    for (const s of steps) byStep[s._id.id] = [];
+    for (const s of steps) { const stepKey = (s._id as any)?.id ?? s._id; byStep[stepKey] = []; }
     const qs = await ctx.db
       .query("formQuestions")
       .withIndex("by_formSet_step_order", (q: any) => q.eq("formSetId", active._id))
       .collect();
     for (const qn of qs) {
-      const key = qn.stepId.id;
+      const key = (qn.stepId as any)?.id ?? qn.stepId;
       if (!byStep[key]) byStep[key] = [];
       byStep[key].push(qn);
     }
     steps.sort((a: any, b: any) => a.order - b.order);
-    for (const s of steps) (byStep[s._id.id] ?? []).sort((a: any, b: any) => a.order - b.order);
+    for (const s of steps) { const stepKey = (s._id as any)?.id ?? s._id; (byStep[stepKey] ?? []).sort((a: any, b: any) => a.order - b.order); }
     return { formSet: active, steps, questionsByStep: byStep };
   }
 });

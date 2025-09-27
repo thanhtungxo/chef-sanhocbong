@@ -19,9 +19,16 @@ export const BrandedDynamicWizard: React.FC = () => {
     [active]
   );
   const currentStep = steps[stepIdx] ?? null;
+  const currentStepKey = React.useMemo(() => {
+    if (!currentStep) return undefined;
+    const raw = currentStep._id as any;
+    if (typeof raw === 'string') return raw;
+    if (typeof raw === 'object' && raw && 'id' in raw && raw.id) return String(raw.id);
+    return String(raw ?? '');
+  }, [currentStep]);
   const questionsRaw = React.useMemo(
-    () => (currentStep ? (active!.questionsByStep[currentStep._id.id] ?? []).slice().sort((a: any, b: any) => a.order - b.order) : []),
-    [active, currentStep, stepIdx]
+    () => (currentStepKey ? (active!.questionsByStep[currentStepKey] ?? []).slice().sort((a: any, b: any) => a.order - b.order) : []),
+    [active, currentStepKey, stepIdx]
   );
 
   // Only render questions that have a label from DB or i18n (no fallback)

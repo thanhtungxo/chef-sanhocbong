@@ -42,6 +42,9 @@ export const FormBuilder: React.FC = () => {
     if (typeof raw === 'string') return raw;
     if (typeof raw === 'object' && raw) {
       if ('id' in raw && raw.id) return String(raw.id);
+      const keys = Object.keys(raw as any);
+      if (keys.includes('id')) return String((raw as any)['id']);
+      if (keys.includes('value')) return String((raw as any)['value']);
     }
     return String(raw ?? '');
   };
@@ -61,6 +64,9 @@ export const FormBuilder: React.FC = () => {
 
   React.useEffect(() => {
     if (!selectedStepId && steps.length) setSelectedStepId(stepIdToStringRoot(steps[0]));
+  }, [steps, selectedStepId]);
+  React.useEffect(() => {
+    console.debug('admin-steps-debug', steps.map((s:any)=> ({ raw: s._id, typeofId: typeof s._id, hasId: (s._id as any)?.id, idProp: (s._id as any)?.id ?? null, rootId: stepIdToStringRoot(s), label: s.ui?.labelText ?? s.titleKey })), selectedStepId);
   }, [steps, selectedStepId]);
 
   const doReorderSteps = async (sid: string, dir: -1 | 1) => {
@@ -86,7 +92,7 @@ export const FormBuilder: React.FC = () => {
 
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const idx = list.findIndex((q:any)=> q._id.id===qid);
     const j = idx + dir;
     if (idx < 0 || j < 0 || j >= list.length) return;
@@ -98,7 +104,7 @@ export const FormBuilder: React.FC = () => {
 
   const moveQuestion = async (sourceQId: string, targetQId: string) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const from = list.findIndex((q:any)=> String(q._id.id)===String(sourceQId));
     const to = list.findIndex((q:any)=> String(q._id.id)===String(targetQId));
     if (from < 0 || to < 0 || from === to) return;
@@ -208,7 +214,7 @@ export const FormBuilder: React.FC = () => {
                 <div className="text-sm text-muted-foreground">Chọn một Step để xem câu hỏi.</div>
               ) : (
                 <div className="space-y-2">
-                  {((questionsByStep[selectedStep._id.id] ?? []) as any[])
+                  {((questionsByStep[stepIdToStringRoot(selectedStep)] ?? []) as any[])
                     .filter((q:any)=> String(q.stepId?.id ?? q.stepId) === stepIdToStringRoot(selectedStep))
                     .sort((a:any,b:any)=> a.order - b.order)
                     .map((q:any)=> (
@@ -233,7 +239,7 @@ export const FormBuilder: React.FC = () => {
                       </div>
                   ))}
                   <div>
-                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(String(selectedStep._id.id))}>Thêm câu hỏi</button>
+                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(stepIdToStringRoot(selectedStep))}>Thêm câu hỏi</button>
                   </div>
                 </div>
               )}
@@ -342,6 +348,9 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (typeof raw === 'string') return raw;
     if (typeof raw === 'object' && raw) {
       if ('id' in raw && raw.id) return String(raw.id);
+      const keys = Object.keys(raw as any);
+      if (keys.includes('id')) return String((raw as any)['id']);
+      if (keys.includes('value')) return String((raw as any)['value']);
     }
     return String(raw ?? '');
   };
@@ -351,6 +360,9 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (typeof val === 'object') {
       if ('id' in val && (val as any).id) return String((val as any).id);
       if ('_id' in val && (val as any)._id) return normalizeStepId((val as any)._id);
+      const keys = Object.keys(val as any);
+      if (keys.includes('id')) return String((val as any)['id']);
+      if (keys.includes('value')) return String((val as any)['value']);
     }
     return String(val ?? '');
   };
@@ -597,6 +609,8 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     </div>
   );
 }
+
+
 
 
 
