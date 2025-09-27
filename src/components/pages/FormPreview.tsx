@@ -60,7 +60,7 @@ export const FormPreview: React.FC<{ active: ActiveForm | null }>= ({ active }) 
   return (
     <div className="rounded border bg-white p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium">Preview Form – {active.formSet.name} (v{active.formSet.version})</h3>
+        <h3 className="font-medium">Preview Form - {active.formSet.name} (v{active.formSet.version})</h3>
         <div className="text-sm text-muted-foreground">Bước {stepIdx + 1}/{steps.length}</div>
       </div>
       <Form {...form}>

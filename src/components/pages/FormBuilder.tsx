@@ -86,7 +86,7 @@ export const FormBuilder: React.FC = () => {
 
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const idx = list.findIndex((q:any)=> q._id.id===qid);
     const j = idx + dir;
     if (idx < 0 || j < 0 || j >= list.length) return;
@@ -98,7 +98,7 @@ export const FormBuilder: React.FC = () => {
 
   const moveQuestion = async (sourceQId: string, targetQId: string) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const from = list.findIndex((q:any)=> String(q._id.id)===String(sourceQId));
     const to = list.findIndex((q:any)=> String(q._id.id)===String(targetQId));
     if (from < 0 || to < 0 || from === to) return;
@@ -147,7 +147,7 @@ export const FormBuilder: React.FC = () => {
             <div key={(fs._id?.id ?? fs._id) + ''} className="flex items-center justify-between py-1">
               <div>
                 <span className="font-medium">{fs.name}</span> <span className="text-muted-foreground">(v{fs.version})</span>
-                {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">• active</span>}
+                {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">| active</span>}
               </div>
               <div className="flex gap-2">
                 <button type="button" className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await activateFormSet({ formSetId: fs._id } as any); }}>Activate</button>
@@ -163,7 +163,7 @@ export const FormBuilder: React.FC = () => {
       ) : (
         <div className="grid md:grid-cols-1 gap-6">
           <div className="space-y-6">
-            <Section title={`Steps – ${active.formSet.name} (v${active.formSet.version})`}>
+            <Section title={`Steps - ${active.formSet.name} (v${active.formSet.version})`}>
               <div className="space-y-2">
                 {(steps ?? []).map((s:any)=> (
                   <div
@@ -182,7 +182,7 @@ export const FormBuilder: React.FC = () => {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         <span className="mr-2">Key: {s.titleKey}</span>
-                        {s.ui?.placeholderText && <span>• Placeholder: {s.ui.placeholderText}</span>}
+                        {s.ui?.placeholderText && <span>| Placeholder: {s.ui.placeholderText}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -202,13 +202,13 @@ export const FormBuilder: React.FC = () => {
               </div>
             </Section>
 
-            <Section title={`Questions ${selectedStep ? `– ${t(selectedStep.titleKey, selectedStep.titleKey)}`: ''}`}>
+            <Section title={`Questions ${selectedStep ? `- ${t(selectedStep.titleKey, selectedStep.titleKey)}`: ''}`}>
               <div ref={qSectionRef} />
               {!selectedStep ? (
                 <div className="text-sm text-muted-foreground">Chọn một Step để xem câu hỏi.</div>
               ) : (
                 <div className="space-y-2">
-                  {((questionsByStep[selectedStep._id.id] ?? []) as any[])
+                  {((questionsByStep[stepIdToStringRoot(selectedStep)] ?? []) as any[])
                     .filter((q:any)=> String(q.stepId?.id ?? q.stepId) === stepIdToStringRoot(selectedStep))
                     .sort((a:any,b:any)=> a.order - b.order)
                     .map((q:any)=> (
@@ -222,7 +222,7 @@ export const FormBuilder: React.FC = () => {
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
-                          <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
+                          <span className="text-xs text-muted-foreground">[{q.key}] | {q.type} | #{q.order}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
@@ -233,7 +233,7 @@ export const FormBuilder: React.FC = () => {
                       </div>
                   ))}
                   <div>
-                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(String(selectedStep._id.id))}>Thêm câu hỏi</button>
+                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(stepIdToStringRoot(selectedStep))}>Thêm câu hỏi</button>
                   </div>
                 </div>
               )}
