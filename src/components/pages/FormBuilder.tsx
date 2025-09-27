@@ -1,16 +1,15 @@
-import React from 'react';
+﻿import React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { t } from '@/lib/i18n';
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded border bg-white p-4 space-y-3">
-      <div className="font-medium">{title}</div>
-      {children}
-    </div>
-  );
-}
+const normalizeSpaces = (input: any) => typeof input === 'string' ? input.replace(/[\u00A0\u202F\u2007\u2009\u200A\u2008\u2006\u2005\u2004\u2003\u2002\uFEFF]/g, ' ') : input;
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="rounded border bg-white p-4 space-y-3">
+    <div className="font-medium">{title}</div>
+    {children}
+  </div>
+);
 
 export const FormBuilder: React.FC = () => {
   const formSets = useQuery(api.forms.listFormSets, {});
@@ -305,7 +304,7 @@ function EditStepInner({ step, onClose, onSave }: { step: any; onClose: ()=>void
     labelText: step.ui?.labelText ?? '',
     placeholderText: step.ui?.placeholderText ?? '',
   }));
-  const update = (k: string, v: string)=> setForm(p=> ({ ...p, [k]: v }));
+    const update = (k: string, v: string)=> setForm(p=> ({ ...p, [k]: normalizeSpaces(v) }));
   const [saving, setSaving] = React.useState(false);
   return (
     <div className="space-y-3">
@@ -385,19 +384,17 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     }
     return { stepId: initialStepId, key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '' };
   });
-  const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: v }));
-  const parseOptions = () => form.optionsText
-    .split('\n')
-    .map((l:string)=> l.trim())
+    const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: typeof v === 'string' ? normalizeSpaces(v) : v }));
+  const parseOptions = () => (normalizeSpaces(form.optionsText ?? '')).split(/\r?\n/)
+    .map((l:string)=> normalizeSpaces(l).trim())
     .filter(Boolean)
     .map((line:string)=>{
       const parts = line.split('|');
-      const value = (parts[0] ?? '').trim();
-      const second = (parts[1] ?? '').trim();
-      const third = (parts[2] ?? '').trim();
+      const value = normalizeSpaces(parts[0] ?? '').trim();
+      const second = normalizeSpaces(parts[1] ?? '').trim();
+      const third = normalizeSpaces(parts[2] ?? '').trim();
       if (!value) return null as any;
-      if (third) return { value, labelKey: second || undefined, labelText: third };
-      // nếu chỉ có 2 phần: nếu phần 2 trông như key i18n (bắt đầu bằng 'ui.'), coi là labelKey; ngược lại coi là labelText
+      if (third) return { value, labelKey: second || undefined, labelText: third } as any;
       if (second) {
         if (second.startsWith('ui.')) return { value, labelKey: second } as any;
         return { value, labelText: second } as any;
@@ -405,7 +402,15 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
       return { value } as any;
     })
     .filter(Boolean);
-  const serializeOptions = (arr:any[]) => arr.map((o:any)=> o.labelKey && o.labelText ? `${o.value}|${o.labelKey}|${o.labelText}` : o.labelKey ? `${o.value}|${o.labelKey}` : o.labelText ? `${o.value}|${o.labelText}` : `${o.value}|`).join('\n');
+  const serializeOptions = (arr:any[]) => arr.map((o:any)=> {
+    const value = normalizeSpaces(o.value ?? '');
+    const labelKey = o.labelKey ? normalizeSpaces(o.labelKey) : '';
+    const labelText = o.labelText ? normalizeSpaces(o.labelText) : '';
+    if (labelKey && labelText) return `${value}|${labelKey}|${labelText}`;
+    if (labelKey) return `${value}|${labelKey}`;
+    if (labelText) return `${value}|${labelText}`;
+    return `${value}|`;
+  }).join('\n');
 
   const [optList, setOptList] = React.useState<any[]>(parseOptions());
   React.useEffect(()=>{
@@ -413,8 +418,14 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.optionsText]);
   const commitOptions = (arr:any[]) => {
-    setOptList(arr);
-    update('optionsText', serializeOptions(arr));
+    const normalized = arr.map((opt:any)=> opt ? {
+      ...opt,
+      value: normalizeSpaces(opt.value ?? ''),
+      labelKey: opt.labelKey ? normalizeSpaces(opt.labelKey) : undefined,
+      labelText: opt.labelText ? normalizeSpaces(opt.labelText) : undefined,
+    } : opt);
+    setOptList(normalized);
+    update('optionsText', serializeOptions(normalized));
   };
   const [saving, setSaving] = React.useState(false);
   const [adv, setAdv] = React.useState(false);
@@ -482,15 +493,15 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
               <option value="0">Không</option>
             </select>
           </label>
-          {(form.type==='select' || form.type==='radio' || form.type==='multi-select' || form.type==='autocomplete') && (
+          {(form.type==='select' || form.type==='radio' || form.type==='multi-select' || form.type==='autocomplete' || form.type==='checkbox') && (
             <label className="col-span-2">Options (mỗi dòng: value|labelKey hoặc value|labelText hoặc value|labelKey|labelText)
               <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cử nhân hoặc Bachelor|ui.education.highest.bachelor hoặc Bachelor|ui.education.highest.bachelor|Cử nhân"/>
               <div className="mt-2 border rounded p-2 space-y-2 bg-muted/20">
                 {optList.map((o:any, idx:number)=> (
                   <div key={String(o.value ?? 'opt') + '-' + String(idx)} className="grid grid-cols-12 gap-2 items-center">
-                    <input className="col-span-3 border rounded px-2 py-1" value={o.value} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], value:e.target.value}; commitOptions(arr);} } placeholder="value"/>
-                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelKey (tùy chọn)"/>
-                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelText (hiển thị)"/>
+                    <input className="col-span-3 border rounded px-2 py-1" value={o.value} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], value:normalizeSpaces(e.target.value)}; commitOptions(arr);} } placeholder="value"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:normalizeSpaces(e.target.value)||undefined}; commitOptions(arr);} } placeholder="labelKey (tùy chọn)"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:normalizeSpaces(e.target.value)||undefined}; commitOptions(arr);} } placeholder="labelText (hiển thị)"/>
                     <div className="col-span-1 flex gap-1">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx>0){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx-1,0,it); commitOptions(arr);} }}>↑</button>
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx<optList.length-1){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx+1,0,it); commitOptions(arr);} }}>↓</button>

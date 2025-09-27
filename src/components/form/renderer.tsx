@@ -16,8 +16,16 @@ export function buildZodField(q: any): z.ZodTypeAny {
         if (typeof v.max === 'number') t = t.max(v.max);
         return t;
       }
-      case 'boolean':
-        return z.boolean();
+      case 'checkbox':
+      case 'boolean': {
+        const boolish = z.union([z.boolean(), z.literal('true'), z.literal('false'), z.literal(1), z.literal(0)])
+          .transform((val) => {
+            if (val === true || val === 'true' || val === 1) return true;
+            if (val === false || val === 'false' || val === 0) return false;
+            return Boolean(val);
+          });
+        return boolish;
+      }
       case 'multi-select': {
         let t = z.array(z.string());
         if (required) t = t.nonempty('Required');
@@ -101,10 +109,16 @@ export function renderField(q: any, field: any, watch: any) {
         </div>
       );
     case 'checkbox':
-    case 'boolean':
+    case 'boolean': {
+      const optionLabel = (q.options?.[0]?.labelText as string | undefined) ?? tOptional(q.options?.[0]?.labelKey);
+      const checked = field.value === true || field.value === 'true' || field.value === 1;
       return (
-        <input type="checkbox" checked={!!field.value} onChange={(e)=> field.onChange(e.target.checked)} />
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={checked} onChange={(e)=> field.onChange(e.target.checked)} />
+          {optionLabel && <span>{optionLabel}</span>}
+        </label>
       );
+    }
     case 'date':
       return (<Input {...common} type="date" onChange={(e)=> field.onChange(e)} placeholder={placeholder} />);
     case 'textarea':
