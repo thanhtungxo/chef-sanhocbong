@@ -42,9 +42,6 @@ export const FormBuilder: React.FC = () => {
     if (typeof raw === 'string') return raw;
     if (typeof raw === 'object' && raw) {
       if ('id' in raw && raw.id) return String(raw.id);
-      const keys = Object.keys(raw as any);
-      if (keys.includes('id')) return String((raw as any)['id']);
-      if (keys.includes('value')) return String((raw as any)['value']);
     }
     return String(raw ?? '');
   };
@@ -65,7 +62,7 @@ export const FormBuilder: React.FC = () => {
   React.useEffect(() => {
     if (!selectedStepId && steps.length) setSelectedStepId(stepIdToStringRoot(steps[0]));
   }, [steps, selectedStepId]);
-  
+
   const doReorderSteps = async (sid: string, dir: -1 | 1) => {
     const ordered = steps.slice().sort((a: any,b:any)=>a.order-b.order);
     const idx = ordered.findIndex((s:any)=> stepIdToStringRoot(s)===sid);
@@ -89,7 +86,7 @@ export const FormBuilder: React.FC = () => {
 
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const idx = list.findIndex((q:any)=> q._id.id===qid);
     const j = idx + dir;
     if (idx < 0 || j < 0 || j >= list.length) return;
@@ -101,7 +98,7 @@ export const FormBuilder: React.FC = () => {
 
   const moveQuestion = async (sourceQId: string, targetQId: string) => {
     if (!selectedStep) return;
-    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+    const list = (questionsByStep[selectedStep._id.id] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
     const from = list.findIndex((q:any)=> String(q._id.id)===String(sourceQId));
     const to = list.findIndex((q:any)=> String(q._id.id)===String(targetQId));
     if (from < 0 || to < 0 || from === to) return;
@@ -138,23 +135,23 @@ export const FormBuilder: React.FC = () => {
       <Section title="Form Sets">
         <div className="flex items-center gap-2 flex-wrap">
           <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={async ()=>{
-            const name = prompt('TÃªn Form Set', 'Default') || 'Default';
+            const name = prompt('Tên Form Set', 'Default') || 'Default';
             const version = prompt('Version', '1.0.0') || '1.0.0';
             await createFormSet({ name, version, activate: true } as any);
-            alert('ÄÃ£ táº¡o & kÃ­ch hoáº¡t Form Set');
-          }}>Táº¡o & kÃ­ch hoáº¡t</button>
-          <button type="button" className="px-3 py-2 rounded border" onClick={async ()=>{ await seedLegacyForm({ forceNew: false } as any); alert('ÄÃ£ seed form Legacy (náº¿u chÆ°a cÃ³).'); }}>Seed Legacy</button>
+            alert('Đã tạo & kích hoạt Form Set');
+          }}>Tạo & kích hoạt</button>
+          <button type="button" className="px-3 py-2 rounded border" onClick={async ()=>{ await seedLegacyForm({ forceNew: false } as any); alert('Đã seed form Legacy (nếu chưa có).'); }}>Seed Legacy</button>
         </div>
         <div className="mt-2 text-sm">
           {(formSets ?? []).map((fs:any)=> (
             <div key={(fs._id?.id ?? fs._id) + ''} className="flex items-center justify-between py-1">
               <div>
                 <span className="font-medium">{fs.name}</span> <span className="text-muted-foreground">(v{fs.version})</span>
-                {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">â€¢ active</span>}
+                {active?.formSet && active.formSet._id.id===fs._id.id && <span className="ml-2 text-green-600">• active</span>}
               </div>
               <div className="flex gap-2">
                 <button type="button" className="px-2 py-1 text-sm border rounded" onClick={async()=>{ await activateFormSet({ formSetId: fs._id } as any); }}>Activate</button>
-                <button type="button" className="px-2 py-1 text-sm border rounded text-red-600" onClick={async()=>{ if (confirm('XÃ³a Form Set nÃ y vÃ  toÃ n bá»™ Steps/Questions?')) await deleteFormSet({ formSetId: fs._id } as any); }}>Delete</button>
+                <button type="button" className="px-2 py-1 text-sm border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa Form Set này và toàn bộ Steps/Questions?')) await deleteFormSet({ formSetId: fs._id } as any); }}>Delete</button>
               </div>
             </div>
           ))}
@@ -162,11 +159,11 @@ export const FormBuilder: React.FC = () => {
       </Section>
 
       {!active?.formSet ? (
-        <div className="text-sm text-muted-foreground">ChÆ°a cÃ³ Form Set active.</div>
+        <div className="text-sm text-muted-foreground">Chưa có Form Set active.</div>
       ) : (
         <div className="grid md:grid-cols-1 gap-6">
           <div className="space-y-6">
-            <Section title={`Steps â€“ ${active.formSet.name} (v${active.formSet.version})`}>
+            <Section title={`Steps – ${active.formSet.name} (v${active.formSet.version})`}>
               <div className="space-y-2">
                 {(steps ?? []).map((s:any)=> (
                   <div
@@ -179,20 +176,20 @@ export const FormBuilder: React.FC = () => {
                   >
                     <div className="flex flex-col items-start gap-0">
                       <div className="flex items-center gap-2">
-                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(stepIdToStringRoot(s)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chá»n</button>
+                        <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> { setSelectedStepId(stepIdToStringRoot(s)); qSectionRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>Chọn</button>
                         <span className="font-medium">{s.ui?.labelText ?? t(s.titleKey, s.titleKey)}</span>
                         <span className="text-xs text-muted-foreground">#{s.order}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
                         <span className="mr-2">Key: {s.titleKey}</span>
-                        {s.ui?.placeholderText && <span>â€¢ Placeholder: {s.ui.placeholderText}</span>}
+                        {s.ui?.placeholderText && <span>• Placeholder: {s.ui.placeholderText}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, -1)}>Up</button>
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderSteps(s._id.id, 1)}>Down</button>
                       <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> setEditStep({ step: s })}>Edit</button>
-                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('XÃ³a step vÃ  toÃ n bá»™ cÃ¢u há»i?')) await deleteStep({ stepId: s._id } as any); }}>Delete</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa step và toàn bộ câu hỏi?')) await deleteStep({ stepId: s._id } as any); }}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -201,17 +198,17 @@ export const FormBuilder: React.FC = () => {
                 <button type="button" className="px-3 py-2 rounded bg-primary text-white" onClick={()=>{
                   setNewStep({ labelText: '', placeholderText: '', labelKey: regenLabelKey('') });
                   setShowAddStep(true);
-                }}>ThÃªm Step</button>
+                }}>Thêm Step</button>
               </div>
             </Section>
 
-            <Section title={`Questions ${selectedStep ? `â€“ ${t(selectedStep.titleKey, selectedStep.titleKey)}`: ''}`}>
+            <Section title={`Questions ${selectedStep ? `– ${t(selectedStep.titleKey, selectedStep.titleKey)}`: ''}`}>
               <div ref={qSectionRef} />
               {!selectedStep ? (
-                <div className="text-sm text-muted-foreground">Chá»n má»™t Step Ä‘á»ƒ xem cÃ¢u há»i.</div>
+                <div className="text-sm text-muted-foreground">Chọn một Step để xem câu hỏi.</div>
               ) : (
                 <div className="space-y-2">
-                  {((questionsByStep[stepIdToStringRoot(selectedStep)] ?? []) as any[])
+                  {((questionsByStep[selectedStep._id.id] ?? []) as any[])
                     .filter((q:any)=> String(q.stepId?.id ?? q.stepId) === stepIdToStringRoot(selectedStep))
                     .sort((a:any,b:any)=> a.order - b.order)
                     .map((q:any)=> (
@@ -225,18 +222,18 @@ export const FormBuilder: React.FC = () => {
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
-                          <span className="text-xs text-muted-foreground">[{q.key}] â€¢ {q.type} â€¢ #{q.order}</span>
+                          <span className="text-xs text-muted-foreground">[{q.key}] • {q.type} • #{q.order}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
                           <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
                           <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
-                          <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('XÃ³a cÃ¢u há»i?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
+                          <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
                         </div>
                       </div>
                   ))}
                   <div>
-                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(stepIdToStringRoot(selectedStep))}>ThÃªm cÃ¢u há»i</button>
+                    <button type="button" className="mt-2 px-3 py-2 rounded bg-primary text-white" onClick={()=> openAddQuestion(String(selectedStep._id.id))}>Thêm câu hỏi</button>
                   </div>
                 </div>
               )}
@@ -260,7 +257,7 @@ export const FormBuilder: React.FC = () => {
       {editStep?.step && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={()=> setEditStep(null)}>
           <div className="bg-white rounded shadow-lg w-full max-w-md p-4" onClick={(e)=> e.stopPropagation()}>
-            <div className="text-base font-semibold mb-3">Sá»­a Step</div>
+            <div className="text-base font-semibold mb-3">Sửa Step</div>
             <EditStepInner step={editStep.step} onClose={()=> setEditStep(null)} onSave={async (patch)=>{ await updateStep({ stepId: editStep.step._id, ...patch } as any); setEditStep(null); }} />
           </div>
         </div>
@@ -268,32 +265,32 @@ export const FormBuilder: React.FC = () => {
       {showAddStep && active?.formSet && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={()=> setShowAddStep(false)}>
           <div className="bg-white rounded shadow-lg w-full max-w-md p-4" onClick={(e)=> e.stopPropagation()}>
-            <div className="text-base font-semibold mb-3">ThÃªm Step</div>
+            <div className="text-base font-semibold mb-3">Thêm Step</div>
             <div className="space-y-3">
               <label className="block">
-                <div className="text-sm mb-1">Label (hiá»ƒn thá»‹) <span className="text-red-500">*</span></div>
+                <div className="text-sm mb-1">Label (hiển thị) <span className="text-red-500">*</span></div>
                 <input className="w-full border rounded px-2 py-1" value={newStep.labelText} onChange={(e)=>{
                   const v = e.target.value;
                   setNewStep({ ...newStep, labelText: v, labelKey: regenLabelKey(v) });
-                }} placeholder="VÃ­ dá»¥: ThÃ´ng tin cÃ¡ nhÃ¢n" />
+                }} placeholder="Ví dụ: Thông tin cá nhân" />
               </label>
               <label className="block">
-                <div className="text-sm mb-1">Placeholder (hiá»ƒn thá»‹)</div>
-                <input className="w-full border rounded px-2 py-1" value={newStep.placeholderText} onChange={(e)=> setNewStep({ ...newStep, placeholderText: e.target.value })} placeholder="TÃ¹y chá»n" />
+                <div className="text-sm mb-1">Placeholder (hiển thị)</div>
+                <input className="w-full border rounded px-2 py-1" value={newStep.placeholderText} onChange={(e)=> setNewStep({ ...newStep, placeholderText: e.target.value })} placeholder="Tùy chọn" />
               </label>
               <label className="block">
-                <div className="text-sm mb-1">Label Key (tá»± sinh, khÃ´ng sá»­a)</div>
+                <div className="text-sm mb-1">Label Key (tự sinh, không sửa)</div>
                 <input className="w-full border rounded px-2 py-1 bg-muted" value={newStep.labelKey} readOnly />
               </label>
-              <div className="text-xs text-muted-foreground">Label Key Ä‘Æ°á»£c sinh tá»± Ä‘á»™ng, khÃ´ng thá»ƒ sá»­a trong Admin UI</div>
+              <div className="text-xs text-muted-foreground">Label Key được sinh tự động, không thể sửa trong Admin UI</div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button className="px-3 py-2" onClick={()=> setShowAddStep(false)}>Há»§y</button>
+              <button className="px-3 py-2" onClick={()=> setShowAddStep(false)}>Hủy</button>
               <button className="px-3 py-2 rounded bg-primary text-white" onClick={async()=>{
-                if (!newStep.labelText.trim()) { alert('Vui lÃ²ng nháº­p Label'); return; }
+                if (!newStep.labelText.trim()) { alert('Vui lòng nhập Label'); return; }
                 await createStep({ formSetId: active.formSet._id as any, titleKey: newStep.labelKey, ui: { labelText: newStep.labelText, placeholderText: newStep.placeholderText || undefined } } as any);
                 setShowAddStep(false);
-              }}>LÆ°u</button>
+              }}>Lưu</button>
             </div>
           </div>
         </div>
@@ -313,26 +310,26 @@ function EditStepInner({ step, onClose, onSave }: { step: any; onClose: ()=>void
   return (
     <div className="space-y-3">
       <label className="block">
-        <div className="text-sm mb-1">Label (hiá»ƒn thá»‹)</div>
-        <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=> update('labelText', e.target.value)} placeholder="Nháº­p tiÃªu Ä‘á» Step hiá»ƒn thá»‹" />
+        <div className="text-sm mb-1">Label (hiển thị)</div>
+        <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=> update('labelText', e.target.value)} placeholder="Nhập tiêu đề Step hiển thị" />
       </label>
       <label className="block">
-        <div className="text-sm mb-1">Placeholder (hiá»ƒn thá»‹)</div>
-        <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=> update('placeholderText', e.target.value)} placeholder="Nháº­p placeholder cho Step (tuá»³ chá»n)" />
+        <div className="text-sm mb-1">Placeholder (hiển thị)</div>
+        <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=> update('placeholderText', e.target.value)} placeholder="Nhập placeholder cho Step (tuỳ chọn)" />
       </label>
       <label className="block">
         <div className="text-sm mb-1">Title key</div>
         <input className="w-full border rounded px-2 py-1" value={form.titleKey} onChange={(e)=> update('titleKey', e.target.value)} placeholder="ui.step.xxx.title" />
       </label>
       <div className="flex justify-end gap-2">
-        <button className="px-3 py-2" onClick={onClose} disabled={saving}>Há»§y</button>
+        <button className="px-3 py-2" onClick={onClose} disabled={saving}>Hủy</button>
         <button className="px-3 py-2 rounded bg-primary text-white" disabled={saving} onClick={async ()=>{
           try {
             setSaving(true);
             await onSave({ titleKey: form.titleKey, ui: { labelText: form.labelText || undefined, placeholderText: form.placeholderText || undefined } });
             onClose();
           } finally { setSaving(false); }
-        }}>LÆ°u</button>
+        }}>Lưu</button>
       </div>
     </div>
   );
@@ -345,9 +342,6 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (typeof raw === 'string') return raw;
     if (typeof raw === 'object' && raw) {
       if ('id' in raw && raw.id) return String(raw.id);
-      const keys = Object.keys(raw as any);
-      if (keys.includes('id')) return String((raw as any)['id']);
-      if (keys.includes('value')) return String((raw as any)['value']);
     }
     return String(raw ?? '');
   };
@@ -357,9 +351,6 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (typeof val === 'object') {
       if ('id' in val && (val as any).id) return String((val as any).id);
       if ('_id' in val && (val as any)._id) return normalizeStepId((val as any)._id);
-      const keys = Object.keys(val as any);
-      if (keys.includes('id')) return String((val as any)['id']);
-      if (keys.includes('value')) return String((val as any)['value']);
     }
     return String(val ?? '');
   };
@@ -406,7 +397,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
       const third = (parts[2] ?? '').trim();
       if (!value) return null as any;
       if (third) return { value, labelKey: second || undefined, labelText: third };
-      // náº¿u chá»‰ cÃ³ 2 pháº§n: náº¿u pháº§n 2 trÃ´ng nhÆ° key i18n (báº¯t Ä‘áº§u báº±ng 'ui.'), coi lÃ  labelKey; ngÆ°á»£c láº¡i coi lÃ  labelText
+      // nếu chỉ có 2 phần: nếu phần 2 trông như key i18n (bắt đầu bằng 'ui.'), coi là labelKey; ngược lại coi là labelText
       if (second) {
         if (second.startsWith('ui.')) return { value, labelKey: second } as any;
         return { value, labelText: second } as any;
@@ -437,7 +428,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (adv) return;
     const base = toCamelKey(String(form.labelText||''));
     if (!base) return;
-    // key/labelKey sáº½ Ä‘Æ°á»£c Convex Ä‘áº£m báº£o unique khi insert; á»Ÿ UI chá»‰ hiá»ƒn thá»‹ dá»± kiáº¿n
+    // key/labelKey sẽ được Convex đảm bảo unique khi insert; ở UI chỉ hiển thị dự kiến
     update('key', base);
     update('labelKey', "ui." + base + ".label");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -451,7 +442,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
       <div className="bg-white rounded shadow-lg w-full max-w-2xl p-4 space-y-3">
-        <div className="font-medium">{mode==='add' ? 'ThÃªm cÃ¢u há»i' : 'Sá»­a cÃ¢u há»i'}</div>
+        <div className="font-medium">{mode==='add' ? 'Thêm câu hỏi' : 'Sửa câu hỏi'}</div>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <label className="col-span-2">Step
             <select className="w-full border rounded px-2 py-1" value={form.stepId} onChange={(e)=> update('stepId', e.target.value)}>
@@ -468,8 +459,8 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
           <label>Label key
             <input className="w-full border rounded px-2 py-1" value={form.labelKey} onChange={(e)=>update('labelKey', e.target.value)} placeholder="ui.xxx.label" readOnly={!adv}/>
           </label>
-          <label>Label (hiá»ƒn thá»‹)
-            <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=>update('labelText', e.target.value)} placeholder="Nháº­p cÃ¢u há»i hiá»ƒn thá»‹ cho ngÆ°á»i dÃ¹ng"/>
+          <label>Label (hiển thị)
+            <input className="w-full border rounded px-2 py-1" value={form.labelText} onChange={(e)=>update('labelText', e.target.value)} placeholder="Nhập câu hỏi hiển thị cho người dùng"/>
           </label>
           <label>Type
             <select className="w-full border rounded px-2 py-1" value={form.type} onChange={(e)=>update('type', e.target.value)}>
@@ -487,23 +478,23 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
           </label>
           <label>Required
             <select className="w-full border rounded px-2 py-1" value={form.required ? '1':'0'} onChange={(e)=>update('required', e.target.value==='1')}>
-              <option value="1">CÃ³</option>
-              <option value="0">KhÃ´ng</option>
+              <option value="1">Có</option>
+              <option value="0">Không</option>
             </select>
           </label>
           {(form.type==='select' || form.type==='radio' || form.type==='multi-select' || form.type==='autocomplete') && (
-            <label className="col-span-2">Options (má»—i dÃ²ng: value|labelKey hoáº·c value|labelText hoáº·c value|labelKey|labelText)
-              <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cá»­ nhÃ¢n hoáº·c Bachelor|ui.education.highest.bachelor hoáº·c Bachelor|ui.education.highest.bachelor|Cá»­ nhÃ¢n"/>
+            <label className="col-span-2">Options (mỗi dòng: value|labelKey hoặc value|labelText hoặc value|labelKey|labelText)
+              <textarea className="w-full border rounded px-2 py-1 h-28" value={form.optionsText} onChange={(e)=>update('optionsText', e.target.value)} placeholder="Bachelor|Cử nhân hoặc Bachelor|ui.education.highest.bachelor hoặc Bachelor|ui.education.highest.bachelor|Cử nhân"/>
               <div className="mt-2 border rounded p-2 space-y-2 bg-muted/20">
                 {optList.map((o:any, idx:number)=> (
                   <div key={String(o.value ?? 'opt') + '-' + String(idx)} className="grid grid-cols-12 gap-2 items-center">
                     <input className="col-span-3 border rounded px-2 py-1" value={o.value} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], value:e.target.value}; commitOptions(arr);} } placeholder="value"/>
-                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelKey (tÃ¹y chá»n)"/>
-                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelText (hiá»ƒn thá»‹)"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelKey ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelKey:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelKey (tùy chọn)"/>
+                    <input className="col-span-4 border rounded px-2 py-1" value={o.labelText ?? ''} onChange={(e)=>{ const arr=[...optList]; arr[idx]={...arr[idx], labelText:e.target.value||undefined}; commitOptions(arr);} } placeholder="labelText (hiển thị)"/>
                     <div className="col-span-1 flex gap-1">
-                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx>0){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx-1,0,it); commitOptions(arr);} }}>â†‘</button>
-                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx<optList.length-1){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx+1,0,it); commitOptions(arr);} }}>â†“</button>
-                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={()=>{ const arr=[...optList]; arr.splice(idx,1); commitOptions(arr); }}>âœ•</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx>0){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx-1,0,it); commitOptions(arr);} }}>↑</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=>{ if(idx<optList.length-1){ const arr=[...optList]; const it=arr.splice(idx,1)[0]; arr.splice(idx+1,0,it); commitOptions(arr);} }}>↓</button>
+                      <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={()=>{ const arr=[...optList]; arr.splice(idx,1); commitOptions(arr); }}>✕</button>
                     </div>
                   </div>
                 ))}
@@ -511,16 +502,16 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
               </div>
             </label>
           )}
-          <label>mapTo (tÃ¹y chá»n)
+          <label>mapTo (tùy chọn)
             <input className="w-full border rounded px-2 py-1" value={form.mapTo} onChange={(e)=>update('mapTo', e.target.value)} placeholder="canonicalField"/>
           </label>
-          <label>placeholderKey (tÃ¹y chá»n)
+          <label>placeholderKey (tùy chọn)
             <input className="w-full border rounded px-2 py-1" value={form.placeholderKey} onChange={(e)=>update('placeholderKey', e.target.value)} placeholder="ui.xxx.placeholder"/>
           </label>
-          <label>Placeholder (hiá»ƒn thá»‹)
-            <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=>update('placeholderText', e.target.value)} placeholder="Nháº­p placeholder hiá»ƒn thá»‹ cho ngÆ°á»i dÃ¹ng"/>
+          <label>Placeholder (hiển thị)
+            <input className="w-full border rounded px-2 py-1" value={form.placeholderText} onChange={(e)=>update('placeholderText', e.target.value)} placeholder="Nhập placeholder hiển thị cho người dùng"/>
           </label>
-          <label>widget (tÃ¹y chá»n)
+          <label>widget (tùy chọn)
             <input className="w-full border rounded px-2 py-1" value={form.widget} onChange={(e)=>update('widget', e.target.value)} placeholder="text|number|radio|select|..."/>
           </label>
           <label>min (number)
@@ -534,7 +525,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
           </label>
         </div>
         <div className="flex justify-end gap-2">
-          <button className="px-3 py-2" onClick={onClose} disabled={saving}>Há»§y</button>
+          <button className="px-3 py-2" onClick={onClose} disabled={saving}>Hủy</button>
           <button className="px-3 py-2 rounded bg-primary text-white" disabled={saving} onClick={async ()=>{
             try {
               setSaving(true);
@@ -544,7 +535,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
 
                 if (!stepObj){
                   console.debug('question-add-save-no-step', { rawStepId: form.stepId, selectedStepId, availableSteps: steps.map((s:any)=> ({ id: stepIdToString(s), rawId: s._id, label: s.ui?.labelText ?? s.titleKey })) });
-                  alert('Vui lÃ²ng chá»n Step trÆ°á»›c khi lÆ°u');
+                  alert('Vui lòng chọn Step trước khi lưu');
                   setSaving(false);
                   return;
                 }
@@ -552,12 +543,12 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                 let labelKeyStr = String(form.labelKey||'');
                 if (!keyStr) {
                   const base = toCamelKey(String(form.labelText||''));
-                  if (!base) { alert('Thiáº¿u key'); setSaving(false); return; }
+                  if (!base) { alert('Thiếu key'); setSaving(false); return; }
                   keyStr = base;
                 }
                 if (!labelKeyStr) labelKeyStr = "ui." + keyStr + ".label";
-                if (!form.type) { alert('Thiáº¿u type'); setSaving(false); return; }
-                if (false){ alert('Thiáº¿u stepId/key/labelKey/type'); setSaving(false); return; }
+                if (!form.type) { alert('Thiếu type'); setSaving(false); return; }
+                if (false){ alert('Thiếu stepId/key/labelKey/type'); setSaving(false); return; }
                 const payload:any = {
                   formSetId,
                   stepId: stepObj._id,
@@ -592,27 +583,20 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                 };
                 await onSave({ patch });
               }
-              alert('ÄÃ£ lÆ°u');
+              alert('Đã lưu');
               onClose();
             } catch (e:any) {
               console.error('Save question failed', e);
-              alert('LÆ°u tháº¥t báº¡i: ' + (e?.message || String(e)));
+              alert('Lưu thất bại: ' + (e?.message || String(e)));
             } finally {
               setSaving(false);
             }
-          }}>LÆ°u</button>
+          }}>Lưu</button>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
 
 
 
