@@ -44,6 +44,25 @@ export const FormPreview: React.FC<{ active: ActiveForm | null }>= ({ active }) 
 
   const form = useForm<any>({ resolver: zodResolver(schema), defaultValues: questions.reduce((acc: any, q: any)=>{ acc[q.key] = allValues[q.key] ?? (q.type==='multi-select' ? [] : undefined); return acc; }, {}), mode: 'onChange' });
 
+  // Hàm kiểm tra xem câu hỏi có nên được hiển thị hay không
+  const shouldShowQuestion = (q: any) => {
+    // Nếu không có điều kiện hiển thị, luôn hiển thị
+    if (!q.visibility?.when?.field) {
+      return true;
+    }
+
+    const depField = q.visibility.when.field;
+    const depValue = q.visibility.when.equals;
+    
+    // Lấy giá trị hiện tại của câu hỏi phụ thuộc
+    // Kết hợp giá trị từ allValues (các bước trước) và form.watch (bước hiện tại)
+    const currentValue = allValues[depField] ?? form.watch(depField);
+    
+    // So sánh giá trị, chấp nhận kiểu dữ liệu khác nhau (ví dụ '1' và 1)
+    // Chuyển cả hai giá trị thành chuỗi trước khi so sánh
+    return String(currentValue) === String(depValue);
+  };
+
   const onNext = form.handleSubmit((vals) => {
     setAllValues((p) => ({ ...p, ...vals }));
     if (stepIdx < steps.length - 1) setStepIdx(stepIdx + 1);
@@ -67,17 +86,27 @@ export const FormPreview: React.FC<{ active: ActiveForm | null }>= ({ active }) 
         <form className="space-y-3" onSubmit={(e)=> e.preventDefault()}>
           {questions.length === 0 ? (
             <div className="text-sm text-muted-foreground">Step này chưa có câu hỏi.</div>
-          ) : questions.map((q: any) => (
-            <FormField key={q.key} name={q.key} control={form.control} render={({ field }) => (
-              <FormItem>
-                <FormLabel>{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</FormLabel>
-                <FormControl>
-                  {renderField(q, field, form.watch)}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-          ))}
+          ) : questions.map((q: any) => {
+            const label = q.ui?.labelText ?? t(q.labelKey, q.labelKey);
+            if (!label) return null;
+            
+            // Kiểm tra xem câu hỏi có nên được hiển thị hay không
+            if (!shouldShowQuestion(q)) {
+              return null;
+            }
+            
+            return (
+              <FormField key={q.key} name={q.key} control={form.control} render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{label}</FormLabel>
+                  <FormControl>
+                    {renderField(q, field, form.watch)}
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            );
+          })}
           <div className="flex justify-between">
             <Button type="button" onClick={onPrev} disabled={stepIdx === 0}>Trước</Button>
             {stepIdx < steps.length - 1 ? (

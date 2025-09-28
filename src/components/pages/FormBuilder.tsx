@@ -213,22 +213,30 @@ export const FormBuilder: React.FC = () => {
                     .map((q:any)=> (
                       <div
                         key={(q._id?.id ?? q._id) + '-' + q.order}
-                        className="flex items-center justify-between border rounded px-2 py-1"
+                        className="border rounded px-2 py-1"
                         draggable
                         onDragStart={()=> setDragQuestionId(String(q._id.id))}
                         onDragOver={(e)=> e.preventDefault()}
                         onDrop={async ()=>{ if (dragQuestionId) await moveQuestion(dragQuestionId, String(q._id.id)); setDragQuestionId(null); }}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
-                          <span className="text-xs text-muted-foreground">[{q.key}] | {q.type} | #{q.order}</span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{q.ui?.labelText ?? t(q.labelKey, q.labelKey)}</span>
+                            <span className="text-xs text-muted-foreground">[{q.key}] | {q.type} | #{q.order}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
+                            <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
+                            <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
+                            <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, -1)}>Up</button>
-                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> doReorderQuestions(q._id.id, 1)}>Down</button>
-                          <button type="button" className="px-2 py-1 text-xs border rounded" onClick={()=> openEditQuestion(q)}>Edit</button>
-                          <button type="button" className="px-2 py-1 text-xs border rounded text-red-600" onClick={async()=>{ if (confirm('Xóa câu hỏi?')) await deleteQuestion({ questionId: q._id } as any); }}>Delete</button>
-                        </div>
+                        {/* Hiển thị thông tin điều kiện hiển thị nếu có */}
+                        {q.visibility?.when?.field && (
+                          <div className="ml-2 mt-1 text-xs text-blue-600">
+                            Câu hỏi phụ: Hiển thị khi [{q.visibility.when.field}] = "{q.visibility.when.equals}"
+                          </div>
+                        )}
                       </div>
                   ))}
                   <div>
@@ -335,6 +343,27 @@ function EditStepInner({ step, onClose, onSave }: { step: any; onClose: ()=>void
 }
 
 function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onClose, onSave }: { mode: 'add'|'edit'; steps: any[]; formSetId: any; questionsByStep: Record<string, any[]>; question?: any; onClose: ()=>void; onSave: (payload: any)=>Promise<void>; }){
+  // Lấy tất cả câu hỏi trong formSet hiện tại, trừ câu hỏi đang được chỉnh sửa (tránh vòng lặp)
+  const getAllQuestionsForCurrentFormSet = () => {
+    const currentQuestionId = question?._id?.id;
+    const currentFormSetId = String(formSetId.id); // Chuyển thành string để so sánh
+    const allQuestions: any[] = [];
+    
+    // Duyệt qua tất cả step
+    Object.values(questionsByStep).forEach((stepQuestions: any[]) => {
+      // Thêm tất cả câu hỏi vào danh sách, trừ câu hỏi đang được chỉnh sửa
+      stepQuestions.forEach((q: any) => {
+        // Chỉ lấy câu hỏi thuộc formSet hiện tại
+        const questionFormSetId = String(q.formSetId.id);
+        if (questionFormSetId === currentFormSetId && (!currentQuestionId || q._id?.id !== currentQuestionId)) {
+          allQuestions.push(q);
+        }
+      });
+    });
+    
+    return allQuestions;
+  };
+
   const stepIdToString = (step: any): string => {
     if (!step) return '';
     const raw = step._id ?? step;
@@ -380,9 +409,11 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
         min: question.validation?.min ?? '',
         max: question.validation?.max ?? '',
         pattern: question.validation?.pattern ?? '',
+        visibilityField: question.visibility?.when?.field ?? '',
+        visibilityValue: question.visibility?.when?.equals ?? '',
       };
     }
-    return { stepId: initialStepId, key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '' };
+    return { stepId: initialStepId, key: '', labelKey: '', labelText: '', type: 'text', required: false, optionsText: '', mapTo: '', widget: '', placeholderKey: '', placeholderText: '', min: '', max: '', pattern: '', visibilityField: '', visibilityValue: '' };
   });
     const update = (k:string, v:any)=> setForm((p:any)=> ({ ...p, [k]: typeof v === 'string' ? normalizeSpaces(v) : v }));
   const parseOptions = () => (normalizeSpaces(form.optionsText ?? '')).split(/\r?\n/)
@@ -534,6 +565,23 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
           <label className="col-span-2">pattern (regex string)
             <input className="w-full border rounded px-2 py-1" value={form.pattern} onChange={(e)=>update('pattern', e.target.value)} placeholder="^.*$"/>
           </label>
+          <div className="col-span-2 space-y-2">
+            <div className="font-medium">Điều kiện hiển thị (câu hỏi phụ)</div>
+            <label>
+              <select className="w-full border rounded px-2 py-1" value={form.visibilityField} onChange={(e)=>update('visibilityField', e.target.value)}>
+                <option value="">Không có điều kiện (hiển thị luôn)</option>
+                {getAllQuestionsForCurrentFormSet().map((q: any) => (
+                  <option key={q.key} value={q.key}>{q.key} - {q.ui?.labelText || q.labelKey}</option>
+                ))}
+              </select>
+            </label>
+            {form.visibilityField && (
+              <label>
+                Giá trị cần bằng
+                <input className="w-full border rounded px-2 py-1" value={form.visibilityValue} onChange={(e)=>update('visibilityValue', e.target.value)} placeholder="Nhập giá trị"/>
+              </label>
+            )}
+          </div>
         </div>
         <div className="flex justify-end gap-2">
           <button className="px-3 py-2" onClick={onClose} disabled={saving}>Hủy</button>
@@ -572,6 +620,13 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                   },
                 ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, placeholderText: form.placeholderText || undefined, labelText: form.labelText || undefined },
                   mapTo: form.mapTo || undefined,
+                  visibility: form.visibilityField ? {
+                    when: {
+                      field: form.visibilityField,
+                      // Ensure visibilityValue is properly handled as a string to match our comparison logic
+                      equals: String(form.visibilityValue)
+                    }
+                  } : undefined,
                 };
                 await onSave(payload);
               } else {
@@ -591,6 +646,13 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
                   },
                   ui: { widget: form.widget || undefined, placeholderKey: form.placeholderKey || undefined, placeholderText: form.placeholderText || undefined, labelText: form.labelText || undefined },
                   mapTo: form.mapTo || undefined,
+                  visibility: form.visibilityField ? {
+                    when: {
+                      field: form.visibilityField,
+                      // Ensure visibilityValue is properly handled as a string to match our comparison logic
+                      equals: String(form.visibilityValue)
+                    }
+                  } : undefined,
                 };
                 await onSave({ patch });
               }

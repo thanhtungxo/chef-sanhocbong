@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useForm } from 'react-hook-form';
@@ -46,8 +46,11 @@ export const BrandedDynamicWizard: React.FC = () => {
   }, [active, currentStepKey]);
 
   const questions = React.useMemo(() => {
+    // Lọc ra những câu hỏi có label hợp lệ
     return questionsRaw.filter((q: any) => (q?.ui?.labelText as string | undefined) || tOptional(q?.labelKey));
   }, [questionsRaw]);
+
+
 
   const schema = React.useMemo(() => schemaForStep(questions), [questions]);
 
@@ -58,11 +61,31 @@ export const BrandedDynamicWizard: React.FC = () => {
     }, {});
   }, [questions, allValues]);
 
+  // Move form definition before shouldShowQuestion function
   const form = useForm<any>({
     resolver: zodResolver(schema),
     defaultValues,
     mode: 'onChange'
   });
+
+  // Hàm kiểm tra xem câu hỏi có nên được hiển thị hay không
+  const shouldShowQuestion = (q: any) => {
+    // Nếu không có điều kiện hiển thị, luôn hiển thị
+    if (!q.visibility?.when?.field) {
+      return true;
+    }
+
+    const depField = q.visibility.when.field;
+    const depValue = q.visibility.when.equals;
+    
+    // Lấy giá trị hiện tại của câu hỏi phụ thuộc
+    // Kết hợp giá trị từ allValues (các bước trước) và form.watch (bước hiện tại)
+    const currentValue = allValues[depField] ?? form.watch(depField);
+    
+    // So sánh giá trị, chấp nhận kiểu dữ liệu khác nhau (ví dụ '1' và 1)
+    // Chuyển cả hai giá trị thành chuỗi trước khi so sánh
+    return String(currentValue) === String(depValue);
+  };
 
   React.useEffect(() => {
     form.reset(defaultValues);
@@ -127,6 +150,12 @@ export const BrandedDynamicWizard: React.FC = () => {
           {questions.map((q: any) => {
             const label = (q.ui?.labelText as string | undefined) ?? tOptional(q.labelKey);
             if (!label) return null;
+            
+            // Kiểm tra xem câu hỏi có nên được hiển thị hay không
+            if (!shouldShowQuestion(q)) {
+              return null;
+            }
+            
             return (
               <FormField
                 key={q.key}
