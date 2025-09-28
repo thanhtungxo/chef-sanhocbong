@@ -50,8 +50,6 @@ export const BrandedDynamicWizard: React.FC = () => {
     return questionsRaw.filter((q: any) => (q?.ui?.labelText as string | undefined) || tOptional(q?.labelKey));
   }, [questionsRaw]);
 
-
-
   const schema = React.useMemo(() => schemaForStep(questions), [questions]);
 
   const defaultValues = React.useMemo(() => {
@@ -87,6 +85,11 @@ export const BrandedDynamicWizard: React.FC = () => {
     return String(currentValue) === String(depValue);
   };
 
+  // Helper function to get visible questions for the current step
+  const getVisibleQuestions = React.useMemo(() => {
+    return questions.filter(q => shouldShowQuestion(q));
+  }, [questions, form.watch, allValues]);
+
   React.useEffect(() => {
     form.reset(defaultValues);
   }, [defaultValues, form]);
@@ -111,7 +114,7 @@ export const BrandedDynamicWizard: React.FC = () => {
     alert('Hoàn thành! (Chưa gửi dữ liệu lên backend.)');
   });
 
-  const stepTitle =
+  const stepTitle = 
     (currentStep?.ui?.labelText as string | undefined) ??
     tOptional(currentStep?.titleKey) ??
     currentStep?.titleKey ??
@@ -130,6 +133,12 @@ export const BrandedDynamicWizard: React.FC = () => {
   }
 
   const isLastStep = stepIdx === totalSteps - 1;
+
+  // Create a map of question keys to their visible index
+  const questionIndexMap = new Map<string, number>();
+  getVisibleQuestions.forEach((q, idx) => {
+    questionIndexMap.set(q.key, idx + 1); // +1 for 1-based numbering
+  });
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
@@ -156,6 +165,9 @@ export const BrandedDynamicWizard: React.FC = () => {
               return null;
             }
             
+            // Get the visible index for this question
+            const questionNumber = questionIndexMap.get(q.key);
+            
             return (
               <FormField
                 key={q.key}
@@ -163,7 +175,12 @@ export const BrandedDynamicWizard: React.FC = () => {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{label}</FormLabel>
+                    <FormLabel>
+                      {questionNumber && (
+                        <span className="mr-2 font-medium" aria-hidden="true">{questionNumber}.</span>
+                      )}
+                      {label}
+                    </FormLabel>
                     <FormControl>{renderField(q, field, form.watch)}</FormControl>
                     <FormMessage />
                   </FormItem>

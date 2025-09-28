@@ -5,6 +5,24 @@ import { Select } from '@/components/atoms/Select';
 import { Radio } from '@/components/atoms/Radio';
 import { tOptional } from '@/lib/i18n';
 
+// Helper function to get placeholder according to priority order
+export function getPlaceholder(q: any): string | undefined {
+  // Priority 1: ui.placeholderText
+  if (q?.ui?.placeholderText) {
+    return q.ui.placeholderText;
+  }
+  
+  // Priority 2: ui.placeholderKey via i18n, returns undefined if no translation
+  if (q?.ui?.placeholderKey) {
+    const translated = tOptional(q.ui.placeholderKey);
+    // Only return if there's a valid translation (not the key itself)
+    return translated && translated !== q.ui.placeholderKey ? translated : undefined;
+  }
+  
+  // Priority 3: no placeholder
+  return undefined;
+}
+
 export function buildZodField(q: any): z.ZodTypeAny {
   const required = !!q.required;
   const v = q.validation ?? {};
@@ -14,6 +32,13 @@ export function buildZodField(q: any): z.ZodTypeAny {
         let t = z.coerce.number();
         if (typeof v.min === 'number') t = t.min(v.min);
         if (typeof v.max === 'number') t = t.max(v.max);
+        // Add integer-only validation if specified
+        if (v.integerOnly === true) {
+          t = t.refine(
+            value => Number.isInteger(value),
+            { message: 'Giá trị phải là một số nguyên' }
+          );
+        }
         return t;
       }
       case 'checkbox':
@@ -57,11 +82,14 @@ export function schemaForStep(questions: any[]): z.ZodSchema<any> {
 
 export function renderField(q: any, field: any, watch: any) {
   const common = { name: field.name, value: field.value ?? '', onBlur: field.onBlur, ref: field.ref } as any;
-  const placeholder = (q?.ui?.placeholderText as string | undefined) ?? tOptional(q?.ui?.placeholderKey);
+  const placeholder = getPlaceholder(q);
+  
   switch (q.type) {
     case 'number':
+      // For number fields, use step="any" to allow decimals
+      const step = q.validation?.integerOnly === true ? "1" : "any";
       return (
-        <Input {...common} type="number" onChange={(e)=> field.onChange(e)} placeholder={placeholder} />
+        <Input {...common} type="number" step={step} onChange={(e)=> field.onChange(e)} placeholder={placeholder} />
       );
     case 'radio':
       return (
@@ -78,9 +106,11 @@ export function renderField(q: any, field: any, watch: any) {
         </div>
       );
     case 'select':
+      // Only add placeholder option if there's a valid placeholder
+      const hasPlaceholder = placeholder !== undefined && placeholder !== '';
       return (
         <Select value={field.value ?? ''} onChange={(e)=> field.onChange(e)}>
-          <option value="">--</option>
+          {hasPlaceholder && <option value="">{placeholder}</option>}
           {(q.options ?? []).map((opt: any)=> {
             const label = opt.labelText ?? tOptional(opt.labelKey);
             if (!label) return null;
