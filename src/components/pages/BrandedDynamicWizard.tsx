@@ -134,7 +134,7 @@ export const BrandedDynamicWizard: React.FC = () => {
       });
       
       // Set evaluation results and show the ResultPage
-      setEvaluationResults(result.eligibleScholarships);
+      setEvaluationResults(result.eligibilityResults);
       setShowResults(true);
       
     } catch (error) {

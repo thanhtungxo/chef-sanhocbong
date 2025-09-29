@@ -35,7 +35,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({
   const resultPageConfig = useQuery(api.resultPage.getResultPageConfig, {});
   
   // Determine if the user is eligible for any scholarships
-  const hasEligibleScholarships = eligibleScholarships.length > 0;
+  const hasEligibleScholarships = eligibleScholarships && eligibleScholarships.length > 0;
   
   // Use CMS text if available, otherwise fall back to default
   const displayCTAText = cmsResultText || resultPageConfig?.ctaText || 

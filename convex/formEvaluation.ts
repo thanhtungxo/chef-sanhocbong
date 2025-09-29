@@ -1,6 +1,6 @@
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
-import { v } from "convex/values";
 import { listScholarships } from "./scholarships";
 import type { ScholarshipEvaluationSummary } from "./shared/eligibility";
 
@@ -13,10 +13,11 @@ export const evaluateFormResponses = query({
   },
   handler: async (ctx, { responses }) => {
     // Get all available scholarships
-    const scholarships = await listScholarships.handler(ctx, {});
+    // Instead of calling .handler directly, query the database directly
+    const scholarships = await ctx.db.query("scholarships").collect();
     
     // Filter active scholarships
-    const activeScholarships = scholarships.filter(s => s.isEnabled);
+    const activeScholarships = scholarships.filter((s: any) => s.isEnabled);
     
     // Process each scholarship to determine eligibility
     const eligibilityResults: ScholarshipEvaluationSummary[] = [];
@@ -58,33 +59,57 @@ export const evaluateFormResponses = query({
 // 2. Evaluate eligibility
 // 3. Return results
 // This is called from the BrandedDynamicWizard when the user clicks "Hoàn thành"
-export const submitAndEvaluateForm = mutation({
-  args: {
-    responses: v.object({}), // Dynamic object containing all form responses
-    fullName: v.string(),
-    email: v.string(),
-  },
-  handler: async (ctx, { responses, fullName, email }) => {
-    // TODO: In the future, we might want to save the full form submission to the database
-    // For now, we'll just evaluate the responses
+export const submitAndEvaluateForm = mutation({ 
+    args: { 
+        responses: v.any(), 
+        fullName: v.string(), 
+        email: v.string() 
+    }, 
+    handler: async (ctx, { responses, fullName, email }) => {
+    // Log submission details
+    console.log("Form submitted:", {
+        fullName,
+        email,
+        responses
+    });
     
-    // Evaluate eligibility against all active scholarships
-    const eligibilityResults = await evaluateFormResponses.handler(ctx, { responses });
+    // Get all available scholarships
+    const scholarships = await ctx.db.query("scholarships").collect();
+    const activeScholarships = scholarships.filter((s: any) => s.isEnabled);
+    
+    const eligibilityResults: ScholarshipEvaluationSummary[] = [];
+    
+    for (const scholarship of activeScholarships) {
+        try {
+            // Load rules for this scholarship
+            const rules = await loadRulesServer(ctx, scholarship.id);
+            // Evaluate eligibility
+            const evaluation = evaluateWithRules(responses, rules);
+            
+            eligibilityResults.push({
+                id: scholarship.id,
+                name: scholarship.name,
+                eligible: evaluation.passed,
+                reasons: evaluation.failedRules.map(r => r.message),
+            });
+        } catch (error) {
+            console.error(`Failed to evaluate scholarship ${scholarship.id}:`, error);
+            eligibilityResults.push({
+                id: scholarship.id,
+                name: scholarship.name,
+                eligible: false,
+                reasons: ["Lỗi trong quá trình đánh giá đủ điều kiện"],
+            });
+        }
+    }
     
     // Log the results for debugging
     console.log("Form submission results:", {
-      fullName,
-      email,
-      responses,
-      eligibilityResults,
+        fullName,
+        email,
+        eligibilityResults
     });
     
-    // Return only eligible scholarships for display on ResultPage
-    const eligibleScholarships = eligibilityResults.filter(s => s.eligible);
-    
-    return {
-      eligibleScholarships,
-      allResults: eligibilityResults,
-    };
-  },
-});
+    // Return all evaluation results
+    return { eligibilityResults };
+} });

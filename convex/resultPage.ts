@@ -1,4 +1,4 @@
-import type { Id } from "./_generated/dataModel";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Get the current result page configuration
@@ -7,10 +7,11 @@ import { v } from "convex/values";
 // This is used by the ResultPage component to display dynamic content
 export const getResultPageConfig = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: any) => {
     const configs = await ctx.db
       .query("resultPageConfig")
-      .withIndex("by_createdAt", (q) => q.order("desc"))
+      .withIndex("by_createdAt")
+      .order("desc")
       .first();
     
     return configs;
@@ -26,11 +27,11 @@ export const updateResultPageConfig = mutation({
     aiPromptConfig: v.optional(v.string()),
     fallbackMessage: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     // Get the current config if it exists
     const currentConfig = await ctx.db
       .query("resultPageConfig")
-      .withIndex("by_createdAt", (q) => q.order("desc"))
+      .withIndex("by_createdAt", (q: any) => q.order("desc"))
       .first();
     
     const now = Date.now();
@@ -61,7 +62,7 @@ export const createResultPageConfig = mutation({
     aiPromptConfig: v.optional(v.string()),
     fallbackMessage: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db.insert("resultPageConfig", {
       ...args,
       createdAt: Date.now(),
@@ -73,10 +74,10 @@ export const createResultPageConfig = mutation({
 // Get all result page configurations (for admin view)
 export const listResultPageConfigs = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: any) => {
     return await ctx.db
       .query("resultPageConfig")
-      .withIndex("by_createdAt", (q) => q.order("desc"))
+      .withIndex("by_createdAt", (q: any) => q.order("desc"))
       .collect();
   },
 });
@@ -86,7 +87,7 @@ export const deleteResultPageConfig = mutation({
   args: {
     configId: v.id("resultPageConfig"),
   },
-  handler: async (ctx, { configId }) => {
+  handler: async (ctx: any, { configId }: any) => {
     await ctx.db.delete(configId);
     return { ok: true };
   },
