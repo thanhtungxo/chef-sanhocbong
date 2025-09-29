@@ -25,16 +25,22 @@ export const updateResultPageConfig = mutation({
   args: {
     ctaText: v.optional(v.string()),
     aiPromptConfig: v.optional(v.string()),
-    fallbackMessage: v.optional(v.string()),
+    allFailedMessage: v.optional(v.string()),
+    allPassedMessage: v.optional(v.string()),
+    passedSomeMessage: v.optional(v.string()),
+    allFailedSubheading: v.optional(v.string()),
+    allPassedSubheading: v.optional(v.string()),
+    passedSomeSubheading: v.optional(v.string()),
   },
   handler: async (ctx: any, args: any) => {
     // Get the current config if it exists
     const currentConfig = await ctx.db
       .query("resultPageConfig")
-      .withIndex("by_createdAt", (q: any) => q.order("desc"))
+      .withIndex("by_createdAt")
+      .order("desc")
       .first();
     
-    const now = Date.now();
+    const now = new Date().toISOString();
     
     if (currentConfig) {
       // Update existing config
@@ -60,13 +66,19 @@ export const createResultPageConfig = mutation({
   args: {
     ctaText: v.optional(v.string()),
     aiPromptConfig: v.optional(v.string()),
-    fallbackMessage: v.optional(v.string()),
+    allFailedMessage: v.optional(v.string()),
+    allPassedMessage: v.optional(v.string()),
+    passedSomeMessage: v.optional(v.string()),
+    allFailedSubheading: v.optional(v.string()),
+    allPassedSubheading: v.optional(v.string()),
+    passedSomeSubheading: v.optional(v.string()),
   },
   handler: async (ctx: any, args: any) => {
+    const now = new Date().toISOString();
     return await ctx.db.insert("resultPageConfig", {
       ...args,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
     });
   },
 });
@@ -77,7 +89,8 @@ export const listResultPageConfigs = query({
   handler: async (ctx: any) => {
     return await ctx.db
       .query("resultPageConfig")
-      .withIndex("by_createdAt", (q: any) => q.order("desc"))
+      .withIndex("by_createdAt")
+      .order("desc")
       .collect();
   },
 });

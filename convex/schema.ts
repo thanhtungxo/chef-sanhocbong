@@ -113,8 +113,13 @@ export default defineSchema({
   resultPageConfig: defineTable({
     ctaText: v.optional(v.string()),
     aiPromptConfig: v.optional(v.string()),
-    fallbackMessage: v.optional(v.string()),
-    createdAt: v.number(),
-    updatedAt: v.number(),
+    allFailedMessage: v.optional(v.string()),
+    allPassedMessage: v.optional(v.string()),
+    passedSomeMessage: v.optional(v.string()),
+    allFailedSubheading: v.optional(v.string()),
+    allPassedSubheading: v.optional(v.string()),
+    passedSomeSubheading: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
   }).index('by_createdAt', ['createdAt']),
 });

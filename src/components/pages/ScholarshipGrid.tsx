@@ -5,13 +5,16 @@ interface Scholarship {
   id: string;
   name: string;
   eligible: boolean;
-  reasons: string[];
+  reasons?: string[];
+  description?: string;
+  deadline?: string;
+  amount?: string;
 }
 
 interface ScholarshipGridProps {
-  eligibleScholarships: Scholarship[];
+  scholarships: Scholarship[];
   onScholarshipClick: (scholarship: Scholarship) => void;
-  fallbackMessage: string;
+  fallbackMessage?: string;
 }
 
 /**
@@ -36,65 +39,97 @@ const generateFallbackAvatar = (name: string): string => {
 };
 
 /**
+ * Format the scholarship reasons into a readable string
+ * @param reasons - Array of reasons
+ * @returns Formatted reasons string
+ */
+const formatReasons = (reasons?: string[]): string => {
+  if (!reasons || reasons.length === 0) {
+    return '';
+  }
+  return reasons.join('\n');
+};
+
+/**
  * ScholarshipGrid component displays a grid of eligible scholarships
  * with logos or fallback avatars, and handles empty state
- * @param eligibleScholarships - List of scholarships the user is eligible for
+ * @param scholarships - List of scholarships
  * @param onScholarshipClick - Function to call when a scholarship card is clicked
  */
 export const ScholarshipGrid: React.FC<ScholarshipGridProps> = ({ 
-  eligibleScholarships, 
+  scholarships, 
   onScholarshipClick,
-  fallbackMessage
+  fallbackMessage = "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin."
 }) => {
-  const hasEligibleScholarships = eligibleScholarships.length > 0;
+  // Ensure we only display eligible scholarships
+  const eligibleScholarships = scholarships.filter(s => s.eligible);
   
-  if (!hasEligibleScholarships) {
+  if (!eligibleScholarships || eligibleScholarships.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
-        {/* Sad Face Icon */}
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-500 mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 13.8V16a2 2 0 01-2 2h-4a2 2 0 01-2-2v-2.2M6 15h.01M17 15h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        </div>
-        
-        <p className="text-gray-600">
-          {fallbackMessage}
-        </p>
+      <div className="text-center py-12">
+        <div className="text-5xl mb-4">😔</div>
+        <p className="text-gray-600 text-lg">{fallbackMessage}</p>
       </div>
     );
   }
   
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Học bổng bạn đủ điều kiện
-      </h2>
-      
+    <div>
       {/* Scholarship Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {eligibleScholarships.map((scholarship) => {
           const fallbackAvatar = generateFallbackAvatar(scholarship.name);
+          const reasonsText = formatReasons(scholarship.reasons);
           
           return (
             <div 
               key={scholarship.id} 
-              className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl transition-all hover:-translate-y-1 duration-200"
               onClick={() => onScholarshipClick(scholarship)}
             >
-              {/* Logo or Fallback Avatar */}
-              <div className="h-24 bg-gray-100 flex items-center justify-center">
-                {/* For now, we'll just use the fallback avatar since we don't have actual logos */}
-                <div className="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-bold">
+              {/* Header with Logo/Avatar */}
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-center">
+                <div className="w-20 h-20 bg-white text-blue-800 rounded-full flex items-center justify-center text-xl font-bold mx-auto">
                   {fallbackAvatar}
+                </div>
+                <div className="mt-3 text-green-200 text-sm font-medium">
+                  👍 Đủ điều kiện
                 </div>
               </div>
               
-              {/* Scholarship Name */}
-              <div className="p-4 text-center">
-                <h3 className="font-medium text-gray-900 truncate">
-                  {scholarship.name}
-                </h3>
+              {/* Body with Details */}
+              <div className="p-6">
+                {/* Scholarship Name */}
+                <h3 className="font-bold text-gray-900 text-lg mb-2">{scholarship.name}</h3>
+                
+                {/* Scholarship Description (if available) */}
+                {scholarship.description && (
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{scholarship.description}</p>
+                )}
+                
+                {/* Scholarship Details */}
+                <div className="space-y-2 text-sm">
+                  {scholarship.amount && (
+                    <div className="flex items-center text-gray-700">
+                      <span className="w-24 font-medium">Mức học bổng:</span>
+                      <span>{scholarship.amount}</span>
+                    </div>
+                  )}
+                  {scholarship.deadline && (
+                    <div className="flex items-center text-gray-700">
+                      <span className="w-24 font-medium">Hạn nộp:</span>
+                      <span>{scholarship.deadline}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Reasons (if available) */}
+                {reasonsText && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-gray-700">
+                    <div className="font-medium mb-1">Lý do đủ điều kiện:</div>
+                    <pre className="whitespace-pre-line text-xs">{reasonsText}</pre>
+                  </div>
+                )}
               </div>
             </div>
           );

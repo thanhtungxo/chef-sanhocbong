@@ -1,34 +1,58 @@
 import React from 'react';
 
-interface ResultCTAProps {
-  hasEligibleScholarships: boolean;
-  onContinue: () => void;
-  onBackToHome: () => void;
+interface Scholarship {
+  id: string;
+  name: string;
+  eligible: boolean;
+  reasons?: string[];
+  description?: string;
+  deadline?: string;
+  amount?: string;
 }
 
-/**
- * ResultCTA component displays call-to-action buttons at the bottom of the ResultPage
- * with dynamic text and behavior based on scholarship eligibility
- * @param hasEligibleScholarships - Whether the user is eligible for any scholarships
- * @param onContinue - Function to call when "Continue" button is clicked
- * @param onBackToHome - Function to call when "Back to Home" button is clicked
- */
-export const ResultCTA: React.FC<ResultCTAProps> = ({ 
-  hasEligibleScholarships, 
-  onContinue, 
-  onBackToHome 
-}) => {
+interface ResultCTAProps {
+  eligibleScholarships: Scholarship[];
+  onCTAClick: (scholarship?: Scholarship) => void;
+}
+
+export const ResultCTA: React.FC<ResultCTAProps> = ({ eligibleScholarships, onCTAClick }) => {
+  const hasEligibleScholarships = eligibleScholarships.length > 0;
+
+  const handleContinue = () => {
+    if (hasEligibleScholarships && eligibleScholarships.length === 1) {
+      // If there's only one eligible scholarship, pass it directly
+      onCTAClick(eligibleScholarships[0]);
+    } else {
+      // Otherwise, just trigger the continuation without a specific scholarship
+      onCTAClick();
+    }
+  };
+
   return (
-    <div className="flex justify-center pt-4">
-      <button
-        onClick={hasEligibleScholarships ? onContinue : onBackToHome}
-        className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-      >
-        {hasEligibleScholarships 
-          ? "Tiếp tục với Smart Profile Analysis" 
-          : "Quay lại trang đầu"
-        }
-      </button>
+    <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
+      {hasEligibleScholarships ? (
+        <>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+            onClick={handleContinue}
+          >
+            Tiếp tục với Smart Profile Analysis
+          </button>
+          <button
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-6 rounded-lg font-medium transition-colors duration-200"
+            onClick={() => window.location.href = '/'} // Navigate back to home
+          >
+            Quay lại
+          </button>
+        </>
+      ) : (
+        <button
+          className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+          onClick={() => window.location.href = '/'} // Navigate back to home
+        >
+          Quay về Trang chủ
+        </button>
+      )}
     </div>
   );
 };

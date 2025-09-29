@@ -1,35 +1,48 @@
 import React from 'react';
 
-interface ResultBannerProps {
-  hasEligibleScholarships: boolean;
+interface ConfigMessages {
+  subheading: string;
 }
 
-/**
- * ResultBanner component displays the main banner at the top of the ResultPage
- * with a success icon and dynamic subheading based on scholarship eligibility
- * @param hasEligibleScholarships - Whether the user is eligible for any scholarships
- */
-export const ResultBanner: React.FC<ResultBannerProps> = ({ hasEligibleScholarships }) => {
+interface ResultBannerProps {
+  userName: string;
+  allFailed: boolean;
+  allPassed: boolean;
+  passedSome: boolean;
+  configMessages?: ConfigMessages;
+}
+
+export const ResultBanner: React.FC<ResultBannerProps> = ({ 
+  userName, 
+  allFailed, 
+  allPassed, 
+  passedSome,
+  configMessages
+}) => {
+  // Determine the appropriate subheading based on the scenario and CMS configuration
+  const getSubheading = () => {
+    // Use CMS configured subheading if available
+    if (configMessages?.subheading) {
+      return configMessages.subheading.replace('{userName}', userName);
+    }
+
+    // Fallback to default messages
+    if (allFailed) {
+      return `Rất tiếc, ${userName} chưa đủ điều kiện để apply học bổng nào. Hãy tham khảo thêm để cải thiện hồ sơ.`;
+    } else if (allPassed) {
+      return `Tuyệt vời, ${userName} đã đủ điều kiện để apply tất cả học bổng bên dưới.`;
+    } else if (passedSome) {
+      return `Chúc mừng, ${userName} đã đủ điều kiện để apply một số học bổng sau:`;
+    }
+    return '';
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
-      {/* Success Icon */}
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      
-      {/* Main Heading */}
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        Chúc mừng bạn đã hoàn thành bước đầu tiên!
-      </h1>
-      
-      {/* Dynamic Subheading */}
-      <p className="text-lg text-gray-600">
-        {hasEligibleScholarships 
-          ? "Bạn đủ điều kiện để apply vào học bổng dưới đây." 
-          : "Rất tiếc, bạn chưa đủ điều kiện học bổng nào. Hãy tham khảo thêm để cải thiện hồ sơ."
-        }
+    <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+      <div className="text-5xl mb-4">🎉</div>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Chúc mừng bạn đã hoàn thành bước đầu tiên!</h1>
+      <p className="text-gray-600 text-lg">
+        {getSubheading()}
       </p>
     </div>
   );
