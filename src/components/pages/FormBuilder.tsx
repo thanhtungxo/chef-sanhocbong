@@ -86,20 +86,33 @@ export const FormBuilder: React.FC = () => {
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
     try {
       if (!selectedStep) return;
-      const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
-      const idx = list.findIndex((q:any)=> q._id.id===qid);
+      const stepKey = stepIdToStringRoot(selectedStep);
+      const list = (questionsByStep[stepKey] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+      const idx = list.findIndex((q:any)=> String(q._id.id)===String(qid));
       const j = idx + dir;
       if (idx < 0 || j < 0 || j >= list.length) return;
+      
+      // Create copies of the questions to avoid mutation issues
+      const updatedList = [...list];
       // Perform the swap
-      const swap = list[j];
-      list[j] = list[idx];
-      list[idx] = swap;
-      // Update the order numbers directly in the local state to force UI update
-      for (let i = 0; i < list.length; i++) {
-        list[i].order = i + 1;
+      const temp = updatedList[j];
+      updatedList[j] = updatedList[idx];
+      updatedList[idx] = temp;
+      
+      // Update the order numbers
+      for (let i = 0; i < updatedList.length; i++) {
+        updatedList[i] = { ...updatedList[i], order: i + 1 };
       }
+      
       // Call the mutation to persist changes
-      await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
+      await reorderQuestions({ 
+        stepId: selectedStep._id as any, 
+        orderedQuestionIds: updatedList.map((q:any)=> q._id) 
+      } as any);
+      
+      // Force re-render by updating a state variable
+      setSelectedStepId(null);
+      setTimeout(() => setSelectedStepId(stepKey), 0);
     } catch (error) {
       console.error('Error reordering questions:', error);
       alert('Có lỗi xảy ra khi di chuyển câu hỏi: ' + String(error));
@@ -477,10 +490,25 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
     if (base.length === 0) return '';
     return base[0] + base.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
   };
+  // Track whether we're in edit mode to handle advanced field preservation better
+  const [isEditMode, setIsEditMode] = React.useState(false);
+  
+  // Initialize isEditMode
+  React.useEffect(() => {
+    setIsEditMode(mode === 'edit');
+  }, [mode]);
+  
   React.useEffect(()=>{
+    // Skip auto-generation if in advanced mode
     if (adv) return;
-    // Only auto-generate key and labelKey if they are empty or not explicitly set
-    // This preserves custom values that were set while in advanced mode
+    
+    // Skip auto-generation if we're editing an existing question
+    // that already has custom key values
+    if (isEditMode && form.key && form.key !== toCamelKey(String(form.labelText||''))) {
+      return;
+    }
+    
+    // Only auto-generate key and labelKey if they are empty or match the auto-generated value
     if (!form.key || form.key === toCamelKey(String(form.labelText||''))) {
       const base = toCamelKey(String(form.labelText||''));
       if (!base) return;
@@ -488,7 +516,7 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
       update('key', base);
       update('labelKey', "ui." + base + ".label");
     }
-  }, [form.labelText, adv, form.key]);
+  }, [form.labelText, adv, form.key, isEditMode]);
   React.useEffect(()=>{
     if (!form.stepId && fallbackStepId) {
       update('stepId', fallbackStepId);
