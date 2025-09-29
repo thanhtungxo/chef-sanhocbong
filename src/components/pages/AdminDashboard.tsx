@@ -34,8 +34,11 @@ class SimpleBoundary extends React.Component<{ children: React.ReactNode }, { ha
   }
 }
 
+// Import the ResultPageConfig component that we'll create next
+import { ResultPageConfig } from '@/components/pages/ResultPageConfig';
+
 export const AdminDashboard: React.FC = () => {
-  const [tab, setTab] = React.useState<'scholarships' | 'forms'>('scholarships');
+  const [tab, setTab] = React.useState<'scholarships' | 'forms' | 'result'>('scholarships');
   const active = useQuery(api.forms.getActiveForm, {});
 
   return (
@@ -43,13 +46,18 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex gap-4 border-b">
         <TabButton active={tab === 'scholarships'} onClick={() => setTab('scholarships')}>Học bổng</TabButton>
         <TabButton active={tab === 'forms'} onClick={() => setTab('forms')}>Form</TabButton>
+        <TabButton active={tab === 'result'} onClick={() => setTab('result')}>Result</TabButton>
       </div>
 
       {tab === 'scholarships' ? (
         <RulesetRegistry />
-      ) : (
+      ) : tab === 'forms' ? (
         <SimpleBoundary>
           <FormBuilder />
+        </SimpleBoundary>
+      ) : (
+        <SimpleBoundary>
+          <ResultPageConfig />
         </SimpleBoundary>
       )}
     </div>

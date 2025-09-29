@@ -109,4 +109,12 @@ export default defineSchema({
     mapTo: v.optional(v.string()),
     createdAt: v.number(),
   }).index('by_step', ['stepId']).index('by_formSet_step_order', ['formSetId','stepId','order']).index('by_formSet_key', ['formSetId','key']),
+  // Result Page Configuration
+  resultPageConfig: defineTable({
+    ctaText: v.optional(v.string()),
+    aiPromptConfig: v.optional(v.string()),
+    fallbackMessage: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_createdAt', ['createdAt']),
 });

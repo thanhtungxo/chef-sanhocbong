@@ -1,11 +1,13 @@
 import React from 'react';
-import { useQuery } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { schemaForStep, renderField } from '@/components/form/renderer';
 import { tOptional } from '@/lib/i18n';
+import { ResultPage } from './ResultPage';
+import type { ScholarshipEvaluationSummary } from '../../../convex/shared/eligibility';
 
 export const BrandedDynamicWizard: React.FC = () => {
   const active = useQuery(api.forms.getActiveForm, {});
@@ -107,11 +109,38 @@ export const BrandedDynamicWizard: React.FC = () => {
     }
   });
 
-  const handleFinish = form.handleSubmit((vals) => {
+  // Add state to track if we've completed the wizard and should show results
+  const [showResults, setShowResults] = React.useState(false);
+  const [evaluationResults, setEvaluationResults] = React.useState<ScholarshipEvaluationSummary[]>([]);
+  
+  // Mutation to evaluate form responses
+  const evaluateForm = useMutation(api.formEvaluation.submitAndEvaluateForm);
+  
+  const handleFinish = form.handleSubmit(async (vals) => {
     const merged = { ...allValues, ...vals };
     (window as any).dynamicFormValues = merged;
     console.log('Wizard completed', merged);
-    alert('Hoàn thành! (Chưa gửi dữ liệu lên backend.)');
+    
+    try {
+      // Extract name and email for submission (we'll use defaults if not available)
+      const fullName = merged.fullName || 'Unknown';
+      const email = merged.email || 'unknown@example.com';
+      
+      // Call the form evaluation API
+      const result = await evaluateForm({ 
+        responses: merged, 
+        fullName, 
+        email 
+      });
+      
+      // Set evaluation results and show the ResultPage
+      setEvaluationResults(result.eligibleScholarships);
+      setShowResults(true);
+      
+    } catch (error) {
+      console.error('Failed to evaluate form:', error);
+      alert('Có lỗi xảy ra khi đánh giá học bổng. Vui lòng thử lại sau.');
+    }
   });
 
   const stepTitle = 
@@ -120,6 +149,19 @@ export const BrandedDynamicWizard: React.FC = () => {
     currentStep?.titleKey ??
     '';
 
+  // If we've completed the wizard and should show results, render ResultPage
+  if (showResults) {
+    // For demo purposes, we'll use a placeholder AI feedback
+    const demoAIFeedback = "Tổng quan về hồ sơ của bạn cho thấy bạn có một số điểm mạnh nổi bật. Tuy nhiên, vẫn còn một số lĩnh vực bạn có thể cải thiện để tăng cơ hội nhận học bổng. Sau khi tham gia Smart Profile Analysis, bạn sẽ nhận được phân tích chi tiết hơn.";
+    
+    return (
+      <ResultPage
+        eligibleScholarships={evaluationResults}
+        aiFeedback={demoAIFeedback}
+      />
+    );
+  }
+  
   if (loading) {
     return <div className="max-w-3xl mx-auto px-4 py-10 text-sm text-gray-500">Đang tải form...</div>;
   }
