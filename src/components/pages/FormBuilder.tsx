@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { t } from '@/lib/i18n';
@@ -84,15 +84,26 @@ export const FormBuilder: React.FC = () => {
   };
 
   const doReorderQuestions = async (qid: string, dir: -1 | 1) => {
-    if (!selectedStep) return;
-    const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
-    const idx = list.findIndex((q:any)=> q._id.id===qid);
-    const j = idx + dir;
-    if (idx < 0 || j < 0 || j >= list.length) return;
-    const swap = list[j];
-    list[j] = list[idx];
-    list[idx] = swap;
-    await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
+    try {
+      if (!selectedStep) return;
+      const list = (questionsByStep[stepIdToStringRoot(selectedStep)] ?? []).slice().sort((a:any,b:any)=> a.order-b.order);
+      const idx = list.findIndex((q:any)=> q._id.id===qid);
+      const j = idx + dir;
+      if (idx < 0 || j < 0 || j >= list.length) return;
+      // Perform the swap
+      const swap = list[j];
+      list[j] = list[idx];
+      list[idx] = swap;
+      // Update the order numbers directly in the local state to force UI update
+      for (let i = 0; i < list.length; i++) {
+        list[i].order = i + 1;
+      }
+      // Call the mutation to persist changes
+      await reorderQuestions({ stepId: selectedStep._id as any, orderedQuestionIds: list.map((q:any)=> q._id) } as any);
+    } catch (error) {
+      console.error('Error reordering questions:', error);
+      alert('Có lỗi xảy ra khi di chuyển câu hỏi: ' + String(error));
+    }
   };
 
   const moveQuestion = async (sourceQId: string, targetQId: string) => {
@@ -468,13 +479,16 @@ function QuestionEditor({ mode, steps, formSetId, questionsByStep, question, onC
   };
   React.useEffect(()=>{
     if (adv) return;
-    const base = toCamelKey(String(form.labelText||''));
-    if (!base) return;
-    // key/labelKey sẽ được Convex đảm bảo unique khi insert; ở UI chỉ hiển thị dự kiến
-    update('key', base);
-    update('labelKey', "ui." + base + ".label");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.labelText, adv]);
+    // Only auto-generate key and labelKey if they are empty or not explicitly set
+    // This preserves custom values that were set while in advanced mode
+    if (!form.key || form.key === toCamelKey(String(form.labelText||''))) {
+      const base = toCamelKey(String(form.labelText||''));
+      if (!base) return;
+      // key/labelKey sẽ được Convex đảm bảo unique khi insert; ở UI chỉ hiển thị dự kiến
+      update('key', base);
+      update('labelKey', "ui." + base + ".label");
+    }
+  }, [form.labelText, adv, form.key]);
   React.useEffect(()=>{
     if (!form.stepId && fallbackStepId) {
       update('stepId', fallbackStepId);
