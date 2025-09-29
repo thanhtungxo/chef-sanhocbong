@@ -1,11 +1,17 @@
 import React from 'react';
 
 // Define the Scholarship interface
+interface ReasonObject {
+  message: string;
+}
+
+type Reason = string | ReasonObject;
+
 interface Scholarship {
   id: string;
   name: string;
   eligible: boolean;
-  reasons?: string[];
+  reasons?: Reason[];
   description?: string;
   deadline?: string;
   amount?: string;
@@ -40,14 +46,19 @@ const generateFallbackAvatar = (name: string): string => {
 
 /**
  * Format the scholarship reasons into a readable string
- * @param reasons - Array of reasons
+ * @param reasons - Array of reasons (strings or objects with message field)
  * @returns Formatted reasons string
  */
-const formatReasons = (reasons?: string[]): string => {
+const formatReasons = (reasons?: Reason[]): string => {
   if (!reasons || reasons.length === 0) {
     return '';
   }
-  return reasons.join('\n');
+  
+  const reasonTexts = reasons.map(reason => 
+    typeof reason === 'string' ? reason : reason.message
+  );
+  
+  return reasonTexts.join('\n');
 };
 
 /**

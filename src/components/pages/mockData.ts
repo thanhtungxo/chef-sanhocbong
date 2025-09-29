@@ -1,10 +1,16 @@
 // Mock data for testing different ResultPage scenarios
 
+interface ReasonObject {
+  message: string;
+}
+
+type Reason = string | ReasonObject;
+
 interface Scholarship {
   id: string;
   name: string;
   eligible: boolean;
-  reasons?: string[];
+  reasons?: Reason[];
   description?: string;
   deadline?: string;
   amount?: string;

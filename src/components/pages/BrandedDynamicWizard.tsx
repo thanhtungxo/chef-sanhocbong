@@ -151,13 +151,13 @@ export const BrandedDynamicWizard: React.FC = () => {
 
   // If we've completed the wizard and should show results, render ResultPage
   if (showResults) {
-    // For demo purposes, we'll use a placeholder AI feedback
-    const demoAIFeedback = "Tổng quan về hồ sơ của bạn cho thấy bạn có một số điểm mạnh nổi bật. Tuy nhiên, vẫn còn một số lĩnh vực bạn có thể cải thiện để tăng cơ hội nhận học bổng. Sau khi tham gia Smart Profile Analysis, bạn sẽ nhận được phân tích chi tiết hơn.";
+    // Extract userName from form data (use a default if not available)
+    const userName = allValues.fullName || "Thành viên";
     
     return (
       <ResultPage
-        eligibleScholarships={evaluationResults}
-        aiFeedback={demoAIFeedback}
+        userName={userName}
+        eligibilityResults={evaluationResults}
       />
     );
   }

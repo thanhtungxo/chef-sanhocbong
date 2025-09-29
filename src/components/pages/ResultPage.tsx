@@ -7,11 +7,17 @@ import { ScholarshipGrid } from './ScholarshipGrid';
 import { ResultCTA } from './ResultCTA';
 
 // Define the Scholarship interface
+interface ReasonObject {
+  message: string;
+}
+
+type Reason = string | ReasonObject;
+
 interface Scholarship {
   id: string;
   name: string;
   eligible: boolean;
-  reasons: string[];
+  reasons: Reason[];
 }
 
 interface ResultPageProps {
@@ -51,10 +57,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({
     [eligibilityResults]
   );
   
-  const allReasons = useMemo(() => 
-    failedScholarships.flatMap(s => s.reasons), 
-    [failedScholarships]
-  );
+  // Extract reasons text that handles both string and object formats
+  const allReasonsText = useMemo(() => {
+    const reasons = failedScholarships.flatMap(s => s.reasons || []);
+    return reasons.map(reason => 
+      typeof reason === 'string' ? reason : reason.message
+    );
+  }, [failedScholarships]);
   
   // Generate AI prompt based on CMS template
   const aiPromptTemplate = resultPageConfig?.aiPromptConfig || 
@@ -62,7 +71,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({
   
   const passedScholarshipNames = eligibleScholarships.map(s => s.name).join(', ');
   const failedScholarshipNames = failedScholarships.map(s => s.name).join(', ');
-  const reasonsText = allReasons.length > 0 ? allReasons.join(', ') : "không có lý do fail, hồ sơ rất mạnh";
+  const reasonsText = allReasonsText.length > 0 ? allReasonsText.join(', ') : "không có lý do fail, hồ sơ rất mạnh";
   
   // Replace placeholders in the prompt
   const finalPrompt = aiPromptTemplate

@@ -85,11 +85,17 @@ export function evaluateEligibility(
   };
 }
 
+export interface ReasonObject {
+  message: string;
+}
+
+export type Reason = string | ReasonObject;
+
 export interface ScholarshipEvaluationSummary {
   id: string;
   name: string;
   eligible: boolean;
-  reasons: string[];
+  reasons: Reason[];
 }
 
 export interface EligibilityResult {
