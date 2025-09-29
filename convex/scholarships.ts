@@ -1,4 +1,4 @@
-﻿import { mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import type { Id, Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
@@ -35,10 +35,13 @@ function mergeScholarships(docs: ScholarshipDoc[]): ScholarshipSummary[] {
   }
   const result: ScholarshipSummary[] = SCHOLARSHIP_PRESETS.map((preset) => {
     const doc = byId.get(preset.id);
+    // Always use the database value if available, regardless of whether it's true or false
+    // Only use default value when no document exists in database
+    const isEnabled = doc !== undefined ? doc.isEnabled : DEFAULT_ENABLED.has(preset.id);
     return {
       id: preset.id,
       name: doc?.name ?? preset.name,
-      isEnabled: doc?.isEnabled ?? true,
+      isEnabled: isEnabled,
       _id: doc?._id,
     };
   });
