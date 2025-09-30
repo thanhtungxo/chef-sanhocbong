@@ -200,6 +200,83 @@ export function toAnswerSet(input: Record<string, any>): AnswerSet {
     out.gpa = 7.5; // Default GPA assumption for testing
   }
 
+  // AAS-specific field mappings
+  // Map citizenship to isVietnameseCitizen boolean
+  if (out.isVietnameseCitizen == null) {
+    if (out.citizenship === "citizenshipyes") {
+      out.isVietnameseCitizen = true;
+    } else if (out.citizenship === "citizenshipno") {
+      out.isVietnameseCitizen = false;
+    } else {
+      out.isVietnameseCitizen = true; // Default assumption for Vietnamese applicants
+    }
+  }
+
+  // Map Australian citizenship/PR status
+  if (out.hasAustralianCitizenship == null) {
+    if (out.australiaPrOrCitizen === "australiaPrNo") {
+      out.hasAustralianCitizenship = false;
+    } else if (out.australiaPrOrCitizen === "australiaPrYes") {
+      out.hasAustralianCitizenship = true;
+    } else {
+      out.hasAustralianCitizenship = false; // Default assumption
+    }
+  }
+
+  if (out.hasAustralianPR == null) {
+    if (out.australiaPrOrCitizen === "australiaPrNo") {
+      out.hasAustralianPR = false;
+    } else if (out.australiaPrOrCitizen === "australiaPrYes") {
+      out.hasAustralianPR = true;
+    } else {
+      out.hasAustralianPR = false; // Default assumption
+    }
+  }
+
+  // Map military status to isMilitary boolean
+  if (out.isMilitary == null) {
+    if (out.military === "militaryno") {
+      out.isMilitary = false;
+    } else if (out.military === "militaryyes") {
+      out.isMilitary = true;
+    } else {
+      out.isMilitary = false; // Default assumption
+    }
+  }
+
+  // Map government scholarship to countryscholarship
+  if (out.countryscholarship == null) {
+    if (out.govscholarship === "govescholarno") {
+      out.countryscholarship = "Scholarother";
+    } else if (out.govscholarship === "govescholaryes") {
+      out.countryscholarship = "AustraliaScholar";
+    } else {
+      out.countryscholarship = "Scholarother"; // Default assumption
+    }
+  }
+
+  // Map criminal record
+  if (out.criminalRecord == null) {
+    if (out.banATungCoTienAnTienSuChua === "criminalno") {
+      out.criminalRecord = "no";
+    } else if (out.banATungCoTienAnTienSuChua === "criminalyes") {
+      out.criminalRecord = "yes";
+    } else {
+      out.criminalRecord = "no"; // Default assumption
+    }
+  }
+
+  // Map workplace validity based on employment type
+  if (out.workplace == null) {
+    if (out.employmenttype === "gov_levels" || 
+        out.employmenttype === "vn_company" || 
+        out.employmenttype === "vn_ngo") {
+      out.workplace = "valid_workplace";
+    } else {
+      out.workplace = "invalid_workplace";
+    }
+  }
+
   return out as AnswerSet;
 }
 
