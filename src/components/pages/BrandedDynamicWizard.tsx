@@ -112,6 +112,8 @@ export const BrandedDynamicWizard: React.FC = () => {
   // Add state to track if we've completed the wizard and should show results
   const [showResults, setShowResults] = React.useState(false);
   const [evaluationResults, setEvaluationResults] = React.useState<ScholarshipEvaluationSummary[]>([]);
+  // We'll use a ref to store the username to avoid React state timing issues
+  const userNameRef = React.useRef<string>("Thành viên");
   
   // Mutation to evaluate form responses
   const evaluateForm = useMutation(api.formEvaluation.submitAndEvaluateForm);
@@ -119,27 +121,90 @@ export const BrandedDynamicWizard: React.FC = () => {
   const handleFinish = form.handleSubmit(async (vals) => {
     const merged = { ...allValues, ...vals };
     (window as any).dynamicFormValues = merged;
-    console.log('Wizard completed', merged);
+    
+    // Debug logs to understand what's happening with the form data
+    console.log('Wizard completed - merged data:', merged);
+    console.log('Full name field exists (fullName):', 'fullName' in merged);
+    console.log('Full name value (fullName):', merged.fullName);
+    console.log('Full name field exists (fullname):', 'fullname' in merged);
+    console.log('Full name value (fullname):', merged.fullname);
+    
+    // Also check if there might be other fields containing name information
+    console.log('Other possible name fields:');
+    for (const key of Object.keys(merged)) {
+      if (key.toLowerCase().includes('name') && key !== 'fullName' && key !== 'fullname') {
+        console.log(`- ${key}: ${merged[key]}`);
+      }
+    }
     
     try {
       // Extract name and email for submission (we'll use defaults if not available)
-      const fullName = merged.fullName || 'Unknown';
+      const fullName = merged.fullname || merged.fullName || 'Unknown';
       const email = merged.email || 'unknown@example.com';
       
-      // Call the form evaluation API
-      const result = await evaluateForm({ 
-        responses: merged, 
-        fullName, 
-        email 
+      // Submit the form data and evaluate against scholarship rules
+      // Correct way to call convex mutation
+      const evaluation = await evaluateForm({
+        responses: merged,
+        fullName,
+        email,
       });
       
-      // Set evaluation results and show the ResultPage
-      setEvaluationResults(result.eligibilityResults);
-      setShowResults(true);
+      // Extract username directly from merged data and store in ref
+      let extractedUserName = "Thành viên";
       
+      // First check if fullname (all lowercase) exists and is not empty
+      if (merged.fullname && merged.fullname.trim()) {
+        console.log('Attempting to extract username from fullname:', merged.fullname);
+        const nameParts = merged.fullname.trim().split(/\s+/);
+        console.log('Split name parts:', nameParts);
+        
+        // Ensure we have at least one part after splitting
+        if (nameParts.length > 0) {
+          extractedUserName = nameParts[nameParts.length - 1];
+          console.log('Extracted username from fullname:', extractedUserName);
+        } else {
+          console.log('Name parts array is empty after splitting');
+        }
+      } else if (merged.fullName && merged.fullName.trim()) {
+        console.log('Attempting to extract username from fullName:', merged.fullName);
+        const nameParts = merged.fullName.trim().split(/\s+/);
+        console.log('Split name parts:', nameParts);
+        
+        if (nameParts.length > 0) {
+          extractedUserName = nameParts[nameParts.length - 1];
+          console.log('Extracted username from fullName:', extractedUserName);
+        }
+      } else {
+        console.log('Neither fullname nor fullName found in merged data');
+        
+        // Search for any other field that might contain a name
+        for (const key of Object.keys(merged)) {
+          if (key.toLowerCase().includes('name') && key !== 'fullName' && key !== 'fullname' && merged[key] && typeof merged[key] === 'string' && merged[key].trim()) {
+            console.log('Found potential name in field', key, ':', merged[key]);
+            const nameParts = merged[key].trim().split(/\s+/);
+            if (nameParts.length > 0) {
+              extractedUserName = nameParts[nameParts.length - 1];
+              console.log('Extracted username from alternative field:', extractedUserName);
+              break;
+            }
+          }
+        }
+      }
+      
+      // Final verification
+      console.log('Final username to be displayed:', extractedUserName);
+      userNameRef.current = extractedUserName;
+      
+      // Update allValues with the complete form data
+      setAllValues(merged);
+      
+      // Set the evaluation results and show the results page
+      setEvaluationResults(evaluation.eligibilityResults || []);
+      setShowResults(true);
     } catch (error) {
-      console.error('Failed to evaluate form:', error);
-      alert('Có lỗi xảy ra khi đánh giá học bổng. Vui lòng thử lại sau.');
+      console.error('Error submitting form:', error);
+      alert('An error occurred while processing your form. Please try again.');
     }
   });
 
@@ -151,12 +216,9 @@ export const BrandedDynamicWizard: React.FC = () => {
 
   // If we've completed the wizard and should show results, render ResultPage
   if (showResults) {
-    // Extract userName from form data (use a default if not available)
-    const userName = allValues.fullName || "Thành viên";
-    
     return (
       <ResultPage
-        userName={userName}
+        userName={userNameRef.current}
         eligibilityResults={evaluationResults}
       />
     );

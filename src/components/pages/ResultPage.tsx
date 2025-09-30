@@ -32,11 +32,7 @@ interface ResultPageProps {
  * @param eligibilityResults - Full list of scholarship eligibility results
  * @param cmsResultText - Text content managed by admin through CMS
  */
-export const ResultPage: React.FC<ResultPageProps> = ({
-  userName,
-  eligibilityResults,
-  cmsResultText,
-}) => {
+export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityResults = [],  cmsResultText,}) => {
   // Get CMS configuration from the database
   const resultPageConfig = useQuery(api.resultPage.getResultPageConfig, {});
   
