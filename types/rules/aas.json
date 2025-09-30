@@ -144,7 +144,7 @@
     "conditions": [
       {
         "id": "aas_normal_group",
-        "message": "Yêu cầu cho nhóm bình thường",
+        "message": "Yêu cầu cho nhóm bình thường: GPA ≥ 7.0, tiếng Anh và ít nhất 24 tháng kinh nghiệm",
         "operator": "all",
         "conditions": [
           {
@@ -155,10 +155,12 @@
           {
             "type": "minScore",
             "field": "gpa",
-            "minScore": 7.0
+            "minScore": 7.0,
+            "message": "GPA của bạn phải từ 7.0 trở lên"
           },
           {
             "operator": "any",
+            "message": "Bạn cần chứng chỉ tiếng Anh: IELTS ≥ 6.5, TOEFL ≥ 79, hoặc PTE ≥ 58",
             "conditions": [
               {
                 "operator": "all",
@@ -210,13 +212,14 @@
           {
             "type": "minScore",
             "field": "workingtime",
-            "minScore": 24
+            "minScore": 24,
+            "message": "Bạn cần ít nhất 24 tháng kinh nghiệm làm việc"
           }
         ]
       },
       {
         "id": "aas_disability_group",
-        "message": "Yêu cầu cho nhóm khuyết tật",
+        "message": "Yêu cầu cho ứng viên khuyết tật: GPA ≥ 6.0 và ít nhất 12 tháng kinh nghiệm",
         "operator": "all",
         "conditions": [
           {
@@ -227,18 +230,20 @@
           {
             "type": "minScore",
             "field": "gpa",
-            "minScore": 6.0
+            "minScore": 6.0,
+            "message": "Ứng viên khuyết tật cần GPA ít nhất 6.0"
           },
           {
             "type": "minScore",
             "field": "workingtime",
-            "minScore": 12
+            "minScore": 12,
+            "message": "Ứng viên khuyết tật cần ít nhất 12 tháng kinh nghiệm làm việc"
           }
         ]
       },
       {
         "id": "aas_remote_area_group",
-        "message": "Yêu cầu cho nhóm vùng sâu vùng xa",
+        "message": "Yêu cầu cho ứng viên vùng sâu vùng xa: GPA ≥ 6.5, tiếng Anh và ít nhất 12 tháng kinh nghiệm",
         "operator": "all",
         "conditions": [
           {
@@ -249,10 +254,12 @@
           {
             "type": "minScore",
             "field": "gpa",
-            "minScore": 6.5
+            "minScore": 6.5,
+            "message": "Ứng viên vùng sâu vùng xa cần GPA ít nhất 6.5"
           },
           {
             "operator": "any",
+            "message": "Ứng viên vùng sâu vùng xa cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
             "conditions": [
               {
                 "operator": "all",
@@ -304,7 +311,8 @@
           {
             "type": "minScore",
             "field": "workingtime",
-            "minScore": 12
+            "minScore": 12,
+            "message": "Ứng viên vùng sâu vùng xa cần ít nhất 12 tháng kinh nghiệm làm việc"
           }
         ]
       }

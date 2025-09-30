@@ -122,9 +122,21 @@ export function toAnswerSet(input: Record<string, any>): AnswerSet {
     out.workingtime = Number(out.yearsOfExperience) * 12; // Convert years to months
   }
   
+  // Map English test type from englishProficiency field
+  if (out.englishProficiency && !out.englishTestType) {
+    const proficiency = out.englishProficiency.toLowerCase();
+    if (proficiency === 'ielts') {
+      out.englishTestType = 'ielts';
+    } else if (proficiency === 'toefl') {
+      out.englishTestType = 'toefl';
+    } else if (proficiency === 'pte') {
+      out.englishTestType = 'pte';
+    }
+  }
+
   // Map English test scores from form fields
   if (out.ieltsgrade == null) {
-    if (out.englishTestType === "IELTS" && out.englishOverall != null) {
+    if (out.englishTestType === "ielts" && out.englishOverall != null) {
       out.ieltsgrade = Number(out.englishOverall);
     } else if (out.englishScore != null) {
       out.ieltsgrade = Number(out.englishScore);
@@ -132,35 +144,51 @@ export function toAnswerSet(input: Record<string, any>): AnswerSet {
   }
   
   if (out.toeflgrade == null) {
-    if (out.englishTestType === "TOEFL" && out.englishOverall != null) {
+    if (out.englishTestType === "toefl" && out.englishOverall != null) {
       out.toeflgrade = Number(out.englishOverall);
     }
   }
   
   if (out.ptegrade == null) {
-    if (out.englishTestType === "PTE" && out.englishOverall != null) {
+    if (out.englishTestType === "pte" && out.englishOverall != null) {
       out.ptegrade = Number(out.englishOverall);
     }
+  } else if (out.ptegrade != null) {
+    out.ptegrade = Number(out.ptegrade);
   }
   
   // Map highest qualification - keep original case for rule matching
   // (Rules now expect exact case matching like "Bachelor")
   
-  // Map vulnerable groups to nhomyeuthe
+  // Map vulnerable groups to nhomyeuthe - ensure it's always a string
+  // Handle nhomyeuthe if it comes as an array (from multi-select field)
+  if (out.nhomyeuthe && Array.isArray(out.nhomyeuthe)) {
+    // If nhomyeuthe is already an array, convert to single value
+    const nonKhongYeuThe = out.nhomyeuthe.find((group: string) => group !== 'khongyeuthe');
+    out.nhomyeuthe = nonKhongYeuThe || 'khongyeuthe';
+  } 
+  
+  // Handle vulnerableGroups multi-select field
   if (out.vulnerableGroups && Array.isArray(out.vulnerableGroups)) {
+    // Map from vulnerableGroups array to nhomyeuthe string
     const nonNoneGroups = out.vulnerableGroups.filter(group => group !== 'none');
     if (nonNoneGroups.length > 0) {
-      out.nhomyeuthe = nonNoneGroups[0]; // Take the first non-none value
+      // Map specific vulnerable groups
+      if (nonNoneGroups.includes('disability')) {
+        out.nhomyeuthe = 'disability';
+      } else if (nonNoneGroups.includes('hardship_area')) {
+        out.nhomyeuthe = 'hardship_area';
+      } else {
+        out.nhomyeuthe = nonNoneGroups[0]; // Take the first non-none value
+      }
     } else {
       out.nhomyeuthe = 'khongyeuthe'; // Default to "not vulnerable"
     }
-  } else {
-    out.nhomyeuthe = 'khongyeuthe'; // Default to "not vulnerable"
-  }
+  } 
   
-  // Handle case where nhomyeuthe is already an array - convert to single value
-  if (Array.isArray(out.nhomyeuthe)) {
-    out.nhomyeuthe = out.nhomyeuthe.find((group: string) => group !== 'khongyeuthe') || 'khongyeuthe';
+  // Ensure nhomyeuthe is set with default
+  if (!out.nhomyeuthe) {
+    out.nhomyeuthe = 'khongyeuthe'; // Default to "not vulnerable"
   }
   
   // Default employmenttype if not set
