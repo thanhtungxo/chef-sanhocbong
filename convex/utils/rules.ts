@@ -9,11 +9,11 @@ async function importJsonFallback(id: ScholarshipId): Promise<unknown | undefine
   try {
     switch (id) {
       case "aas": {
-        const mod = await import("../shared/rules/aas.json");
+        const mod = await import("../../types/rules/aas.json");
         return (mod as any).default ?? mod;
       }
       case "chevening": {
-        const mod = await import("../shared/rules/chevening.json");
+        const mod = await import("../../types/rules/chevening.json");
         return (mod as any).default ?? mod;
       }
       default:

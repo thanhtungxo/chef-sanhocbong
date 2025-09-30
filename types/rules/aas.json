@@ -1,198 +1,313 @@
 [
   {
-    "id": "aas_citizenship_rule",
-    "operator": "all",
-    "rules": [
-      {
-        "id": "aas_citizenship_vietnam",
-        "field": "citizenship",
-        "type": "select",
-        "value": "citizenshipyes",
-        "message": "Bạn phải có quốc tịch Việt Nam"
-      },
-      {
-        "id": "aas_residency_vietnam",
-        "field": "residency",
-        "type": "select",
-        "value": "residencyyes",
-        "message": "Bạn phải cư trú tại Việt Nam"
-      },
-      {
-        "id": "aas_australia_pr_no",
-        "field": "australiaPrOrCitizen",
-        "type": "select",
-        "value": "australiaPrNo",
-        "message": "Bạn không được là công dân hoặc cư trú lâu dài của Úc"
-      },
-      {
-        "id": "aas_spouse_pr_no",
-        "field": "spousepr",
-        "type": "select",
-        "value": "spouseprno",
-        "message": "Vợ/chồng bạn không được là công dân hoặc cư trú lâu dài của Úc/NZ"
-      }
-    ],
-    "message": "Không đáp ứng yêu cầu quốc tịch"
+    "id": "aas_vietnamese_citizen",
+    "message": "Bạn phải là công dân Việt Nam",
+    "severity": "error",
+    "type": "boolean",
+    "field": "isVietnameseCitizen",
+    "expectedValue": true
   },
   {
-    "id": "aas_security_rules",
-    "operator": "all",
-    "rules": [
-      {
-        "id": "aas_no_military",
-        "field": "military",
-        "type": "select",
-        "value": "militaryno",
-        "message": "Bạn không được phục vụ trong quân đội"
-      },
-      {
-        "id": "aas_no_criminal_record",
-        "field": "banATungCoTienAnTienSuChua",
-        "type": "select",
-        "value": "criminalno",
-        "message": "Bạn không được có tiền án tiền sự"
-      }
-    ],
-    "message": "Không đáp ứng yêu cầu an ninh"
+    "id": "aas_no_australian_citizenship",
+    "message": "Bạn không được có quốc tịch Úc",
+    "severity": "error",
+    "type": "boolean",
+    "field": "hasAustralianCitizenship",
+    "expectedValue": false
   },
   {
-    "id": "aas_previous_scholarship",
-    "field": "govscholarship",
+    "id": "aas_no_australian_pr",
+    "message": "Bạn không được có thường trú nhân Úc",
+    "severity": "error",
+    "type": "boolean",
+    "field": "hasAustralianPR",
+    "expectedValue": false
+  },
+  {
+    "id": "aas_spouse_no_au_nz_citizenship_pr",
+    "message": "Vợ/chồng bạn không được có quốc tịch hoặc thường trú nhân Úc/New Zealand",
+    "severity": "error",
     "type": "select",
-    "value": "govescholarno",
-    "message": "Bạn không được từng nhận học bổng chính phủ Úc trước đây (trừ ngoại lệ được chấp thuận)"
+    "field": "spousepr",
+    "expectedValue": "spouseprno"
   },
   {
-    "id": "aas_education_level",
-    "field": "highestQualification",
+    "id": "aas_not_military",
+    "message": "Bạn không được là quân nhân đang tại ngũ",
+    "severity": "error",
+    "type": "boolean",
+    "field": "isMilitary",
+    "expectedValue": false
+  },
+  {
+    "id": "aas_no_previous_australian_scholarship",
+    "message": "Bạn không được từng nhận học bổng dài hạn của chính phủ Úc",
+    "severity": "error",
     "type": "select",
-    "value": "bachelor",
-    "message": "Trình độ học vấn cao nhất của bạn phải là Bachelor (Master/PhD sẽ không đủ điều kiện)"
-  },
-  {
-    "id": "aas_work_experience_rule",
+    "field": "countryscholarship",
+    "expectedValue": "Scholarother",
     "operator": "any",
-    "rules": [
+    "conditions": [
       {
-        "id": "aas_standard_work_experience",
-        "field": "workingtime",
-        "type": "minScore",
-        "value": 24,
-        "message": "Bạn cần ít nhất 24 tháng kinh nghiệm làm việc full-time"
-      },
-      {
-        "id": "aas_disability_exemption",
-        "field": "nhomyeuthe",
         "type": "select",
-        "value": "khuyettat",
-        "message": "Ngoại lệ cho người khuyết tật: cần ít nhất 12 tháng kinh nghiệm làm việc"
+        "field": "countryscholarship",
+        "expectedValue": "Scholarengland"
       },
       {
-        "id": "aas_rural_exemption",
-        "field": "nhomyeuthe",
+        "type": "select", 
+        "field": "countryscholarship",
+        "expectedValue": "Scholaramerica"
+      },
+      {
         "type": "select",
-        "value": "vungkhohkhan",
-        "message": "Ngoại lệ cho người sống & làm việc vùng sâu vùng xa: cần ít nhất 12 tháng kinh nghiệm làm việc"
+        "field": "countryscholarship", 
+        "expectedValue": "Scholarother"
       }
-    ],
-    "message": "Không đáp ứng yêu cầu kinh nghiệm làm việc"
+    ]
   },
   {
-    "id": "aas_english_proficiency",
-    "operator": "any",
-    "rules": [
-      {
-        "id": "aas_ielts_requirement",
-        "field": "ieltsgrade",
-        "type": "minScore",
-        "value": 6.5,
-        "message": "IELTS phải đạt ít nhất 6.5"
-      },
-      {
-        "id": "aas_toefl_requirement",
-        "field": "toeflgrade",
-        "type": "minScore",
-        "value": 84,
-        "message": "TOEFL iBT phải đạt ít nhất 84"
-      },
-      {
-        "id": "aas_pte_requirement",
-        "field": "ptegrade",
-        "type": "minScore",
-        "value": 58,
-        "message": "PTE Academic phải đạt ít nhất 58"
-      }
-    ],
-    "message": "Không đáp ứng yêu cầu tiếng Anh"
+    "id": "aas_no_criminal_record",
+    "message": "Bạn không được có tiền án tiền sự",
+    "severity": "error",
+    "type": "boolean",
+    "field": "hasCriminalRecordOrInvestigation",
+    "expectedValue": false
   },
   {
-    "id": "aas_gpa_rule",
+    "id": "aas_valid_workplace",
+    "message": "Nơi làm việc của bạn phải thuộc danh sách được chấp nhận",
+    "severity": "error",
     "operator": "any",
-    "rules": [
+    "conditions": [
       {
-        "id": "aas_gpa_gov_vocational_research",
-        "operator": "all",
-        "rules": [
-          {
-            "id": "aas_employmenttype_gov_vocational_research",
-            "field": "employmenttype",
-            "type": "select",
-            "value": "gov_levels,vocational_school,research_institute",
-            "message": "Nhóm công tác phù hợp"
-          },
-          {
-            "id": "aas_gpa_min_6_5",
-            "field": "gpa",
-            "type": "minScore",
-            "value": 6.5,
-            "message": "GPA phải đạt ít nhất 6.5"
-          }
-        ],
-        "message": "Không đáp ứng yêu cầu GPA cho nhóm công tác chính phủ, trường nghề, viện nghiên cứu"
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "gov_levels"
       },
       {
-        "id": "aas_gpa_university_ngo",
-        "operator": "all",
-        "rules": [
-          {
-            "id": "aas_employmenttype_university_ngo",
-            "field": "employmenttype",
-            "type": "select",
-            "value": "provincial_university,major_city_university,vn_ngo,intl_ngo",
-            "message": "Nhóm công tác phù hợp"
-          },
-          {
-            "id": "aas_gpa_min_7_0",
-            "field": "gpa",
-            "type": "minScore",
-            "value": 7.0,
-            "message": "GPA phải đạt ít nhất 7.0"
-          }
-        ],
-        "message": "Không đáp ứng yêu cầu GPA cho nhóm trường đại học, tổ chức phi chính phủ"
+        "type": "select",
+        "field": "employmentSector", 
+        "expectedValue": "vocational_school"
       },
       {
-        "id": "aas_gpa_company",
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "research_institute"
+      },
+      {
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "provincial_university"
+      },
+      {
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "major_city_university"
+      },
+      {
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "vn_ngo"
+      },
+      {
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "intl_ngo"
+      },
+      {
+        "type": "select",
+        "field": "employmentSector",
+        "expectedValue": "vn_company"
+      },
+      {
         "operator": "all",
-        "rules": [
+        "conditions": [
           {
-            "id": "aas_employmenttype_company",
-            "field": "employmenttype",
             "type": "select",
-            "value": "foreign_company,vn_company",
-            "message": "Nhóm công tác phù hợp"
+            "field": "employmentSector",
+            "expectedValue": "foreign_company"
           },
           {
-            "id": "aas_gpa_min_7_5",
-            "field": "gpa",
-            "type": "minScore",
-            "value": 7.5,
-            "message": "GPA phải đạt ít nhất 7.5"
+            "type": "select",
+            "field": "nhomyeuthe",
+            "expectedValue": "disability"
           }
-        ],
-        "message": "Không đáp ứng yêu cầu GPA cho nhóm công ty"
+        ]
       }
-    ],
-    "message": "Không đáp ứng yêu cầu GPA theo nhóm tổ chức công tác"
+    ]
+  },
+  {
+    "id": "aas_group_requirements",
+    "message": "Bạn phải đáp ứng yêu cầu theo nhóm ứng viên",
+    "severity": "error",
+    "operator": "any",
+    "conditions": [
+      {
+        "id": "aas_normal_group",
+        "message": "Yêu cầu cho nhóm bình thường",
+        "operator": "all",
+        "conditions": [
+          {
+            "type": "select",
+            "field": "nhomyeuthe",
+            "expectedValue": "khongyeuthe"
+          },
+          {
+            "type": "minScore",
+            "field": "gpa",
+            "minScore": 7.0
+          },
+          {
+            "operator": "any",
+            "conditions": [
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "ielts"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ieltsgrade",
+                    "minScore": 6.5
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "toefl"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "toeflgrade",
+                    "minScore": 79
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "pte"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ptegrade",
+                    "minScore": 58
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "minScore",
+            "field": "workingtime",
+            "minScore": 24
+          }
+        ]
+      },
+      {
+        "id": "aas_disability_group",
+        "message": "Yêu cầu cho nhóm khuyết tật",
+        "operator": "all",
+        "conditions": [
+          {
+            "type": "select",
+            "field": "nhomyeuthe",
+            "expectedValue": "disability"
+          },
+          {
+            "type": "minScore",
+            "field": "gpa",
+            "minScore": 6.0
+          },
+          {
+            "type": "minScore",
+            "field": "workingtime",
+            "minScore": 12
+          }
+        ]
+      },
+      {
+        "id": "aas_remote_area_group",
+        "message": "Yêu cầu cho nhóm vùng sâu vùng xa",
+        "operator": "all",
+        "conditions": [
+          {
+            "type": "select",
+            "field": "nhomyeuthe",
+            "expectedValue": "hardship_area"
+          },
+          {
+            "type": "minScore",
+            "field": "gpa",
+            "minScore": 6.5
+          },
+          {
+            "operator": "any",
+            "conditions": [
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "ielts"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ieltsgrade",
+                    "minScore": 6.0
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "toefl"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "toeflgrade",
+                    "minScore": 60
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "pte"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ptegrade",
+                    "minScore": 50
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "minScore",
+            "field": "workingtime",
+            "minScore": 12
+          }
+        ]
+      }
+    ]
   }
 ]

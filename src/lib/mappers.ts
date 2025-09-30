@@ -27,8 +27,8 @@ export function toAnswerSet(input: Record<string, any>): AnswerSet {
 
   // Military background
   if (out.military == null) {
-    if (typeof out.hasMilitaryBackground === "boolean") out.military = out.hasMilitaryBackground;
-    else if (typeof out.hasWorkedInMilitaryPolice === "boolean") out.military = out.hasWorkedInMilitaryPolice;
+    if (typeof out.hasMilitaryBackground === "boolean") out.military = out.hasMilitaryBackground ? "militaryyes" : "militaryno";
+    else if (typeof out.hasWorkedInMilitaryPolice === "boolean") out.military = out.hasWorkedInMilitaryPolice ? "militaryyes" : "militaryno";
   }
 
   // Company ownership

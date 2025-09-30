@@ -59,6 +59,20 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     return !allFailed && !allPassed;
   }, [eligibilityResults, messageType, allFailed, allPassed]);
   
+  // Debug logging
+  React.useEffect(() => {
+    console.log('ResultPage props:', {
+      userName,
+      eligibilityResults,
+      eligible,
+      messageType,
+      allFailed,
+      allPassed,
+      passedSome,
+      eligibleScholarshipsCount: eligibilityResults.filter(r => r.eligible).length
+    });
+  }, [userName, eligibilityResults, eligible, messageType, allFailed, allPassed, passedSome]);
+  
   // Filter only eligible scholarships for the grid
   const eligibleScholarships = useMemo(() => 
     eligibilityResults.filter(r => r.eligible), 

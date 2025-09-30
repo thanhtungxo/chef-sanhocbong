@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
 import { listScholarships } from "./scholarships";
 import type { ScholarshipEvaluationSummary, EligibilityResult } from "./shared/eligibility";
+import { toAnswerSet } from "./shared/mappers";
 
 // Evaluate form responses against all active scholarships
 // Returns eligibility status for each scholarship
@@ -77,6 +78,10 @@ export const submitAndEvaluateForm = mutation({
     const scholarships = await ctx.db.query("scholarships").collect();
     const activeScholarships = scholarships.filter((s: any) => s.isEnabled);
     
+    // Map form field names to rule field names to ensure consistency
+      // This is crucial for proper eligibility evaluation
+      const mappedResponses = toAnswerSet(responses);
+    
     const eligibilityResults: ScholarshipEvaluationSummary[] = [];
     
     for (const scholarship of activeScholarships) {
@@ -84,7 +89,7 @@ export const submitAndEvaluateForm = mutation({
             // Load rules for this scholarship
             const rules = await loadRulesServer(ctx, scholarship.id);
             // Evaluate eligibility
-            const evaluation = evaluateWithRules(responses, rules);
+            const evaluation = evaluateWithRules(mappedResponses, rules);
             
             eligibilityResults.push({
                 id: scholarship.id,
@@ -114,18 +119,25 @@ export const submitAndEvaluateForm = mutation({
     const totalScholarships = eligibilityResults.length;
     const passedScholarships = eligibilityResults.filter(result => result.eligible).length;
     
+    // Debug logging
+    console.log(`Form evaluation stats: Total=${totalScholarships}, Passed=${passedScholarships}`);
+    console.log(`Scholarship eligibility details:`, eligibilityResults);
+    
     let messageType: "fail_all" | "pass_all" | "pass_some" = "pass_some";
     let overallEligible = false;
     
     if (passedScholarships === 0) {
         messageType = "fail_all";
         overallEligible = false;
+        console.log(`Calculated messageType: ${messageType}, eligible: ${overallEligible}`);
     } else if (passedScholarships === totalScholarships) {
         messageType = "pass_all";
         overallEligible = true;
+        console.log(`Calculated messageType: ${messageType}, eligible: ${overallEligible}`);
     } else {
         messageType = "pass_some";
         overallEligible = true;
+        console.log(`Calculated messageType: ${messageType}, eligible: ${overallEligible}`);
     }
     
     // Return all evaluation results with messageType

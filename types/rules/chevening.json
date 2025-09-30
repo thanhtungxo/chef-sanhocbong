@@ -14,7 +14,7 @@
     "messageKey": "che.experience.min"
   },
   {
-    "field": "military",
+    "field": "militaryBoolean",
     "type": "boolean",
     "value": false,
     "message": "Bạn đang công tác trong quân đội hoặc an ninh",
@@ -26,12 +26,5 @@
     "value": true,
     "message": "Học bổng yêu cầu thể hiện tiềm năng lãnh đạo",
     "messageKey": "che.leadership.required"
-  },
-  {
-    "field": "returnToHomeCountry",
-    "type": "boolean",
-    "value": true,
-    "message": "Bạn cần cam kết trở về Việt Nam sau khi kết thúc khóa học",
-    "messageKey": "che.return.required"
   }
 ]

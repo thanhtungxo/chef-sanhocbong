@@ -203,6 +203,10 @@ export const BrandedDynamicWizard: React.FC = () => {
       
       // Log the full evaluation result
       console.log('Evaluation result:', evaluation);
+      console.log('Scholarships count:', evaluation.scholarships?.length);
+      console.log('Eligible count:', evaluation.scholarships?.filter(s => s.eligible).length);
+      console.log('Overall eligible:', evaluation.eligible);
+      console.log('Message type:', evaluation.messageType);
       
       // Set the evaluation results and show the results page
       // Use the new structure with scholarships, eligible, and messageType

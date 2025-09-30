@@ -59,10 +59,18 @@ export function evaluateEligibility(
       return ok;
     }
     // group
+    const failedBeforeGroup = failed.length;
     const results = node.rules.map(visit);
     const ok = node.operator === 'all' ? results.every(Boolean) : results.some(Boolean);
+    
+    // If this is an 'any' group that passed, remove the individual failures we just added
+    if (ok && node.operator === 'any') {
+      failed.splice(failedBeforeGroup);
+    }
+    
     // If group fails and group has its own message, push a synthetic failure
-    if (!ok && node.message) {
+    // But only if the group has a severity defined
+    if (!ok && node.message && node.severity) {
       failed.push({
         id: node.id,
         type: 'text',
@@ -70,11 +78,21 @@ export function evaluateEligibility(
         value: true,
         message: node.message,
         messageKey: node.messageKey,
-        severity: node.severity ?? 'blocker',
+        severity: node.severity,
       });
     }
     return ok;
   };
+
+  // Handle case when there are no rules
+  if (rules.length === 0) {
+    // If there are no rules, we should consider the user eligible by default
+    // This prevents false negatives when rules aren't properly configured
+    return {
+      passed: true,
+      failedRules: [],
+    };
+  }
 
   for (const r of rules) visit(r);
 
