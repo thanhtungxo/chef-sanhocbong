@@ -219,7 +219,7 @@
       },
       {
         "id": "aas_disability_group",
-        "operator": "any",
+        "operator": "all",
         "conditions": [
           {
             "type": "select",
@@ -228,19 +228,30 @@
             "negate": true
           },
           {
-            "operator": "all",
+            "operator": "any",
             "conditions": [
               {
-                "type": "minScore",
-                "field": "gpa",
-                "minScore": 6.0,
-                "message": "Ứng viên khuyết tật cần GPA ít nhất 6.0"
+                "type": "select",
+                "field": "nhomyeuthe",
+                "expectedValue": "disability",
+                "negate": true
               },
               {
-                "type": "minScore",
-                "field": "workingtime",
-                "minScore": 12,
-                "message": "Ứng viên khuyết tật được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "minScore",
+                    "field": "gpa",
+                    "minScore": 6.0,
+                    "message": "Ứng viên khuyết tật cần GPA ít nhất 6.0"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "workingtime",
+                    "minScore": 12,
+                    "message": "Ứng viên khuyết tật được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
+                  }
+                ]
               }
             ]
           }
@@ -248,7 +259,7 @@
       },
       {
         "id": "aas_remote_area_group",
-        "operator": "any",
+        "operator": "all",
         "conditions": [
           {
             "type": "select",
@@ -257,70 +268,81 @@
             "negate": true
           },
           {
-            "operator": "all",
+            "operator": "any",
             "conditions": [
               {
-                "type": "minScore",
-                "field": "gpa",
-                "minScore": 6.5,
-                "message": "Ứng viên vùng sâu vùng xa cần GPA ít nhất 6.5"
+                "type": "select",
+                "field": "nhomyeuthe",
+                "expectedValue": "hardship_area",
+                "negate": true
               },
               {
-                "operator": "any",
-                "message": "Ứng viên vùng sâu vùng xa cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
+                "operator": "all",
                 "conditions": [
                   {
-                    "operator": "all",
+                    "type": "minScore",
+                    "field": "gpa",
+                    "minScore": 6.5,
+                    "message": "Ứng viên vùng sâu vùng xa cần GPA ít nhất 6.5"
+                  },
+                  {
+                    "operator": "any",
+                    "message": "Ứng viên vùng sâu vùng xa cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
                     "conditions": [
                       {
-                        "type": "select",
-                        "field": "englishTestType",
-                        "expectedValue": "ielts"
+                        "operator": "all",
+                        "conditions": [
+                          {
+                            "type": "select",
+                            "field": "englishTestType",
+                            "expectedValue": "ielts"
+                          },
+                          {
+                            "type": "minScore",
+                            "field": "ieltsgrade",
+                            "minScore": 6.0
+                          }
+                        ]
                       },
                       {
-                        "type": "minScore",
-                        "field": "ieltsgrade",
-                        "minScore": 6.0
+                        "operator": "all",
+                        "conditions": [
+                          {
+                            "type": "select",
+                            "field": "englishTestType",
+                            "expectedValue": "toefl"
+                          },
+                          {
+                            "type": "minScore",
+                            "field": "toeflgrade",
+                            "minScore": 60
+                          }
+                        ]
+                      },
+                      {
+                        "operator": "all",
+                        "conditions": [
+                          {
+                            "type": "select",
+                            "field": "englishTestType",
+                            "expectedValue": "pte"
+                          },
+                          {
+                            "type": "minScore",
+                            "field": "ptegrade",
+                            "minScore": 50
+                          }
+                        ]
                       }
                     ]
                   },
                   {
-                    "operator": "all",
-                    "conditions": [
-                      {
-                        "type": "select",
-                        "field": "englishTestType",
-                        "expectedValue": "toefl"
-                      },
-                      {
-                        "type": "minScore",
-                        "field": "toeflgrade",
-                        "minScore": 60
-                      }
-                    ]
-                  },
-                  {
-                    "operator": "all",
-                    "conditions": [
-                      {
-                        "type": "select",
-                        "field": "englishTestType",
-                        "expectedValue": "pte"
-                      },
-                      {
-                        "type": "minScore",
-                        "field": "ptegrade",
-                        "minScore": 50
-                      }
-                    ]
+                    "type": "minScore",
+                    "field": "workingtime",
+                    "minScore": 12,
+                    "message": "Ứng viên vùng khó khăn được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
                   }
                 ]
-              },
-              {
-                "type": "minScore",
-                "field": "workingtime",
-                "minScore": 12,
-                "message": "Ứng viên vùng khó khăn được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
               }
             ]
           }
