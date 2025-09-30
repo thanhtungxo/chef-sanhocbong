@@ -219,132 +219,151 @@
       },
       {
         "id": "aas_disability_group",
+        "message": "Yêu cầu cho nhóm khuyết tật: GPA ≥ 6.0, tiếng Anh và ít nhất 12 tháng kinh nghiệm",
         "operator": "all",
         "conditions": [
           {
             "type": "select",
             "field": "nhomyeuthe",
-            "expectedValue": "disability",
-            "negate": true
+            "expectedValue": "disability"
+          },
+          {
+            "type": "minScore",
+            "field": "gpa",
+            "minScore": 6.0,
+            "message": "Ứng viên khuyết tật cần GPA ít nhất 6.0"
           },
           {
             "operator": "any",
+            "message": "Ứng viên khuyết tật cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
             "conditions": [
               {
-                "type": "select",
-                "field": "nhomyeuthe",
-                "expectedValue": "disability",
-                "negate": true
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "ielts"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ieltsgrade",
+                    "minScore": 6.0
+                  }
+                ]
               },
               {
                 "operator": "all",
                 "conditions": [
                   {
-                    "type": "minScore",
-                    "field": "gpa",
-                    "minScore": 6.0,
-                    "message": "Ứng viên khuyết tật cần GPA ít nhất 6.0"
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "toefl"
                   },
                   {
                     "type": "minScore",
-                    "field": "workingtime",
-                    "minScore": 12,
-                    "message": "Ứng viên khuyết tật được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
+                    "field": "toeflgrade",
+                    "minScore": 60
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "pte"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ptegrade",
+                    "minScore": 50
                   }
                 ]
               }
             ]
+          },
+          {
+            "type": "minScore",
+            "field": "workingtime",
+            "minScore": 12,
+            "message": "Ứng viên khuyết tật được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
           }
         ]
       },
       {
         "id": "aas_remote_area_group",
+        "message": "Yêu cầu cho nhóm vùng khó khăn: GPA ≥ 6.5, tiếng Anh và ít nhất 12 tháng kinh nghiệm",
         "operator": "all",
         "conditions": [
           {
             "type": "select",
             "field": "nhomyeuthe",
-            "expectedValue": "hardship_area",
-            "negate": true
+            "expectedValue": "hardship_area"
+          },
+          {
+            "type": "minScore",
+            "field": "gpa",
+            "minScore": 6.5,
+            "message": "Ứng viên vùng sâu vùng xa cần GPA ít nhất 6.5"
           },
           {
             "operator": "any",
+            "message": "Ứng viên vùng sâu vùng xa cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
             "conditions": [
               {
-                "type": "select",
-                "field": "nhomyeuthe",
-                "expectedValue": "hardship_area",
-                "negate": true
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "ielts"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ieltsgrade",
+                    "minScore": 6.0
+                  }
+                ]
               },
               {
                 "operator": "all",
                 "conditions": [
                   {
-                    "type": "minScore",
-                    "field": "gpa",
-                    "minScore": 6.5,
-                    "message": "Ứng viên vùng sâu vùng xa cần GPA ít nhất 6.5"
-                  },
-                  {
-                    "operator": "any",
-                    "message": "Ứng viên vùng sâu vùng xa cần chứng chỉ tiếng Anh: IELTS ≥ 6.0, TOEFL ≥ 60, hoặc PTE ≥ 50",
-                    "conditions": [
-                      {
-                        "operator": "all",
-                        "conditions": [
-                          {
-                            "type": "select",
-                            "field": "englishTestType",
-                            "expectedValue": "ielts"
-                          },
-                          {
-                            "type": "minScore",
-                            "field": "ieltsgrade",
-                            "minScore": 6.0
-                          }
-                        ]
-                      },
-                      {
-                        "operator": "all",
-                        "conditions": [
-                          {
-                            "type": "select",
-                            "field": "englishTestType",
-                            "expectedValue": "toefl"
-                          },
-                          {
-                            "type": "minScore",
-                            "field": "toeflgrade",
-                            "minScore": 60
-                          }
-                        ]
-                      },
-                      {
-                        "operator": "all",
-                        "conditions": [
-                          {
-                            "type": "select",
-                            "field": "englishTestType",
-                            "expectedValue": "pte"
-                          },
-                          {
-                            "type": "minScore",
-                            "field": "ptegrade",
-                            "minScore": 50
-                          }
-                        ]
-                      }
-                    ]
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "toefl"
                   },
                   {
                     "type": "minScore",
-                    "field": "workingtime",
-                    "minScore": 12,
-                    "message": "Ứng viên vùng khó khăn được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
+                    "field": "toeflgrade",
+                    "minScore": 60
+                  }
+                ]
+              },
+              {
+                "operator": "all",
+                "conditions": [
+                  {
+                    "type": "select",
+                    "field": "englishTestType",
+                    "expectedValue": "pte"
+                  },
+                  {
+                    "type": "minScore",
+                    "field": "ptegrade",
+                    "minScore": 50
                   }
                 ]
               }
             ]
+          },
+          {
+            "type": "minScore",
+            "field": "workingtime",
+            "minScore": 12,
+            "message": "Ứng viên vùng khó khăn được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc"
           }
         ]
       }

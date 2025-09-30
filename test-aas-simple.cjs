@@ -4,38 +4,77 @@ const fs = require('fs');
 // Load AAS rules
 const aasRules = JSON.parse(fs.readFileSync('types/rules/aas.json', 'utf8'));
 
-// Test data that matches what the form sends
-const testAnswers = {
-  nhomyeuthe: 'khongyeuthe',  // Not in vulnerable group
-  gpa: 8.0,                   // Good GPA
-  pte: 68,                    // Good PTE score
-  workingtime: 56,            // 56 months experience
-  employmenttype: 'gov_levels' // Government job
+// Test data that matches what the form sends (from browser console)
+const testData = {
+  // Form data from browser console
+  australiaPrOrCitizen: 'australiaPrNo',
+  banATungCoTienAnTienSuChua: 'criminalno',
+  birthday: '1234-12-11',
+  citizenship: 'citizenshipyes',
+  email: 'trunghieu1991988@gmail.com',
+  employerName: 'a',
+  employmenttype: 'gov_levels',
+  englishProficiency: 'PTE',
+  fullname: 'a',
+  govscholarship: 'govescholarno',
+  gpa: 8,
+  highestQualification: 'Bachelor',
+  military: 'militaryno',
+  nhomyeuthe: 'khongyeuthe',
+  ptegrade: '68',
+  // spousepr: 'No',  // Original form value
+  studyfield: 'b',
+  workingtime: 67,
+  
+  // Mapped boolean fields (from mappers.ts)
+  isVietnameseCitizen: true,
+  hasAustralianCitizenship: false,
+  hasAustralianPR: false,
+  isMilitary: false,
+  
+  // Additional mapped fields
+  countryscholarship: 'Scholarother',
+  hasCriminalRecordOrInvestigation: false,
+  
+  // Fix spousepr mapping - "No" should map to "spouseprno"
+  spousepr: 'spouseprno'  // Override the "No" value
 };
 
 console.log('=== AAS RULES TEST ===');
-console.log('Test data:', JSON.stringify(testAnswers, null, 2));
+console.log('Test data:', JSON.stringify(testData, null, 2));
 console.log('\nTotal rules:', aasRules.length);
 
 // Simple rule evaluation function
 function evaluateCondition(condition, answers) {
-  const { field, operator, value, negate } = condition;
+  const { field, type, expectedValue, minScore, value, operator, negate } = condition;
   const fieldValue = answers[field];
   
   let result;
-  switch (operator) {
-    case 'eq':
-      result = fieldValue === value;
-      break;
-    case 'gte':
-      result = fieldValue >= value;
-      break;
-    case 'in':
-      result = Array.isArray(value) ? value.includes(fieldValue) : fieldValue === value;
-      break;
-    default:
-      console.warn(`Unknown operator: ${operator}`);
-      return false;
+  
+  if (type === 'select') {
+    result = fieldValue === (expectedValue || value);
+  } else if (type === 'minScore') {
+    result = fieldValue >= (minScore || value);
+  } else if (type === 'boolean') {
+    result = fieldValue === (expectedValue || value);
+  } else if (operator) {
+    switch (operator) {
+      case 'eq':
+        result = fieldValue === value;
+        break;
+      case 'gte':
+        result = fieldValue >= value;
+        break;
+      case 'in':
+        result = Array.isArray(value) ? value.includes(fieldValue) : fieldValue === value;
+        break;
+      default:
+        console.warn(`Unknown operator: ${operator}`);
+        return false;
+    }
+  } else {
+    console.warn(`Unknown condition type: ${type || 'undefined'}`);
+    return false;
   }
   
   return negate ? !result : result;
@@ -68,9 +107,10 @@ function evaluateRule(rule, answers) {
       return results.every(r => r);
     } else if (operator === 'any') {
       return results.some(r => r);
+    } else {
+      console.warn(`Unknown operator: ${operator}`);
+      return false;
     }
-    
-    return false;
   }
 }
 
@@ -81,7 +121,7 @@ const remoteAreaRule = aasRules.find(r => r.id === 'aas_remote_area_group');
 console.log('\n=== DISABILITY RULE TEST ===');
 if (disabilityRule) {
   console.log('Rule structure:', JSON.stringify(disabilityRule, null, 2));
-  const result = evaluateRule(disabilityRule, testAnswers);
+  const result = evaluateRule(disabilityRule, testData);
   console.log('Result:', result ? 'PASS' : 'FAIL');
 } else {
   console.log('Disability rule not found');
@@ -90,7 +130,7 @@ if (disabilityRule) {
 console.log('\n=== REMOTE AREA RULE TEST ===');
 if (remoteAreaRule) {
   console.log('Rule structure:', JSON.stringify(remoteAreaRule, null, 2));
-  const result = evaluateRule(remoteAreaRule, testAnswers);
+  const result = evaluateRule(remoteAreaRule, testData);
   console.log('Result:', result ? 'PASS' : 'FAIL');
 } else {
   console.log('Remote area rule not found');
@@ -103,7 +143,7 @@ let failedRules = 0;
 
 for (const rule of aasRules) {
   try {
-    const result = evaluateRule(rule, testAnswers);
+    const result = evaluateRule(rule, testData);
     if (result) {
       passedRules++;
       console.log(`✓ ${rule.id}: PASS`);
