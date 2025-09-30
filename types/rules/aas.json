@@ -1,37 +1,198 @@
 [
   {
-    "field": "ielts",
-    "type": "minScore",
-    "value": 6.5,
-    "message": "Điểm IELTS của bạn chưa đạt yêu cầu tối thiểu (6.5)",
-    "messageKey": "aas.ielts.min"
+    "id": "aas_citizenship_rule",
+    "operator": "all",
+    "rules": [
+      {
+        "id": "aas_citizenship_vietnam",
+        "field": "citizenship",
+        "type": "select",
+        "value": "citizenshipyes",
+        "message": "Bạn phải có quốc tịch Việt Nam"
+      },
+      {
+        "id": "aas_residency_vietnam",
+        "field": "residency",
+        "type": "select",
+        "value": "residencyyes",
+        "message": "Bạn phải cư trú tại Việt Nam"
+      },
+      {
+        "id": "aas_australia_pr_no",
+        "field": "australiaPrOrCitizen",
+        "type": "select",
+        "value": "australiaPrNo",
+        "message": "Bạn không được là công dân hoặc cư trú lâu dài của Úc"
+      },
+      {
+        "id": "aas_spouse_pr_no",
+        "field": "spousepr",
+        "type": "select",
+        "value": "spouseprno",
+        "message": "Vợ/chồng bạn không được là công dân hoặc cư trú lâu dài của Úc/NZ"
+      }
+    ],
+    "message": "Không đáp ứng yêu cầu quốc tịch"
   },
   {
-    "field": "military",
-    "type": "boolean",
-    "value": false,
-    "message": "Bạn đang công tác trong cơ quan quân đội hoặc an ninh",
-    "messageKey": "aas.military.block"
+    "id": "aas_security_rules",
+    "operator": "all",
+    "rules": [
+      {
+        "id": "aas_no_military",
+        "field": "military",
+        "type": "select",
+        "value": "militaryno",
+        "message": "Bạn không được phục vụ trong quân đội"
+      },
+      {
+        "id": "aas_no_criminal_record",
+        "field": "banATungCoTienAnTienSuChua",
+        "type": "select",
+        "value": "criminalno",
+        "message": "Bạn không được có tiền án tiền sự"
+      }
+    ],
+    "message": "Không đáp ứng yêu cầu an ninh"
   },
   {
-    "field": "companyOwnership",
+    "id": "aas_previous_scholarship",
+    "field": "govscholarship",
     "type": "select",
-    "value": "vietnamese_owned",
-    "message": "Công ty bạn làm không thuộc sở hữu Việt Nam",
-    "messageKey": "aas.ownership.vn"
+    "value": "govescholarno",
+    "message": "Bạn không được từng nhận học bổng chính phủ Úc trước đây (trừ ngoại lệ được chấp thuận)"
   },
   {
-    "field": "workExperience",
-    "type": "minScore",
-    "value": 2,
-    "message": "Bạn cần ít nhất 2 năm kinh nghiệm toàn thời gian",
-    "messageKey": "aas.experience.min"
-  },
-  {
-    "field": "countryOfResidence",
+    "id": "aas_education_level",
+    "field": "highestQualification",
     "type": "select",
-    "value": "vietnam",
-    "message": "Bạn hiện không cư trú tại Việt Nam",
-    "messageKey": "aas.residence.vn"
+    "value": "bachelor",
+    "message": "Trình độ học vấn cao nhất của bạn phải là Bachelor (Master/PhD sẽ không đủ điều kiện)"
+  },
+  {
+    "id": "aas_work_experience_rule",
+    "operator": "any",
+    "rules": [
+      {
+        "id": "aas_standard_work_experience",
+        "field": "workingtime",
+        "type": "minScore",
+        "value": 24,
+        "message": "Bạn cần ít nhất 24 tháng kinh nghiệm làm việc full-time"
+      },
+      {
+        "id": "aas_disability_exemption",
+        "field": "nhomyeuthe",
+        "type": "select",
+        "value": "khuyettat",
+        "message": "Ngoại lệ cho người khuyết tật: cần ít nhất 12 tháng kinh nghiệm làm việc"
+      },
+      {
+        "id": "aas_rural_exemption",
+        "field": "nhomyeuthe",
+        "type": "select",
+        "value": "vungkhohkhan",
+        "message": "Ngoại lệ cho người sống & làm việc vùng sâu vùng xa: cần ít nhất 12 tháng kinh nghiệm làm việc"
+      }
+    ],
+    "message": "Không đáp ứng yêu cầu kinh nghiệm làm việc"
+  },
+  {
+    "id": "aas_english_proficiency",
+    "operator": "any",
+    "rules": [
+      {
+        "id": "aas_ielts_requirement",
+        "field": "ieltsgrade",
+        "type": "minScore",
+        "value": 6.5,
+        "message": "IELTS phải đạt ít nhất 6.5"
+      },
+      {
+        "id": "aas_toefl_requirement",
+        "field": "toeflgrade",
+        "type": "minScore",
+        "value": 84,
+        "message": "TOEFL iBT phải đạt ít nhất 84"
+      },
+      {
+        "id": "aas_pte_requirement",
+        "field": "ptegrade",
+        "type": "minScore",
+        "value": 58,
+        "message": "PTE Academic phải đạt ít nhất 58"
+      }
+    ],
+    "message": "Không đáp ứng yêu cầu tiếng Anh"
+  },
+  {
+    "id": "aas_gpa_rule",
+    "operator": "any",
+    "rules": [
+      {
+        "id": "aas_gpa_gov_vocational_research",
+        "operator": "all",
+        "rules": [
+          {
+            "id": "aas_employmenttype_gov_vocational_research",
+            "field": "employmenttype",
+            "type": "select",
+            "value": "gov_levels,vocational_school,research_institute",
+            "message": "Nhóm công tác phù hợp"
+          },
+          {
+            "id": "aas_gpa_min_6_5",
+            "field": "gpa",
+            "type": "minScore",
+            "value": 6.5,
+            "message": "GPA phải đạt ít nhất 6.5"
+          }
+        ],
+        "message": "Không đáp ứng yêu cầu GPA cho nhóm công tác chính phủ, trường nghề, viện nghiên cứu"
+      },
+      {
+        "id": "aas_gpa_university_ngo",
+        "operator": "all",
+        "rules": [
+          {
+            "id": "aas_employmenttype_university_ngo",
+            "field": "employmenttype",
+            "type": "select",
+            "value": "provincial_university,major_city_university,vn_ngo,intl_ngo",
+            "message": "Nhóm công tác phù hợp"
+          },
+          {
+            "id": "aas_gpa_min_7_0",
+            "field": "gpa",
+            "type": "minScore",
+            "value": 7.0,
+            "message": "GPA phải đạt ít nhất 7.0"
+          }
+        ],
+        "message": "Không đáp ứng yêu cầu GPA cho nhóm trường đại học, tổ chức phi chính phủ"
+      },
+      {
+        "id": "aas_gpa_company",
+        "operator": "all",
+        "rules": [
+          {
+            "id": "aas_employmenttype_company",
+            "field": "employmenttype",
+            "type": "select",
+            "value": "foreign_company,vn_company",
+            "message": "Nhóm công tác phù hợp"
+          },
+          {
+            "id": "aas_gpa_min_7_5",
+            "field": "gpa",
+            "type": "minScore",
+            "value": 7.5,
+            "message": "GPA phải đạt ít nhất 7.5"
+          }
+        ],
+        "message": "Không đáp ứng yêu cầu GPA cho nhóm công ty"
+      }
+    ],
+    "message": "Không đáp ứng yêu cầu GPA theo nhóm tổ chức công tác"
   }
 ]

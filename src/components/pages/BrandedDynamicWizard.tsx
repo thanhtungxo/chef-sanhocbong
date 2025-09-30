@@ -112,6 +112,8 @@ export const BrandedDynamicWizard: React.FC = () => {
   // Add state to track if we've completed the wizard and should show results
   const [showResults, setShowResults] = React.useState(false);
   const [evaluationResults, setEvaluationResults] = React.useState<ScholarshipEvaluationSummary[]>([]);
+  const [messageType, setMessageType] = React.useState<"fail_all" | "pass_all" | "pass_some">('pass_some');
+  const [eligible, setEligible] = React.useState<boolean>(false);
   // We'll use a ref to store the username to avoid React state timing issues
   const userNameRef = React.useRef<string>("Thành viên");
   
@@ -199,8 +201,14 @@ export const BrandedDynamicWizard: React.FC = () => {
       // Update allValues with the complete form data
       setAllValues(merged);
       
+      // Log the full evaluation result
+      console.log('Evaluation result:', evaluation);
+      
       // Set the evaluation results and show the results page
-      setEvaluationResults(evaluation.eligibilityResults || []);
+      // Use the new structure with scholarships, eligible, and messageType
+      setEvaluationResults(evaluation.scholarships || []);
+      setMessageType(evaluation.messageType || 'pass_some');
+      setEligible(evaluation.eligible || false);
       setShowResults(true);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -220,6 +228,8 @@ export const BrandedDynamicWizard: React.FC = () => {
       <ResultPage
         userName={userNameRef.current}
         eligibilityResults={evaluationResults}
+        messageType={messageType}
+        eligible={eligible}
       />
     );
   }

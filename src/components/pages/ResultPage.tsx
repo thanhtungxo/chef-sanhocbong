@@ -17,13 +17,15 @@ interface Scholarship {
   id: string;
   name: string;
   eligible: boolean;
-  reasons: Reason[];
+  reasons?: Reason[];
 }
 
 interface ResultPageProps {
   userName: string;
   eligibilityResults: Scholarship[];
   cmsResultText?: string;
+  messageType?: "fail_all" | "pass_all" | "pass_some";
+  eligible?: boolean;
 }
 
 /**
@@ -31,15 +33,31 @@ interface ResultPageProps {
  * @param userName - Name of the user
  * @param eligibilityResults - Full list of scholarship eligibility results
  * @param cmsResultText - Text content managed by admin through CMS
+ * @param messageType - Precomputed message type from the backend
+ * @param eligible - Overall eligibility status from the backend
  */
-export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityResults = [],  cmsResultText,}) => {
+export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityResults = [],  cmsResultText, messageType, eligible }) => {
   // Get CMS configuration from the database
   const resultPageConfig = useQuery(api.resultPage.getResultPageConfig, {});
   
-  // Determine which scenario we're in
-  const allFailed = useMemo(() => eligibilityResults.every(r => !r.eligible), [eligibilityResults]);
-  const allPassed = useMemo(() => eligibilityResults.every(r => r.eligible), [eligibilityResults]);
-  const passedSome = useMemo(() => !allFailed && !allPassed, [allFailed, allPassed]);
+  // Calculate scenarios if not provided from backend
+  const allFailed = useMemo(() => {
+    if (messageType === 'fail_all') return true;
+    if (messageType) return false;
+    return eligibilityResults.every(r => !r.eligible);
+  }, [eligibilityResults, messageType]);
+  
+  const allPassed = useMemo(() => {
+    if (messageType === 'pass_all') return true;
+    if (messageType) return false;
+    return eligibilityResults.every(r => r.eligible);
+  }, [eligibilityResults, messageType]);
+  
+  const passedSome = useMemo(() => {
+    if (messageType === 'pass_some') return true;
+    if (messageType) return false;
+    return !allFailed && !allPassed;
+  }, [eligibilityResults, messageType, allFailed, allPassed]);
   
   // Filter only eligible scholarships for the grid
   const eligibleScholarships = useMemo(() => 
@@ -136,8 +154,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   const displayFallbackMessage = configMessages.fallbackMessage;
 
   // Handle navigation to Layer 2 (Smart Profile Analysis)
-  const handleNavigateToLayer2 = (scholarship?: Scholarship) => {
+  const handleNavigateToLayer2 = (scholarship: Scholarship) => {
     console.log("TODO: Navigate to Layer 2 - Smart Profile Analysis", { scholarship });
+    // In a real application, this would navigate to the next step
+    alert('Chuyển đến Layer 2 - Smart Profile Analysis (tính năng đang phát triển)');
+  };
+  
+  // Handle CTA click (no specific scholarship)
+  const handleCTAClick = () => {
+    console.log("TODO: Navigate to Layer 2 from CTA");
     // In a real application, this would navigate to the next step
     alert('Chuyển đến Layer 2 - Smart Profile Analysis (tính năng đang phát triển)');
   };
@@ -163,12 +188,26 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         <InsightBox
             feedback={aiFeedback}
             ctaText={displayCTAText}
-            onCTAClick={handleNavigateToLayer2}
+            onCTAClick={handleCTAClick}
             configMessages={configMessages}
           />
       </div>
       
-      {eligibleScholarships.length > 0 ? (
+      {/* Use the backend's eligible status if available, otherwise fall back to our calculation */}
+      {typeof eligible === 'boolean' ? (
+        eligible ? (
+          <div className="mt-12">
+            <ScholarshipGrid 
+              scholarships={eligibleScholarships}
+              onScholarshipClick={handleNavigateToLayer2}
+            />
+          </div>
+        ) : (
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
+          </div>
+        )
+      ) : eligibleScholarships.length > 0 ? (
         <div className="mt-12">
           <ScholarshipGrid 
             scholarships={eligibleScholarships}
@@ -184,7 +223,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
       <div className="mt-12">
         <ResultCTA 
           eligibleScholarships={eligibleScholarships}
-          onCTAClick={handleNavigateToLayer2}
+          onCTAClick={handleCTAClick}
         />
       </div>
       

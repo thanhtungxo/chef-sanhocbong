@@ -159,7 +159,7 @@ export const ResultPageConfig: React.FC = () => {
       </CardHeader>
       
       {error && (
-        <Alert variant="destructive" className="mx-6 -mt-4 mb-6">
+        <Alert className="mx-6 -mt-4 mb-6 bg-red-50 border-red-200 text-red-800">
           <AlertTitle>Lỗi</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -296,7 +296,7 @@ export const ResultPageConfig: React.FC = () => {
             {versionHistory && versionHistory.length > 0 ? (
               <ScrollArea className="h-[400px] rounded-md border">
                 <div className="p-4 space-y-4">
-                  {versionHistory.map((version, index) => (
+                  {versionHistory.map((version: { updatedAt?: string; createdAt: string; ctaText?: string; allFailedMessage?: string; allPassedMessage?: string; passedSomeMessage?: string; }, index: number) => (
                     <div key={index} className="p-4 border rounded-md bg-muted/30">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium">Phiên bản {index + 1}</span>

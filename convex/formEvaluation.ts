@@ -2,7 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { loadRulesServer, evaluateWithRules } from "./utils/rules";
 import { listScholarships } from "./scholarships";
-import type { ScholarshipEvaluationSummary } from "./shared/eligibility";
+import type { ScholarshipEvaluationSummary, EligibilityResult } from "./shared/eligibility";
 
 // Evaluate form responses against all active scholarships
 // Returns eligibility status for each scholarship
@@ -110,6 +110,31 @@ export const submitAndEvaluateForm = mutation({
         eligibilityResults
     });
     
-    // Return all evaluation results
-    return { eligibilityResults };
+    // Calculate messageType based on eligibility results
+    const totalScholarships = eligibilityResults.length;
+    const passedScholarships = eligibilityResults.filter(result => result.eligible).length;
+    
+    let messageType: "fail_all" | "pass_all" | "pass_some" = "pass_some";
+    let overallEligible = false;
+    
+    if (passedScholarships === 0) {
+        messageType = "fail_all";
+        overallEligible = false;
+    } else if (passedScholarships === totalScholarships) {
+        messageType = "pass_all";
+        overallEligible = true;
+    } else {
+        messageType = "pass_some";
+        overallEligible = true;
+    }
+    
+    // Return all evaluation results with messageType
+    const result: EligibilityResult = {
+        applicationId: "", // This will be populated when saved
+        scholarships: eligibilityResults,
+        eligible: overallEligible,
+        messageType
+    };
+    
+    return result;
 } });

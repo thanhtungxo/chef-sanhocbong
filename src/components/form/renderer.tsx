@@ -74,7 +74,7 @@ export function buildZodField(q: any): z.ZodTypeAny {
   return required ? base : base.optional();
 }
 
-export function schemaForStep(questions: any[]): z.ZodSchema<any> {
+export function schemaForStep(questions: any[]): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const q of questions) shape[q.key] = buildZodField(q);
   return z.object(shape);

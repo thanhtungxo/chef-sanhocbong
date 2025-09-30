@@ -101,5 +101,7 @@ export interface ScholarshipEvaluationSummary {
 export interface EligibilityResult {
   applicationId: string;
   scholarships: ScholarshipEvaluationSummary[];
+  eligible: boolean;
+  messageType: "fail_all" | "pass_all" | "pass_some";
 }
 

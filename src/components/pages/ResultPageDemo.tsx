@@ -113,7 +113,7 @@ export const ResultPageDemo: React.FC = () => {
             <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Kiểm tra hỗ trợ định dạng reasons</h1>
             <button 
               className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 mb-8"
-              onClick={() => setShowTest(false)}
+              onClick={() => setShowTest('main')}
             >
               Quay lại kịch bản chính
             </button>
