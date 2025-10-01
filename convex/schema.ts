@@ -56,6 +56,15 @@ const applicationTables = {
     cheveningReasons: v.array(v.string()),
     createdAt: v.number(),
   }).index('by_createdAt', ['createdAt']),
+  form_submissions: defineTable({
+    userId: v.optional(v.id("users")),
+    fullName: v.optional(v.string()),
+    email: v.optional(v.string()),
+    responses: v.any(),
+    normalizedAnswers: v.any(),
+    result: v.any(),
+    createdAt: v.number(),
+  }).index('by_userId', ['userId']).index('by_createdAt', ['createdAt']),
 };
 
 export default defineSchema({

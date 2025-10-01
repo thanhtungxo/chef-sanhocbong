@@ -3,6 +3,7 @@ import { EligibilityChecker } from "@/components/pages/EligibilityChecker";
 import { DynamicForm } from "@/components/pages/DynamicForm";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { AdminDashboard } from "@/components/pages/AdminDashboard";
+import { SmartProfilePage } from "@/components/pages/SmartProfilePage";
 
 export default function App() {
   const admin = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin') === '1';
@@ -20,8 +21,8 @@ export default function App() {
           </div>
         )
       ) : (
-        // Default to the branded EligibilityChecker unless ui=dynamic
-        ui === 'dynamic' ? <DynamicForm /> : <EligibilityChecker />
+        // Default to the branded EligibilityChecker unless ui=dynamic or ui=smart-profile
+        ui === 'dynamic' ? <DynamicForm /> : ui === 'smart-profile' ? <SmartProfilePage /> : <EligibilityChecker />
       )}
       <Toaster />
     </div>

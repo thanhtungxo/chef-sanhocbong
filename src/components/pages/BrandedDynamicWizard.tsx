@@ -8,6 +8,8 @@ import { schemaForStep, renderField } from '@/components/form/renderer';
 import { tOptional } from '@/lib/i18n';
 import { ResultPage } from './ResultPage';
 import type { ScholarshipEvaluationSummary } from '../../../convex/shared/eligibility';
+import { Button } from '@/components/ui/button';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export const BrandedDynamicWizard: React.FC = () => {
   const active = useQuery(api.forms.getActiveForm, {});
@@ -124,28 +126,12 @@ export const BrandedDynamicWizard: React.FC = () => {
     const merged = { ...allValues, ...vals };
     (window as any).dynamicFormValues = merged;
     
-    // Debug logs to understand what's happening with the form data
-    console.log('Wizard completed - merged data:', merged);
-    console.log('Full name field exists (fullName):', 'fullName' in merged);
-    console.log('Full name value (fullName):', merged.fullName);
-    console.log('Full name field exists (fullname):', 'fullname' in merged);
-    console.log('Full name value (fullname):', merged.fullname);
-    
-    // Also check if there might be other fields containing name information
-    console.log('Other possible name fields:');
-    for (const key of Object.keys(merged)) {
-      if (key.toLowerCase().includes('name') && key !== 'fullName' && key !== 'fullname') {
-        console.log(`- ${key}: ${merged[key]}`);
-      }
-    }
-    
     try {
       // Extract name and email for submission (we'll use defaults if not available)
       const fullName = merged.fullname || merged.fullName || 'Unknown';
       const email = merged.email || 'unknown@example.com';
       
       // Submit the form data and evaluate against scholarship rules
-      // Correct way to call convex mutation
       const evaluation = await evaluateForm({
         responses: merged,
         fullName,
@@ -154,62 +140,25 @@ export const BrandedDynamicWizard: React.FC = () => {
       
       // Extract username directly from merged data and store in ref
       let extractedUserName = "Thành viên";
-      
-      // First check if fullname (all lowercase) exists and is not empty
       if (merged.fullname && merged.fullname.trim()) {
-        console.log('Attempting to extract username from fullname:', merged.fullname);
         const nameParts = merged.fullname.trim().split(/\s+/);
-        console.log('Split name parts:', nameParts);
-        
-        // Ensure we have at least one part after splitting
-        if (nameParts.length > 0) {
-          extractedUserName = nameParts[nameParts.length - 1];
-          console.log('Extracted username from fullname:', extractedUserName);
-        } else {
-          console.log('Name parts array is empty after splitting');
-        }
+        if (nameParts.length > 0) extractedUserName = nameParts[nameParts.length - 1];
       } else if (merged.fullName && merged.fullName.trim()) {
-        console.log('Attempting to extract username from fullName:', merged.fullName);
         const nameParts = merged.fullName.trim().split(/\s+/);
-        console.log('Split name parts:', nameParts);
-        
-        if (nameParts.length > 0) {
-          extractedUserName = nameParts[nameParts.length - 1];
-          console.log('Extracted username from fullName:', extractedUserName);
-        }
+        if (nameParts.length > 0) extractedUserName = nameParts[nameParts.length - 1];
       } else {
-        console.log('Neither fullname nor fullName found in merged data');
-        
-        // Search for any other field that might contain a name
         for (const key of Object.keys(merged)) {
           if (key.toLowerCase().includes('name') && key !== 'fullName' && key !== 'fullname' && merged[key] && typeof merged[key] === 'string' && merged[key].trim()) {
-            console.log('Found potential name in field', key, ':', merged[key]);
             const nameParts = merged[key].trim().split(/\s+/);
             if (nameParts.length > 0) {
               extractedUserName = nameParts[nameParts.length - 1];
-              console.log('Extracted username from alternative field:', extractedUserName);
               break;
             }
           }
         }
       }
-      
-      // Final verification
-      console.log('Final username to be displayed:', extractedUserName);
       userNameRef.current = extractedUserName;
-      
-      // Update allValues with the complete form data
       setAllValues(merged);
-      
-      // Log the full evaluation result
-      console.log('Evaluation result:', evaluation);
-      console.log('Scholarships count:', evaluation.scholarships?.length);
-      console.log('Eligible count:', evaluation.scholarships?.filter(s => s.eligible).length);
-      console.log('Overall eligible:', evaluation.eligible);
-      console.log('Message type:', evaluation.messageType);
-      
-      // Set the evaluation results and show the results page
-      // Use the new structure with scholarships, eligible, and messageType
       setEvaluationResults(evaluation.scholarships || []);
       setMessageType(evaluation.messageType || 'pass_some');
       setEligible(evaluation.eligible || false);
@@ -225,6 +174,29 @@ export const BrandedDynamicWizard: React.FC = () => {
     tOptional(currentStep?.titleKey) ??
     currentStep?.titleKey ??
     '';
+
+  // Accessibility: capture Enter to go next/finish
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (stepIdx < totalSteps - 1) handleNext(); else handleFinish();
+    }
+  };
+
+  // Icons for timeline (fallback sequence)
+  const stepIcons = ['👤', '🎓', '💼', '📑'];
+
+  // Motion variants
+  const stepVariants = {
+    initial: { x: 40, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    exit: { x: -40, opacity: 0 }
+  };
+
+  const fieldVariants = {
+    initial: { y: 8, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+  };
 
   // If we've completed the wizard and should show results, render ResultPage
   if (showResults) {
@@ -258,73 +230,119 @@ export const BrandedDynamicWizard: React.FC = () => {
     questionIndexMap.set(q.key, idx + 1); // +1 for 1-based numbering
   });
 
+  // Progress percentage
+  const progressPercent = totalSteps > 0 ? ((stepIdx + 1) / totalSteps) * 100 : 0;
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="font-medium">Bước {stepIdx + 1}/{totalSteps}</div>
-          {stepTitle && <h2 className="text-lg font-semibold">{stepTitle}</h2>}
+      {/* Header with brand logo and tagline */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]">Sanhocbong</div>
+          <div className="text-sm text-muted-foreground">Khám phá cơ hội học bổng phù hợp</div>
         </div>
-        <progress className="w-full h-2" value={stepIdx + 1} max={totalSteps} />
+        <div className="text-sm font-medium">Bước {stepIdx + 1}/{totalSteps}</div>
+      </div>
+
+      {/* Timeline progress with icons */}
+      <div className="rounded-xl border bg-white/60 backdrop-blur p-4">
+        <div className="flex items-center justify-between">
+          {steps.map((s: any, i: number) => (
+            <div key={(s as any)._id ?? i} className="flex-1 flex items-center">
+              <div className={`flex items-center justify-center w-9 h-9 rounded-full border ${i <= stepIdx ? 'bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white border-transparent' : 'bg-white text-gray-600'} shadow`} aria-label={`Step ${i+1}`}>
+                <span className="text-base" aria-hidden="true">{stepIcons[i] ?? '⬤'}</span>
+              </div>
+              {i < steps.length - 1 && (
+                <div className="flex-1 h-1 mx-2 rounded bg-gray-200 overflow-hidden">
+                  <motion.div
+                    className="h-1 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]"
+                    initial={{ width: 0 }}
+                    animate={{ width: i < stepIdx ? '100%' : i === stepIdx ? `${progressPercent}%` : '0%' }}
+                    transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {stepTitle && <h2 className="mt-3 text-lg font-semibold">{stepTitle}</h2>}
       </div>
 
       <Form {...form}>
-        <form className="space-y-4" onSubmit={(event) => event.preventDefault()}>
-          {questions.length === 0 && (
-            <div className="text-sm text-gray-500">Chưa có câu hỏi nào cho bước này.</div>
-          )}
+        <AnimatePresence mode="wait">
+          <motion.form
+            key={stepIdx}
+            className="space-y-4"
+            onSubmit={(event) => event.preventDefault()}
+            onKeyDown={handleKeyDown}
+            variants={stepVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ type: 'tween', duration: 0.25 }}
+            aria-label={`Form Step ${stepIdx + 1}`}
+          >
+            {questions.length === 0 && (
+              <div className="text-sm text-gray-500">Chưa có câu hỏi nào cho bước này.</div>
+            )}
 
-          {questions.map((q: any) => {
-            const label = (q.ui?.labelText as string | undefined) ?? tOptional(q.labelKey);
-            if (!label) return null;
-            
-            // Kiểm tra xem câu hỏi có nên được hiển thị hay không
-            if (!shouldShowQuestion(q)) {
-              return null;
-            }
-            
-            // Get the visible index for this question
-            const questionNumber = questionIndexMap.get(q.key);
-            
-            return (
-              <FormField
-                key={q.key}
-                name={q.key}
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {questionNumber && (
-                        <span className="mr-2 font-medium" aria-hidden="true">{questionNumber}.</span>
-                      )}
-                      {label}
-                    </FormLabel>
-                    <FormControl>{renderField(q, field, form.watch)}</FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            );
-          })}
+            {questions.map((q: any, idx: number) => {
+              const label = (q.ui?.labelText as string | undefined) ?? tOptional(q.labelKey);
+              if (!label) return null;
+              // Kiểm tra xem câu hỏi có nên được hiển thị hay không
+              if (!shouldShowQuestion(q)) {
+                return null;
+              }
+              // Get the visible index for this question
+              const questionNumber = questionIndexMap.get(q.key);
+              return (
+                <motion.div
+                  key={q.key}
+                  variants={fieldVariants}
+                  initial="initial"
+                  animate="animate"
+                  transition={{ delay: 0.05 * idx }}
+                >
+                  <FormField
+                    name={q.key}
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {questionNumber && (
+                            <span className="mr-2 font-medium" aria-hidden="true">{questionNumber}.</span>
+                          )}
+                          {label}
+                        </FormLabel>
+                        <FormControl>{renderField(q, field, form.watch)}</FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+              );
+            })}
 
-          <div className="flex items-center justify-between pt-4">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={stepIdx === 0}
-              className="px-4 py-2 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Quay lại
-            </button>
-            <button
-              type="button"
-              onClick={isLastStep ? handleFinish : handleNext}
-              className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLastStep ? 'Hoàn thành' : 'Tiếp tục'}
-            </button>
-          </div>
-        </form>
+            <div className="flex items-center justify-between pt-4">
+              <Button
+                type="button"
+                onClick={handlePrev}
+                disabled={stepIdx === 0}
+                variant="secondary"
+                className="hover:scale-[1.03] transition-transform shadow-sm"
+              >
+                Quay lại
+              </Button>
+              <Button
+                type="button"
+                onClick={isLastStep ? handleFinish : handleNext}
+                className="bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:shadow-[0_0_12px_rgba(58,123,213,0.45)] hover:scale-[1.05] transition-all"
+              >
+                {isLastStep ? 'Hoàn thành' : 'Tiếp tục'}
+              </Button>
+            </div>
+          </motion.form>
+        </AnimatePresence>
       </Form>
     </div>
   );

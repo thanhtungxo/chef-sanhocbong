@@ -5,6 +5,7 @@ import { ResultBanner } from './ResultBanner';
 import { InsightBox } from './InsightBox';
 import { ScholarshipGrid } from './ScholarshipGrid';
 import { ResultCTA } from './ResultCTA';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // Define the Scholarship interface
 interface ReasonObject {
@@ -40,6 +41,17 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   // Get CMS configuration from the database
   const resultPageConfig = useQuery(api.resultPage.getResultPageConfig, {});
   
+  // Confetti state
+  const [showConfetti, setShowConfetti] = React.useState(false);
+  React.useEffect(() => {
+    const hasEligible = typeof eligible === 'boolean' ? eligible : eligibilityResults.some(r => r.eligible);
+    if (hasEligible) {
+      setShowConfetti(true);
+      const t = setTimeout(() => setShowConfetti(false), 2500);
+      return () => clearTimeout(t);
+    }
+  }, [eligible, eligibilityResults]);
+
   // Calculate scenarios if not provided from backend
   const allFailed = useMemo(() => {
     if (messageType === 'fail_all') return true;
@@ -114,11 +126,11 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     
     // Simple mock feedback based on scenario
     if (allFailed) {
-      return `Xin chào ${userName}, sau khi đánh giá hồ sơ của bạn, chúng tôi thấy bạn chưa đáp ứng đủ các yêu cầu cho các học bổng hiện tại. Đây là một cơ hội để bạn cải thiện hồ sơ. Hãy xem xét việc nâng cao trình độ tiếng Anh, tích lũy thêm kinh nghiệm làm việc hoặc bổ sung các dự án liên quan.`;
+      return `Xin chào ${userName}, sau khi đánh giá hồ sơ của bạn, chúng tôi thấy bạn chưa đáp ứng đủ các yêu cầu cho các học bổng hiện tại. Đây là mội cơ hội để bạn cải thiện hồ sơ. Hãy xem xét việc nâng cao trình độ tiếng Anh, tích lũy thêm kinh nghiệm làm việc hoặc bổ sung các dự án liên quan.`;
     } else if (allPassed) {
-      return `Xin chào ${userName}, chúc mừng! Hồ sơ của bạn rất xuất sắc và đáp ứng đầy đủ các yêu cầu cho tất cả các học bổng. Đây là một bước đột phá trong hành trình học thuật của bạn. Hãy tiếp tục phát huy những ưu điểm này.`;
+      return `Xin chào ${userName}, chúc mừng! Hồ sơ của bạn rất xuất sắc và đáp ứng đầy đủ các yêu cầu cho tất cả các học bổng. Đây là mội bước đột phá trong hành trình học thuật của bạn. Hãy tiếp tục phát huy những ưu điểm này.`;
     } else {
-      return `Xin chào ${userName}, sau khi đánh giá hồ sơ, chúng tôi thấy bạn đủ điều kiện cho một số học bổng. Đây là một kết quả tuyệt vời! Để cải thiện thêm, hãy tập trung vào các điểm yếu được chỉ ra để gia tăng cơ hội nhận học bổng.`;
+      return `Xin chào ${userName}, sau khi đánh giá hồ sơ, chúng tôi thấy bạn đủ điều kiện cho một số học bổng. Đây là mội kết quả tuyệt vời! Để cải thiện thêm, hãy tập trung vào các điểm yếu được chỉ ra để gia tăng cơ hội nhận học bổng.`;
     }
   }, [finalPrompt, userName, allFailed, allPassed]);
   
@@ -176,9 +188,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   
   // Handle CTA click (no specific scholarship)
   const handleCTAClick = () => {
-    console.log("TODO: Navigate to Layer 2 from CTA");
-    // In a real application, this would navigate to the next step
-    alert('Chuyển đến Layer 2 - Smart Profile Analysis (tính năng đang phát triển)');
+    // Navigate to Smart Profile Analysis layer using query param routing
+    const url = new URL(window.location.href);
+    url.searchParams.set('ui', 'smart-profile');
+    window.location.href = url.toString();
   };
   
   // Handle navigation back to homepage
@@ -189,67 +202,106 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   };
   
   return (
-    <div className="result-page container mx-auto px-4 py-8">
-      <ResultBanner 
-        userName={userName}
-        allFailed={allFailed}
-        allPassed={allPassed}
-        passedSome={passedSome}
-        configMessages={{ subheading: configMessages.subheading }}
-      />
+    <motion.div
+      className="result-page container mx-auto px-4 py-8"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Confetti Overlay */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {[...Array(50)].map((_, i) => {
+            const startX = Math.random() * window.innerWidth;
+            const driftX = (Math.random() - 0.5) * 100;
+            const duration = 1.2 + Math.random() * 1.2;
+            const size = 6 + Math.random() * 8;
+            const colors = ['#00d2ff', '#3a7bd5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+            const color = colors[i % colors.length];
+            return (
+              <motion.div
+                key={i}
+                initial={{ x: startX, y: -40, rotate: 0, opacity: 1 }}
+                animate={{ x: startX + driftX, y: window.innerHeight + 40, rotate: 360 }}
+                transition={{ duration, ease: 'easeOut' }}
+                style={{ width: size, height: size, backgroundColor: color, borderRadius: 2, boxShadow: '0 0 6px rgba(0,0,0,0.08)' }}
+                className="absolute"
+              />
+            );
+          })}
+        </div>
+      )}
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={messageType}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.25 }}
+        >
+          <ResultBanner 
+            userName={userName}
+            allFailed={allFailed}
+            allPassed={allPassed}
+            passedSome={passedSome}
+            configMessages={{ subheading: configMessages.subheading }}
+          />
+        </motion.div>
+      </AnimatePresence>
       
-      <div className="mt-8">
+      <motion.div className="mt-8" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <InsightBox
             feedback={aiFeedback}
             ctaText={displayCTAText}
             onCTAClick={handleCTAClick}
             configMessages={configMessages}
           />
-      </div>
+      </motion.div>
       
       {/* Use the backend's eligible status if available, otherwise fall back to our calculation */}
       {typeof eligible === 'boolean' ? (
         eligible ? (
-          <div className="mt-12">
+          <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <ScholarshipGrid 
               scholarships={eligibleScholarships}
-              onScholarshipClick={handleNavigateToLayer2}
+              onScholarshipClick={(sch) => handleCTAClick()}
             />
-          </div>
+          </motion.div>
         ) : (
-          <div className="mt-12 text-center">
+          <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
-          </div>
+          </motion.div>
         )
       ) : eligibleScholarships.length > 0 ? (
-        <div className="mt-12">
+        <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <ScholarshipGrid 
             scholarships={eligibleScholarships}
-            onScholarshipClick={handleNavigateToLayer2}
+            onScholarshipClick={(sch) => handleCTAClick()}
           />
-        </div>
+        </motion.div>
       ) : (
-        <div className="mt-12 text-center">
+        <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
-        </div>
+        </motion.div>
       )}
       
-      <div className="mt-12">
+      <motion.div className="mt-12" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <ResultCTA 
           eligibleScholarships={eligibleScholarships}
           onCTAClick={handleCTAClick}
         />
-      </div>
+      </motion.div>
       
       {/* Back to Home button */}
       <div className="mt-8 text-center">
         <button 
           className="text-blue-600 hover:text-blue-800 font-medium"
-          onClick={handleNavigateToHome}
+          onClick={() => { window.location.href = '/'; }}
         >
           Quay về Trang chủ
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };

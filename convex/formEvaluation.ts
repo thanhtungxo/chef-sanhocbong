@@ -4,6 +4,7 @@ import { loadRulesServer, evaluateWithRules } from "./utils/rules";
 import { listScholarships } from "./scholarships";
 import type { ScholarshipEvaluationSummary, EligibilityResult } from "./shared/eligibility";
 import { toAnswerSet } from "./shared/mappers";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Evaluate form responses against all active scholarships
 // Returns eligibility status for each scholarship
@@ -150,6 +151,20 @@ export const submitAndEvaluateForm = mutation({
         eligible: overallEligible,
         messageType
     };
-    
+
+    // Persist submission to form_submissions table (new normalized storage)
+    const userId = await getAuthUserId(ctx);
+    const applicationId = await ctx.db.insert("form_submissions", {
+      userId: userId ?? undefined,
+      fullName,
+      email,
+      responses,
+      normalizedAnswers: mappedResponses,
+      result,
+      createdAt: Date.now(),
+    });
+
+    // Attach the new application id to the result for downstream usage
+    result.applicationId = applicationId as unknown as string;
     return result;
 } });
