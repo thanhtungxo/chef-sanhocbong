@@ -203,7 +203,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   
   return (
     <motion.div
-      className="result-page container mx-auto px-4 py-8"
+      className="min-h-screen bg-gradient-to-br from-[#f8fbff] to-[#eef2ff] dark:from-gray-950 dark:to-gray-900"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

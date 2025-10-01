@@ -302,23 +302,35 @@ export const BrandedDynamicWizard: React.FC = () => {
                   initial="initial"
                   animate="animate"
                   transition={{ delay: 0.05 * idx }}
+                  whileHover={{ scale: 1.01 }}
                 >
-                  <FormField
-                    name={q.key}
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {questionNumber && (
-                            <span className="mr-2 font-medium" aria-hidden="true">{questionNumber}.</span>
-                          )}
-                          {label}
-                        </FormLabel>
-                        <FormControl>{renderField(q, field, form.watch)}</FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="group rounded-2xl p-[1px] bg-transparent transition-all duration-300 group-hover:shadow-md group-focus-within:bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]">
+                    <div className="rounded-2xl border bg-white/70 dark:bg-gray-900/60 shadow-sm p-4 transition-all duration-300 hover:shadow-md">
+                      <FormField
+                        name={q.key}
+                        control={form.control}
+                        render={({ field }) => (
+                          <FormItem className="space-y-2">
+                            <FormLabel className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                              {questionNumber && (
+                                <span className="mr-2 font-medium" aria-hidden="true">{questionNumber}.</span>
+                              )}
+                              {label}
+                            </FormLabel>
+                            {(q.ui?.hintText as string | undefined) && (
+                              <div className="text-sm text-gray-500 italic">{q.ui.hintText}</div>
+                            )}
+                            <FormControl>
+                              <div className="transition-transform">
+                                {renderField(q, field, form.watch)}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 </motion.div>
               );
             })}
@@ -336,7 +348,7 @@ export const BrandedDynamicWizard: React.FC = () => {
               <Button
                 type="button"
                 onClick={isLastStep ? handleFinish : handleNext}
-                className="bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:shadow-[0_0_12px_rgba(58,123,213,0.45)] hover:scale-[1.05] transition-all"
+                className="relative overflow-hidden bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:shadow-[0_0_12px_rgba(58,123,213,0.45)] hover:scale-[1.05] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
               >
                 {isLastStep ? 'Hoàn thành' : 'Tiếp tục'}
               </Button>

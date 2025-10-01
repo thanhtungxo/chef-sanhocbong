@@ -38,10 +38,10 @@ export const ResultBanner: React.FC<ResultBannerProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-      <div className="text-5xl mb-4">🎉</div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Chúc mừng bạn đã hoàn thành bước đầu tiên!</h1>
-      <p className="text-gray-600 text-lg">
+    <div className="bg-white/80 dark:bg-gray-900/60 rounded-2xl border shadow-lg p-8 text-center">
+      <div className="text-5xl mb-4 animate-pulse">🎉</div>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Chúc mừng bạn đã hoàn thành bước đầu tiên!</h1>
+      <p className="text-gray-600 dark:text-gray-300 text-lg">
         {getSubheading()}
       </p>
     </div>

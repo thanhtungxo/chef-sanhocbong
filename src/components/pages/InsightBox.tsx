@@ -24,24 +24,25 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
   const displayCTAText = configMessages?.ctaText || ctaText;
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+    <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-700 rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#00d2ff] to-[#3a7bd5] rounded-l-xl" aria-hidden="true"></div>
       <div className="flex items-center mb-4">
         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold mr-3">
           🤖
         </div>
-        <h2 className="text-xl font-semibold text-blue-800">
+        <h2 className="text-xl font-semibold text-blue-800 dark:text-blue-200">
           Phân tích tổng quan của Tùng về hồ sơ của bạn
         </h2>
       </div>
       
-      <div className="text-gray-700 leading-relaxed mb-6 bg-white bg-opacity-70 p-4 rounded-lg">
+      <div className="text-gray-700 dark:text-gray-200 leading-relaxed mb-6 bg-white/70 dark:bg-gray-900/50 p-4 rounded-lg">
         <pre className="whitespace-pre-line">
           {feedback || "AI feedback sẽ hiển thị ở đây"}
         </pre>
       </div>
       
       <button
-        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-4 rounded-lg transition-all duration-300 shadow hover:shadow-lg transform hover:-translate-y-1 font-medium"
+        className="w-full bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:from-[#04c6f4] hover:to-[#3f7ee0] text-white py-3 px-4 rounded-lg transition-all duration-300 shadow hover:shadow-lg transform hover:-translate-y-1 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
         onClick={onCTAClick}
       >
         {displayCTAText}
