@@ -1,62 +1,66 @@
 import type { AnswerSet } from "../../types/eligibility";
 
-// Normalize different UI field names to the rule engine's expected keys.
-// This is intentionally tolerant: it copies all incoming keys and fills
-// canonical ones if possible.
+const numericKeys = new Set([
+  "age",
+  "gpa",
+  "yearsOfExperience",
+  "ieltsgrade",
+  "ptegrade",
+  "Toeflgrade",
+  "toeflgrade",
+  "workingtime",
+]);
+
+const coerceNumber = (value: any) => {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "") return undefined;
+    const parsed = Number(trimmed);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return value;
+};
+
+const pickFirstIfArray = (value: any) => Array.isArray(value) ? value[0] : value;
+
 export function toAnswerSet(input: Record<string, any>): AnswerSet {
   const out: Record<string, any> = { ...input };
 
-  // Normalize age to number if provided as string
-  if (out.age != null && typeof out.age !== "number") {
-    const n = Number(out.age);
-    out.age = Number.isFinite(n) ? n : out.age;
-  }
-
-  // English score -> IELTS score used by current rules
-  if (out.ielts == null) {
-    if (out.englishScore != null) {
-      out.ielts = Number(out.englishScore);
-    } else if (out.englishTest && typeof out.englishTest === "object") {
-      const t = String(out.englishTest.type || "").toUpperCase();
-      if (t === "IELTS" && out.englishTest.overall != null) {
-        const n = Number(out.englishTest.overall);
-        if (Number.isFinite(n)) out.ielts = n;
+  for (const key of Object.keys(out)) {
+    if (numericKeys.has(key)) {
+      const coerced = coerceNumber(out[key]);
+      if (coerced === undefined) {
+        delete out[key];
+      } else {
+        out[key] = coerced;
       }
     }
   }
 
-  // Military background
-  if (out.military == null) {
-    if (typeof out.hasMilitaryBackground === "boolean") out.military = out.hasMilitaryBackground ? "militaryyes" : "militaryno";
-    else if (typeof out.hasWorkedInMilitaryPolice === "boolean") out.military = out.hasWorkedInMilitaryPolice ? "militaryyes" : "militaryno";
+  if (out.toeflgrade != null && out.Toeflgrade == null) {
+    out.Toeflgrade = out.toeflgrade;
   }
 
-  // Company ownership
-  if (out.companyOwnership == null) {
-    if (typeof out.isEmployerVietnameseOwned === "boolean") {
-      out.companyOwnership = out.isEmployerVietnameseOwned ? "vietnamese_owned" : "non_vietnamese";
+  out.nhomyeuthe = pickFirstIfArray(out.nhomyeuthe);
+  if (out.nhomyeuthe == null) {
+    out.nhomyeuthe = "khongyeuthe";
+  }
+
+  out.highestQualification = pickFirstIfArray(out.highestQualification);
+  out.englishProficiency = pickFirstIfArray(out.englishProficiency);
+  out.govscholarship = pickFirstIfArray(out.govscholarship);
+  out.countryscholarship = pickFirstIfArray(out.countryscholarship);
+  out.employmenttype = pickFirstIfArray(out.employmenttype);
+  out.employerType = pickFirstIfArray(out.employerType);
+
+  if (typeof out.workingtime === "number") {
+    if (out.yearsOfExperience == null) {
+      out.yearsOfExperience = out.workingtime / 12;
     }
   }
-
-  // Work experience (in years)
-  if (out.workExperience == null && out.yearsOfExperience != null) {
-    out.workExperience = Number(out.yearsOfExperience);
-  }
-
-  // Country of residence
-  if (out.countryOfResidence == null) {
-    if (out.country) out.countryOfResidence = String(out.country).toLowerCase();
-    else if (out.countryOfCitizenship) out.countryOfResidence = String(out.countryOfCitizenship).toLowerCase();
-  }
-
-  // Return to home country commitment
-  if (out.returnToHomeCountry == null && typeof out.planToReturn === "boolean") {
-    out.returnToHomeCountry = out.planToReturn;
-  }
-
-  // Leadership potential
-  if (out.hasLeadershipPotential == null && typeof out.leadershipPotential === "boolean") {
-    out.hasLeadershipPotential = out.leadershipPotential;
+  if (out.employmenttype == null && out.employerType != null) {
+    out.employmenttype = out.employerType;
   }
 
   return out as AnswerSet;

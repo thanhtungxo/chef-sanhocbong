@@ -20,6 +20,21 @@ function getRawRulesJsonById(id: string): unknown | undefined {
   return undefined;
 }
 
+export function getRawRulesJson(id: string): unknown | undefined {
+  return getRawRulesJsonById(id);
+}
+
+export function getRawRulesJsonText(id: string): string | undefined {
+  const json = getRawRulesJsonById(id);
+  if (json === undefined) return undefined;
+  try {
+    return JSON.stringify(json, null, 2);
+  } catch (err) {
+    console.warn(`[rules] Failed to stringify rules for '${id}':`, err);
+    return undefined;
+  }
+}
+
 export async function loadRulesWithIssues(id: string): Promise<{ rules: RuleNode[]; issues: string[] }> {
   try {
     const json = getRawRulesJsonById(id);

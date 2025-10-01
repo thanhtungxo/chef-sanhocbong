@@ -1,37 +1,741 @@
 [
   {
-    "field": "ielts",
-    "type": "minScore",
-    "value": 6.5,
-    "message": "Điểm IELTS của bạn chưa đạt yêu cầu tối thiểu (6.5)",
-    "messageKey": "aas.ielts.min"
-  },
-  {
-    "field": "military",
-    "type": "boolean",
-    "value": false,
-    "message": "Bạn đang công tác trong cơ quan quân đội hoặc an ninh",
-    "messageKey": "aas.military.block"
-  },
-  {
-    "field": "companyOwnership",
-    "type": "select",
-    "value": "vietnamese_owned",
-    "message": "Công ty bạn làm trực thuộc sở hữu Việt Nam",
-    "messageKey": "aas.ownership.vn"
-  },
-  {
-    "field": "workExperience",
-    "type": "minScore",
-    "value": 2,
-    "message": "Bạn cần ít nhất 2 năm kinh nghiệm toàn thời gian",
-    "messageKey": "aas.experience.min"
-  },
-  {
-    "field": "countryOfResidence",
-    "type": "select",
-    "value": "vietnam",
-    "message": "Bạn hiện không cư trú tại Việt Nam",
-    "messageKey": "aas.residence.vn"
+    "id": "aas_root",
+    "operator": "all",
+    "rules": [
+      {
+        "id": "aas_citizenship_vietnam",
+        "type": "select",
+        "field": "citizenship",
+        "value": "citizenshipyes",
+        "message": "Bạn phải là công dân Việt Nam."
+      },
+      {
+        "id": "aas_no_australia_status",
+        "type": "select",
+        "field": "australiaPrOrCitizen",
+        "value": "australiaPrNo",
+        "message": "Bạn không được có hoặc đang xin quốc tịch/PR Australia."
+      },
+      {
+        "id": "aas_spouse_no_au_nz_status",
+        "type": "select",
+        "field": "spousepr",
+        "value": "No",
+        "message": "Vợ/chồng bạn không được có quốc tịch hoặc PR Úc/New Zealand."
+      },
+      {
+        "id": "aas_not_military",
+        "type": "select",
+        "field": "military",
+        "value": "militaryno",
+        "message": "Bạn hiện không được là nhân sự thuộc biên chế quân đội."
+      },
+      {
+        "id": "aas_no_criminal_record",
+        "type": "select",
+        "field": "banATungCoTienAnTienSuChua",
+        "value": "criminalno",
+        "message": "Bạn phải không có tiền án tiền sự."
+      },
+      {
+        "id": "aas_no_previous_australia_scholarship",
+        "operator": "any",
+        "rules": [
+          {
+            "id": "aas_never_gov_scholarship",
+            "type": "select",
+            "field": "govscholarship",
+            "value": "govescholarno",
+            "message": "Bạn xác nhận chưa từng nhận học bổng chính phủ."
+          },
+          {
+            "id": "aas_gov_scholarship_england",
+            "operator": "all",
+            "rules": [
+              {
+                "id": "aas_gov_yes_england_flag",
+                "type": "select",
+                "field": "govscholarship",
+                "value": "govescholaryes",
+                "message": "Bạn đã chọn từng nhận học bổng chính phủ."
+              },
+              {
+                "id": "aas_gov_country_england",
+                "type": "select",
+                "field": "countryscholarship",
+                "value": "Scholarengland",
+                "message": "Chỉ chấp nhận học bổng không phải của Úc."
+              }
+            ]
+          },
+          {
+            "id": "aas_gov_scholarship_america",
+            "operator": "all",
+            "rules": [
+              {
+                "id": "aas_gov_yes_america_flag",
+                "type": "select",
+                "field": "govscholarship",
+                "value": "govescholaryes",
+                "message": "Bạn đã chọn từng nhận học bổng chính phủ."
+              },
+              {
+                "id": "aas_gov_country_america",
+                "type": "select",
+                "field": "countryscholarship",
+                "value": "Scholaramerica",
+                "message": "Chỉ chấp nhận học bổng không phải của Úc."
+              }
+            ]
+          },
+          {
+            "id": "aas_gov_scholarship_france",
+            "operator": "all",
+            "rules": [
+              {
+                "id": "aas_gov_yes_france_flag",
+                "type": "select",
+                "field": "govscholarship",
+                "value": "govescholaryes",
+                "message": "Bạn đã chọn từng nhận học bổng chính phủ."
+              },
+              {
+                "id": "aas_gov_country_france",
+                "type": "select",
+                "field": "countryscholarship",
+                "value": "Scholarfrance",
+                "message": "Chỉ chấp nhận học bổng không phải của Úc."
+              }
+            ]
+          },
+          {
+            "id": "aas_gov_scholarship_other",
+            "operator": "all",
+            "rules": [
+              {
+                "id": "aas_gov_yes_other_flag",
+                "type": "select",
+                "field": "govscholarship",
+                "value": "govescholaryes",
+                "message": "Bạn đã chọn từng nhận học bổng chính phủ."
+              },
+              {
+                "id": "aas_gov_country_other",
+                "type": "select",
+                "field": "countryscholarship",
+                "value": "Scholarother",
+                "message": "Chỉ chấp nhận học bổng không phải của Úc."
+              }
+            ]
+          }
+        ],
+        "message": "Không đủ điều kiện nếu từng nhận học bổng dài hạn của Chính phủ Australia.",
+        "severity": "blocker"
+      },
+      {
+        "id": "aas_group_selector",
+        "operator": "all",
+        "rules": [
+          {
+            "id": "aas_branch_disability",
+            "operator": "any",
+            "rules": [
+              {
+                "id": "aas_branch_disability_qualified",
+                "operator": "all",
+                "rules": [
+                  {
+                    "id": "aas_branch_disability_flag",
+                    "type": "select",
+                    "field": "nhomyeuthe",
+                    "value": "khuyettat",
+                    "message": "Nhánh này áp dụng cho khuyettat."
+                  },
+                  {
+                    "id": "aas_disability_degree",
+                    "operator": "any",
+                    "rules": [
+                      {
+                        "id": "aas_disability_degree_bachelor",
+                        "type": "select",
+                        "field": "highestQualification",
+                        "value": "Bachelor",
+                        "message": "Nhóm khuyết tật chấp nhận bằng Bachelor hoặc Master."
+                      },
+                      {
+                        "id": "aas_disability_degree_master",
+                        "type": "select",
+                        "field": "highestQualification",
+                        "value": "Master",
+                        "message": "Nhóm khuyết tật chấp nhận bằng Bachelor hoặc Master."
+                      }
+                    ],
+                    "message": "Nhóm khuyết tật chấp nhận bằng Bachelor hoặc Master.",
+                    "severity": "blocker"
+                  },
+                  {
+                    "id": "aas_disability_gpa",
+                    "type": "minScore",
+                    "field": "gpa",
+                    "value": 6,
+                    "message": "Nhóm khuyết tật cần GPA tối thiểu 6.0."
+                  },
+                  {
+                    "id": "aas_disability_experience",
+                    "type": "minScore",
+                    "field": "workingtime",
+                    "value": 12,
+                    "message": "Ứng viên khuyết tật được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc."
+                  }
+                ]
+              },
+              {
+                "id": "aas_branch_disability_skip_0",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "vungkhokhan",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              },
+              {
+                "id": "aas_branch_disability_skip_1",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "khongyeuthe",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              }
+            ],
+            "message": "Không đáp ứng yêu cầu dành cho Người khuyết tật.",
+            "severity": "blocker"
+          },
+          {
+            "id": "aas_branch_remote",
+            "operator": "any",
+            "rules": [
+              {
+                "id": "aas_branch_remote_qualified",
+                "operator": "all",
+                "rules": [
+                  {
+                    "id": "aas_branch_remote_flag",
+                    "type": "select",
+                    "field": "nhomyeuthe",
+                    "value": "vungkhokhan",
+                    "message": "Nhánh này áp dụng cho vungkhokhan."
+                  },
+                  {
+                    "id": "aas_remote_degree",
+                    "type": "select",
+                    "field": "highestQualification",
+                    "value": "Bachelor",
+                    "message": "Nhóm vùng khó khăn cần bằng Bachelor."
+                  },
+                  {
+                    "id": "aas_remote_gpa",
+                    "type": "minScore",
+                    "field": "gpa",
+                    "value": 6,
+                    "message": "Nhóm vùng khó khăn cần GPA tối thiểu 6.0."
+                  },
+                  {
+                    "id": "aas_remote_experience",
+                    "type": "minScore",
+                    "field": "workingtime",
+                    "value": 12,
+                    "message": "Ứng viên vùng khó khăn được yêu cầu ít nhất 12 tháng kinh nghiệm làm việc."
+                  }
+                ]
+              },
+              {
+                "id": "aas_branch_remote_skip_0",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "khuyettat",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              },
+              {
+                "id": "aas_branch_remote_skip_1",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "khongyeuthe",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              }
+            ],
+            "message": "Không đáp ứng yêu cầu dành cho nhóm vùng khó khăn.",
+            "severity": "blocker"
+          },
+          {
+            "id": "aas_branch_normal",
+            "operator": "any",
+            "rules": [
+              {
+                "id": "aas_branch_normal_qualified",
+                "operator": "all",
+                "rules": [
+                  {
+                    "id": "aas_branch_normal_flag",
+                    "type": "select",
+                    "field": "nhomyeuthe",
+                    "value": "khongyeuthe",
+                    "message": "Nhánh này áp dụng cho khongyeuthe."
+                  },
+                  {
+                    "id": "aas_normal_degree",
+                    "type": "select",
+                    "field": "highestQualification",
+                    "value": "Bachelor",
+                    "message": "Nhóm ứng viên thông thường yêu cầu bằng cao nhất là Bachelor."
+                  },
+                  {
+                    "id": "aas_normal_employer_rules",
+                    "operator": "any",
+                    "rules": [
+                      {
+                        "id": "aas_normal_gov_levels_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_gov_levels_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "gov_levels",
+                            "message": "Nhánh này áp dụng cho cơ quan nhà nước các cấp."
+                          },
+                          {
+                            "id": "aas_normal_gov_levels_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 6.5,
+                            "message": "GPA tối thiểu cho cơ quan nhà nước các cấp là 6.5."
+                          },
+                          {
+                            "id": "aas_normal_gov_levels_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_vocational_school_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_vocational_school_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "vocational_school",
+                            "message": "Nhánh này áp dụng cho trường/cơ sở giáo dục nghề nghiệp."
+                          },
+                          {
+                            "id": "aas_normal_vocational_school_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 6.5,
+                            "message": "GPA tối thiểu cho trường/cơ sở giáo dục nghề nghiệp là 6.5."
+                          },
+                          {
+                            "id": "aas_normal_vocational_school_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_research_institute_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_research_institute_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "research_institute",
+                            "message": "Nhánh này áp dụng cho viện nghiên cứu."
+                          },
+                          {
+                            "id": "aas_normal_research_institute_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 6.5,
+                            "message": "GPA tối thiểu cho viện nghiên cứu là 6.5."
+                          },
+                          {
+                            "id": "aas_normal_research_institute_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_provincial_university_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_provincial_university_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "provincial_university",
+                            "message": "Nhánh này áp dụng cho trường đại học địa phương."
+                          },
+                          {
+                            "id": "aas_normal_provincial_university_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 7,
+                            "message": "GPA tối thiểu cho trường đại học địa phương là 7."
+                          },
+                          {
+                            "id": "aas_normal_provincial_university_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_major_city_university_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_major_city_university_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "major_city_university",
+                            "message": "Nhánh này áp dụng cho trường đại học tại các TP lớn."
+                          },
+                          {
+                            "id": "aas_normal_major_city_university_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 7,
+                            "message": "GPA tối thiểu cho trường đại học tại các TP lớn là 7."
+                          },
+                          {
+                            "id": "aas_normal_major_city_university_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_vn_ngo_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_vn_ngo_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "vn_ngo",
+                            "message": "Nhánh này áp dụng cho tổ chức phi chính phủ VN."
+                          },
+                          {
+                            "id": "aas_normal_vn_ngo_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 7,
+                            "message": "GPA tối thiểu cho tổ chức phi chính phủ VN là 7."
+                          },
+                          {
+                            "id": "aas_normal_vn_ngo_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          },
+                          {
+                            "id": "aas_normal_vn_ngo_english",
+                            "operator": "any",
+                            "rules": [
+                              {
+                                "id": "aas_normal_vn_ngo_ielts",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_ngo_ielts_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "IELTS",
+                                    "message": "Chọn IELTS khi cung cấp điểm IELTS."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_ngo_ielts_score",
+                                    "type": "minScore",
+                                    "field": "ieltsgrade",
+                                    "value": 5.5,
+                                    "message": "IELTS tối thiểu là 5.5."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_vn_ngo_pte",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_ngo_pte_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "PTE",
+                                    "message": "Chọn PTE khi cung cấp điểm PTE."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_ngo_pte_score",
+                                    "type": "minScore",
+                                    "field": "ptegrade",
+                                    "value": 36,
+                                    "message": "PTE tối thiểu là 36."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_vn_ngo_toefl",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_ngo_toefl_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "TOEFL iBT",
+                                    "message": "Chọn TOEFL iBT khi cung cấp điểm TOEFL iBT."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_ngo_toefl_score",
+                                    "type": "minScore",
+                                    "field": "Toeflgrade",
+                                    "value": 46,
+                                    "message": "TOEFL iBT tối thiểu là 46."
+                                  }
+                                ]
+                              }
+                            ],
+                            "message": "Cần IELTS ≥ 5.5 hoặc PTE ≥ 36 hoặc TOEFL iBT ≥ 46 cho loại cơ quan này.",
+                            "severity": "blocker"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_vn_company_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_vn_company_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "vn_company",
+                            "message": "Nhánh này áp dụng cho doanh nghiệp Việt Nam."
+                          },
+                          {
+                            "id": "aas_normal_vn_company_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 7,
+                            "message": "GPA tối thiểu cho doanh nghiệp Việt Nam là 7."
+                          },
+                          {
+                            "id": "aas_normal_vn_company_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          },
+                          {
+                            "id": "aas_normal_vn_company_english",
+                            "operator": "any",
+                            "rules": [
+                              {
+                                "id": "aas_normal_vn_company_ielts",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_company_ielts_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "IELTS",
+                                    "message": "Chọn IELTS khi cung cấp điểm IELTS."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_company_ielts_score",
+                                    "type": "minScore",
+                                    "field": "ieltsgrade",
+                                    "value": 5.5,
+                                    "message": "IELTS tối thiểu là 5.5."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_vn_company_pte",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_company_pte_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "PTE",
+                                    "message": "Chọn PTE khi cung cấp điểm PTE."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_company_pte_score",
+                                    "type": "minScore",
+                                    "field": "ptegrade",
+                                    "value": 36,
+                                    "message": "PTE tối thiểu là 36."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_vn_company_toefl",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_vn_company_toefl_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "TOEFL iBT",
+                                    "message": "Chọn TOEFL iBT khi cung cấp điểm TOEFL iBT."
+                                  },
+                                  {
+                                    "id": "aas_normal_vn_company_toefl_score",
+                                    "type": "minScore",
+                                    "field": "Toeflgrade",
+                                    "value": 46,
+                                    "message": "TOEFL iBT tối thiểu là 46."
+                                  }
+                                ]
+                              }
+                            ],
+                            "message": "Cần IELTS ≥ 5.5 hoặc PTE ≥ 36 hoặc TOEFL iBT ≥ 46 cho loại cơ quan này.",
+                            "severity": "blocker"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "aas_normal_intl_ngo_qualified",
+                        "operator": "all",
+                        "rules": [
+                          {
+                            "id": "aas_normal_intl_ngo_match",
+                            "type": "select",
+                            "field": "employmenttype",
+                            "value": "intl_ngo",
+                            "message": "Nhánh này áp dụng cho tổ chức phi chính phủ quốc tế."
+                          },
+                          {
+                            "id": "aas_normal_intl_ngo_gpa",
+                            "type": "minScore",
+                            "field": "gpa",
+                            "value": 7,
+                            "message": "GPA tối thiểu cho tổ chức phi chính phủ quốc tế là 7."
+                          },
+                          {
+                            "id": "aas_normal_intl_ngo_experience",
+                            "type": "minScore",
+                            "field": "workingtime",
+                            "value": 24,
+                            "message": "Cần ít nhất 24 tháng kinh nghiệm toàn thời gian."
+                          },
+                          {
+                            "id": "aas_normal_intl_ngo_english",
+                            "operator": "any",
+                            "rules": [
+                              {
+                                "id": "aas_normal_intl_ngo_ielts",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_intl_ngo_ielts_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "IELTS",
+                                    "message": "Chọn IELTS khi cung cấp điểm IELTS."
+                                  },
+                                  {
+                                    "id": "aas_normal_intl_ngo_ielts_score",
+                                    "type": "minScore",
+                                    "field": "ieltsgrade",
+                                    "value": 6.5,
+                                    "message": "IELTS tối thiểu là 6.5."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_intl_ngo_pte",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_intl_ngo_pte_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "PTE",
+                                    "message": "Chọn PTE khi cung cấp điểm PTE."
+                                  },
+                                  {
+                                    "id": "aas_normal_intl_ngo_pte_score",
+                                    "type": "minScore",
+                                    "field": "ptegrade",
+                                    "value": 58,
+                                    "message": "PTE tối thiểu là 58."
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "aas_normal_intl_ngo_toefl",
+                                "operator": "all",
+                                "rules": [
+                                  {
+                                    "id": "aas_normal_intl_ngo_toefl_select",
+                                    "type": "select",
+                                    "field": "englishProficiency",
+                                    "value": "TOEFL iBT",
+                                    "message": "Chọn TOEFL iBT khi cung cấp điểm TOEFL iBT."
+                                  },
+                                  {
+                                    "id": "aas_normal_intl_ngo_toefl_score",
+                                    "type": "minScore",
+                                    "field": "Toeflgrade",
+                                    "value": 84,
+                                    "message": "TOEFL iBT tối thiểu là 84."
+                                  }
+                                ]
+                              }
+                            ],
+                            "message": "Cần IELTS ≥ 6.5 hoặc PTE ≥ 58 hoặc TOEFL iBT ≥ 84 cho loại cơ quan này.",
+                            "severity": "blocker"
+                          }
+                        ]
+                      }
+                    ],
+                    "message": "Bạn chưa đáp ứng điều kiện GPA/Kinh nghiệm/Tiếng Anh theo loại cơ quan làm việc (ứng viên công ty nước ngoài chỉ hợp lệ nếu thuộc nhóm Người khuyết tật).",
+                    "severity": "blocker"
+                  }
+                ]
+              },
+              {
+                "id": "aas_branch_normal_skip_0",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "khuyettat",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              },
+              {
+                "id": "aas_branch_normal_skip_1",
+                "type": "select",
+                "field": "nhomyeuthe",
+                "value": "vungkhokhan",
+                "message": "Không thuộc nhóm này – bỏ qua điều kiện."
+              }
+            ],
+            "message": "Không đáp ứng yêu cầu dành cho nhóm ứng viên thông thường.",
+            "severity": "blocker"
+          }
+        ]
+      }
+    ]
   }
 ]

@@ -183,7 +183,7 @@ export const getActiveRules = query({
 
 export const publishRuleset = mutation({
   args: {
-    scholarshipId: v.union(v.literal("aas"), v.literal("chevening")),
+    scholarshipId: v.string(),
     version: v.string(),
     json: v.string(),
     isActive: v.optional(v.boolean()),
@@ -270,5 +270,60 @@ export const addScholarship = mutation({
     }
     const _id = await ctx.db.insert("scholarships", { id, name: raw, isEnabled: false });
     return { id, name: raw, isEnabled: false, _id };
+  },
+});
+
+export const listRulesets = query({
+  args: { scholarshipId: v.string() },
+  handler: async (ctx, { scholarshipId }) => {
+    const rows = await ctx.db
+      .query("rulesets")
+      .withIndex("by_scholarshipId", (q) => q.eq("scholarshipId", scholarshipId))
+      .collect();
+    rows.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    return rows.map((row) => ({
+      _id: row._id,
+      version: row.version,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      json: row.json,
+      scholarshipId: row.scholarshipId,
+    }));
+  },
+});
+
+export const setActiveRuleset = mutation({
+  args: { rulesetId: v.id("rulesets"), active: v.boolean() },
+  handler: async (ctx, { rulesetId, active }) => {
+    const ruleset = await ctx.db.get(rulesetId);
+    if (!ruleset) throw new Error("Ruleset not found");
+    if (active) {
+      const siblings = await ctx.db
+        .query("rulesets")
+        .withIndex("by_scholarshipId", (q) => q.eq("scholarshipId", ruleset.scholarshipId))
+        .collect();
+      for (const sibling of siblings) {
+        if (sibling._id === rulesetId && sibling.isActive) {
+          continue;
+        }
+        if (sibling.isActive) {
+          await ctx.db.patch(sibling._id, { isActive: false });
+        }
+      }
+    }
+    await ctx.db.patch(rulesetId, { isActive: active });
+    return { ok: true };
+  },
+});
+
+export const deleteRuleset = mutation({
+  args: { rulesetId: v.id("rulesets") },
+  handler: async (ctx, { rulesetId }) => {
+    const ruleset = await ctx.db.get(rulesetId);
+    if (!ruleset) {
+      return { ok: false, reason: "Not found" };
+    }
+    await ctx.db.delete(rulesetId);
+    return { ok: true };
   },
 });

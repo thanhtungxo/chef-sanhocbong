@@ -12,7 +12,8 @@
     "scaffold:rule": "node scripts/scaffold-rule.mjs",
     "test": "vitest run",
     "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build",
-    "migrate:legacy": "node scripts/migrate-legacy-form.mjs"
+    "migrate:legacy": "node scripts/migrate-legacy-form.mjs",
+    "publish:ruleset": "node scripts/publish-ruleset.cjs"
   },
   "dependencies": {
     "@auth/core": "^0.37.0",
