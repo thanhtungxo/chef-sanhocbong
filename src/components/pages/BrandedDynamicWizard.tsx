@@ -186,6 +186,23 @@ export const BrandedDynamicWizard: React.FC = () => {
   // Icons for timeline (fallback sequence)
   const stepIcons = ['👤', '🎓', '💼', '📑'];
 
+  // Helper to get icon for a step based on metadata or title
+  const getStepIcon = (step: any, idx: number) => {
+    const explicit = step?.ui?.icon;
+    if (typeof explicit === 'string' && explicit.trim().length > 0) {
+      return explicit.trim();
+    }
+    const label = (step?.ui?.labelText as string | undefined) ?? tOptional(step?.titleKey) ?? step?.titleKey ?? '';
+    const lower = typeof label === 'string' ? label.toLowerCase() : '';
+    if (lower) {
+      if (/(personal|profile|thông tin|cá nhân)/.test(lower)) return '👤';
+      if (/(education|học vấn|school|degree)/.test(lower)) return '🎓';
+      if (/(work|employment|job|kinh nghiệm|công việc)/.test(lower)) return '💼';
+      if (/(document|paper|hồ sơ|tài liệu)/.test(lower)) return '📑';
+    }
+    return stepIcons[idx % stepIcons.length];
+  };
+
   // Motion variants
   const stepVariants = {
     initial: { x: 40, opacity: 0 },
@@ -235,6 +252,8 @@ export const BrandedDynamicWizard: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+      {/* Skip to content link for accessibility */}
+      <a href="#wizard-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-white dark:bg-gray-900 text-sm px-3 py-2 rounded-md shadow focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff]">Skip to content</a>
       {/* Header with brand logo and tagline */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -249,17 +268,45 @@ export const BrandedDynamicWizard: React.FC = () => {
         <div className="flex items-center justify-between">
           {steps.map((s: any, i: number) => (
             <div key={(s as any)._id ?? i} className="flex-1 flex items-center">
-              <div className={`flex items-center justify-center w-9 h-9 rounded-full border ${i <= stepIdx ? 'bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white border-transparent' : 'bg-white text-gray-600'} shadow`} aria-label={`Step ${i+1}`}>
-                <span className="text-base" aria-hidden="true">{stepIcons[i] ?? '⬤'}</span>
-              </div>
-              {i < steps.length - 1 && (
-                <div className="flex-1 h-1 mx-2 rounded bg-gray-200 overflow-hidden">
+              <motion.div
+                className={`relative flex items-center justify-center w-9 h-9 rounded-full border shadow ${
+                  i < stepIdx
+                    ? 'bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white border-transparent'
+                    : i === stepIdx
+                    ? 'bg-white text-gray-900 ring-2 ring-[#00d2ff]/70 ring-offset-2 ring-offset-white dark:ring-offset-gray-900'
+                    : 'bg-white text-gray-600'
+                }`}
+                aria-label={`Step ${i + 1}`}
+                aria-current={i === stepIdx ? 'step' : undefined}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'tween', duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <span className="text-base" aria-hidden="true">{getStepIcon(s, i)}</span>
+                {i === stepIdx && (
                   <motion.div
-                    className="h-1 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]"
+                    className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-[#00d2ff]/50"
+                    animate={{ scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
+              </motion.div>
+              {i < steps.length - 1 && (
+                <div className="flex-1 h-1 mx-2 rounded bg-gray-200/60 overflow-hidden relative">
+                  <motion.div
+                    className="absolute left-0 top-0 h-1 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]"
                     initial={{ width: 0 }}
                     animate={{ width: i < stepIdx ? '100%' : i === stepIdx ? `${progressPercent}%` : '0%' }}
-                    transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+                    transition={{ duration: Math.min(0.6, Math.max(0.4, 0.45 + 0.03 * Math.max(0, totalSteps - 4))), ease: [0.25, 0.8, 0.25, 1] }}
                   />
+                  {i === stepIdx && (
+                    <motion.div
+                      className="absolute left-0 top-0 h-1 blur-[3px] bg-gradient-to-r from-[#00d2ff]/40 to-[#3a7bd5]/40"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: `${progressPercent}%`, opacity: 1 }}
+                      transition={{ duration: 0.6, ease: 'easeInOut' }}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -271,6 +318,7 @@ export const BrandedDynamicWizard: React.FC = () => {
       <Form {...form}>
         <AnimatePresence mode="wait">
           <motion.form
+            id="wizard-content"
             key={stepIdx}
             className="space-y-4"
             onSubmit={(event) => event.preventDefault()}
@@ -341,7 +389,7 @@ export const BrandedDynamicWizard: React.FC = () => {
                 onClick={handlePrev}
                 disabled={stepIdx === 0}
                 variant="secondary"
-                className="hover:scale-[1.03] transition-transform shadow-sm"
+                className="hover:scale-[1.03] transition-transform shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff]"
               >
                 Quay lại
               </Button>
