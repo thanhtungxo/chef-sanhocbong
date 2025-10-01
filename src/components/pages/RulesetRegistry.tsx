@@ -434,25 +434,24 @@ export const RulesetRegistry: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {scholarships.map((sch) => (
-                  <TableRow key={sch.id}>
-                    <TableCell className="font-medium">{sch.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={sch.isEnabled ? 'success' : 'destructive'}>
-                        {sch.isEnabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Switch
-                        checked={sch.isEnabled}
-                        onCheckedChange={(checked) => handleToggleScholarship(sch.id, checked)}
-                        disabled={togglingId === sch.id}
-                        aria-label={`Toggle ${sch.name}`}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                {scholarships.map((sch) => (
+                  <TableRow key={sch.id}>
+                    <TableCell className="font-medium">{sch.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={sch.isEnabled ? 'success' : 'destructive'}>
+                        {sch.isEnabled ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Switch
+                        checked={sch.isEnabled}
+                        onCheckedChange={(checked) => handleToggleScholarship(sch.id, checked)}
+                        disabled={togglingId === sch.id}
+                        aria-label={`Toggle ${sch.name}`}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
