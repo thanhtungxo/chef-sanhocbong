@@ -20,6 +20,9 @@ export const evaluateFormResponses = query({
     // Filter active scholarships
     const activeScholarships = scholarships.filter((s: any) => s.isEnabled);
     
+    // Map form field names to rule field names to ensure consistency
+    const mappedResponses = toAnswerSet(responses);
+
     // Process each scholarship to determine eligibility
     const eligibilityResults: ScholarshipEvaluationSummary[] = [];
     
@@ -29,7 +32,7 @@ export const evaluateFormResponses = query({
         const rules = await loadRulesServer(ctx, scholarship.id);
         
         // Evaluate eligibility using the rules
-        const evaluation = evaluateWithRules(responses, rules);
+        const evaluation = evaluateWithRules(mappedResponses, rules);
         
         // Format the result for this scholarship
         eligibilityResults.push({

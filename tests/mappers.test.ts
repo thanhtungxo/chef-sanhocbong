@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toAnswerSet } from '@/lib/mappers';
+import { toAnswerSet } from '../src/lib/mappers';
 
 describe('toAnswerSet', () => {
   it('maps englishScore to ielts and yearsOfExperience to workExperience', () => {
@@ -8,10 +8,10 @@ describe('toAnswerSet', () => {
     expect(out.workExperience).toBe(3);
   });
 
-  it('maps booleans to canonical keys', () => {
-    const out = toAnswerSet({ hasWorkedInMilitaryPolice: true, isEmployerVietnameseOwned: false } as any);
+  it('maps hasWorkedInMilitaryPolice to military and militaryBoolean (boolean)', () => {
+    const out = toAnswerSet({ hasWorkedInMilitaryPolice: true } as any);
     expect(out.military).toBe(true);
-    expect(out.companyOwnership).toBe('non_vietnamese');
+    expect(out.militaryBoolean).toBe(true);
   });
 });
 
