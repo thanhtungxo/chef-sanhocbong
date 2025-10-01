@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { t, setLang } from "@/lib/i18n";
 import { listAvailableRuleIds, getRawRulesJsonText } from "@/lib/engine/loader";
@@ -282,8 +283,10 @@ export const RulesetRegistry: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentRulesets.map((ruleset) => (
-                      <TableRow key={ruleset.id}>
+                    {currentRulesets.map((ruleset) => {
+                      const rulesetKey = getRulesetKey(ruleset);
+                      return (
+                        <TableRow key={rulesetKey}>
                         <TableCell>{ruleset.version}</TableCell>
                         <TableCell>
                           <Badge variant={ruleset.isActive ? 'success' : 'secondary'}>
@@ -321,8 +324,10 @@ export const RulesetRegistry: React.FC = () => {
                             Delete
                           </Button>
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      );
+
+                  })}
                   </TableBody>
                 </Table>
               )}
@@ -434,23 +439,40 @@ export const RulesetRegistry: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {scholarships.map((sch) => (
-                  <TableRow key={sch.id}>
-                    <TableCell className="font-medium">{sch.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={sch.isEnabled ? 'success' : 'destructive'}>
-                        {sch.isEnabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Switch
-                        checked={sch.isEnabled}
-                        onCheckedChange={(checked) => handleToggleScholarship(sch.id, checked)}
-                        disabled={togglingId === sch.id}
-                        aria-label={`Toggle ${sch.name}`}
-                      />
-                    </TableCell>
-                  </TableRow>
+                {scholarships.map((sch) => (
+
+                  <TableRow key={sch.id}>
+
+                    <TableCell className="font-medium">{sch.name}</TableCell>
+
+                    <TableCell>
+
+                      <Badge variant={sch.isEnabled ? 'success' : 'destructive'}>
+
+                        {sch.isEnabled ? 'Enabled' : 'Disabled'}
+
+                      </Badge>
+
+                    </TableCell>
+
+                    <TableCell className="text-right">
+
+                      <Switch
+
+                        checked={sch.isEnabled}
+
+                        onCheckedChange={(checked) => handleToggleScholarship(sch.id, checked)}
+
+                        disabled={togglingId === sch.id}
+
+                        aria-label={`Toggle ${sch.name}`}
+
+                      />
+
+                    </TableCell>
+
+                  </TableRow>
+
                 ))}
               </TableBody>
             </Table>
