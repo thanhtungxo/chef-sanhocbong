@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { t } from '@/lib/i18n';
 
 interface ReasonObject {
   message: string;
@@ -22,43 +24,51 @@ interface ResultCTAProps {
 }
 
 export const ResultCTA: React.FC<ResultCTAProps> = ({ eligibleScholarships, onCTAClick }) => {
-  const hasEligibleScholarships = eligibleScholarships.length > 0;
+  const hasEligibleScholarships = eligibleScholarships && eligibleScholarships.length > 0;
 
-  const handleContinue = () => {
-    if (hasEligibleScholarships && eligibleScholarships.length === 1) {
-      // If there's only one eligible scholarship, pass it directly
-      onCTAClick(eligibleScholarships[0]);
-    } else {
-      // Otherwise, just trigger the continuation without a specific scholarship
-      onCTAClick();
-    }
-  };
+  const primaryLabel = t('ui.result.cta.primary', '⚡ Tiếp tục với Smart Profile Analysis');
+  const secondaryLabel = t('ui.prev', 'Quay lại');
+  const backToHomeLabel = t('ui.backHome', 'Quay về Trang chủ');
+
+  const handleContinue = () => onCTAClick(hasEligibleScholarships ? eligibleScholarships[0] : undefined);
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
+    <motion.div
+      className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8 px-4"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       {hasEligibleScholarships ? (
         <>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full sm:w-auto bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:from-[#04c6f4] hover:to-[#3f7ee0] text-white py-3 px-6 rounded-lg transition-all duration-300 shadow hover:shadow-xl transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
             onClick={handleContinue}
           >
-            Tiếp tục với Smart Profile Analysis
-          </button>
-          <button
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-6 rounded-lg font-medium transition-colors duration-200"
-            onClick={() => window.location.href = '/'} // Navigate back to home
+            {primaryLabel}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 py-3 px-6 rounded-lg transition-all duration-200"
+            onClick={() => (window.location.href = '/')}
           >
-            Quay lại
-          </button>
+            {secondaryLabel}
+          </motion.button>
         </>
       ) : (
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-colors duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
-          onClick={() => window.location.href = '/'} // Navigate back to home
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full sm:w-auto bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:from-[#04c6f4] hover:to-[#3f7ee0] text-white py-3 px-6 rounded-lg transition-all duration-300 shadow hover:shadow-xl transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
+          onClick={() => (window.location.href = '/')}
         >
-          Quay về Trang chủ
-        </button>
+          {backToHomeLabel}
+        </motion.button>
       )}
-    </div>
+    </motion.div>
   );
 };

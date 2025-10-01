@@ -29,19 +29,9 @@ interface ResultPageProps {
   eligible?: boolean;
 }
 
-/**
- * ResultPage component displays scholarship eligibility results after completing the wizard
- * @param userName - Name of the user
- * @param eligibilityResults - Full list of scholarship eligibility results
- * @param cmsResultText - Text content managed by admin through CMS
- * @param messageType - Precomputed message type from the backend
- * @param eligible - Overall eligibility status from the backend
- */
 export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityResults = [],  cmsResultText, messageType, eligible }) => {
-  // Get CMS configuration from the database
   const resultPageConfig = useQuery(api.resultPage.getResultPageConfig, {});
   
-  // Confetti state
   const [showConfetti, setShowConfetti] = React.useState(false);
   React.useEffect(() => {
     const hasEligible = typeof eligible === 'boolean' ? eligible : eligibilityResults.some(r => r.eligible);
@@ -52,7 +42,6 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     }
   }, [eligible, eligibilityResults]);
 
-  // Calculate scenarios if not provided from backend
   const allFailed = useMemo(() => {
     if (messageType === 'fail_all') return true;
     if (messageType) return false;
@@ -71,7 +60,6 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     return !allFailed && !allPassed;
   }, [eligibilityResults, messageType, allFailed, allPassed]);
   
-  // Debug logging
   React.useEffect(() => {
     console.log('ResultPage props:', {
       userName,
@@ -85,27 +73,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     });
   }, [userName, eligibilityResults, eligible, messageType, allFailed, allPassed, passedSome]);
   
-  // Filter only eligible scholarships for the grid
-  const eligibleScholarships = useMemo(() => 
-    eligibilityResults.filter(r => r.eligible), 
-    [eligibilityResults]
-  );
-  
-  // Prepare data for AI feedback
-  const failedScholarships = useMemo(() => 
-    eligibilityResults.filter(r => !r.eligible), 
-    [eligibilityResults]
-  );
-  
-  // Extract reasons text that handles both string and object formats
+  const eligibleScholarships = useMemo(() => eligibilityResults.filter(r => r.eligible), [eligibilityResults]);
+  const failedScholarships = useMemo(() => eligibilityResults.filter(r => !r.eligible), [eligibilityResults]);
   const allReasonsText = useMemo(() => {
     const reasons = failedScholarships.flatMap(s => s.reasons || []);
-    return reasons.map(reason => 
-      typeof reason === 'string' ? reason : reason.message
-    );
+    return reasons.map(reason => typeof reason === 'string' ? reason : reason.message);
   }, [failedScholarships]);
   
-  // Generate AI prompt based on CMS template
   const aiPromptTemplate = resultPageConfig?.aiPromptConfig || 
     `{{userName}} vừa hoàn thành wizard.\n\nCác học bổng pass: {{passedScholarships}}\nCác học bổng fail: {{failedScholarships}}\nLý do fail: {{reasons}}\n\nHãy viết feedback thân thiện, khích lệ, ngắn gọn 3–4 câu.`;
   
@@ -113,18 +87,14 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   const failedScholarshipNames = failedScholarships.map(s => s.name).join(', ');
   const reasonsText = allReasonsText.length > 0 ? allReasonsText.join(', ') : "không có lý do fail, hồ sơ rất mạnh";
   
-  // Replace placeholders in the prompt
   const finalPrompt = aiPromptTemplate
     .replace('{{userName}}', userName)
     .replace('{{passedScholarships}}', passedScholarshipNames)
     .replace('{{failedScholarships}}', failedScholarshipNames)
     .replace('{{reasons}}', reasonsText);
   
-  // Mock AI feedback (in a real app, this would call an API)
   const aiFeedback = useMemo(() => {
     console.log("AI Prompt:", finalPrompt);
-    
-    // Simple mock feedback based on scenario
     if (allFailed) {
       return `Xin chào ${userName}, sau khi đánh giá hồ sơ của bạn, chúng tôi thấy bạn chưa đáp ứng đủ các yêu cầu cho các học bổng hiện tại. Đây là mội cơ hội để bạn cải thiện hồ sơ. Hãy xem xét việc nâng cao trình độ tiếng Anh, tích lũy thêm kinh nghiệm làm việc hoặc bổ sung các dự án liên quan.`;
     } else if (allPassed) {
@@ -134,7 +104,6 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     }
   }, [finalPrompt, userName, allFailed, allPassed]);
   
-  // Get configuration messages based on scenario
   const getConfigMessages = () => {
     if (!resultPageConfig) {
       return {
@@ -144,7 +113,6 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         ctaText: "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis."
       };
     }
-
     switch (true) {
       case allFailed:
         return {
@@ -172,35 +140,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   };
 
   const configMessages = getConfigMessages();
-  
-  // Use CMS text if available, otherwise fall back to default
   const displayCTAText = cmsResultText || configMessages.ctaText;
-    
-  // Use CMS fallback message if available, otherwise fall back to default
   const displayFallbackMessage = configMessages.fallbackMessage;
 
-  // Handle navigation to Layer 2 (Smart Profile Analysis)
-  const handleNavigateToLayer2 = (scholarship: Scholarship) => {
-    console.log("TODO: Navigate to Layer 2 - Smart Profile Analysis", { scholarship });
-    // In a real application, this would navigate to the next step
-    alert('Chuyển đến Layer 2 - Smart Profile Analysis (tính năng đang phát triển)');
-  };
-  
-  // Handle CTA click (no specific scholarship)
   const handleCTAClick = () => {
-    // Navigate to Smart Profile Analysis layer using query param routing
     const url = new URL(window.location.href);
     url.searchParams.set('ui', 'smart-profile');
     window.location.href = url.toString();
   };
-  
-  // Handle navigation back to homepage
-  const handleNavigateToHome = () => {
-    console.log("Navigate back to homepage");
-    // In a real application, this would navigate back to the home page
-    window.location.href = '/';
-  };
-  
+
   return (
     <motion.div
       className="min-h-screen bg-gradient-to-br from-[#f8fbff] to-[#eef2ff] dark:from-gray-950 dark:to-gray-900"
@@ -208,7 +156,6 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Confetti Overlay */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
           {[...Array(50)].map((_, i) => {
@@ -249,54 +196,62 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           />
         </motion.div>
       </AnimatePresence>
-      
-      <motion.div className="mt-8" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-        <InsightBox
+
+      {/* Section: AI Feedback with light background */}
+      <div className="mt-8 pb-12 bg-white/50 dark:bg-gray-900/30">
+        <motion.div className="pt-10" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <InsightBox
             feedback={aiFeedback}
             ctaText={displayCTAText}
             onCTAClick={handleCTAClick}
             configMessages={configMessages}
           />
-      </motion.div>
-      
-      {/* Use the backend's eligible status if available, otherwise fall back to our calculation */}
-      {typeof eligible === 'boolean' ? (
-        eligible ? (
+        </motion.div>
+      </div>
+
+      {/* Section: Scholarship Grid with neutral background */}
+      <div className="bg-slate-50 dark:bg-gray-950">
+        {typeof eligible === 'boolean' ? (
+          eligible ? (
+            <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <ScholarshipGrid 
+                scholarships={eligibleScholarships}
+                onScholarshipClick={() => handleCTAClick()}
+              />
+            </motion.div>
+          ) : (
+            <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
+            </motion.div>
+          )
+        ) : eligibleScholarships.length > 0 ? (
           <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <ScholarshipGrid 
               scholarships={eligibleScholarships}
-              onScholarshipClick={(sch) => handleCTAClick()}
+              onScholarshipClick={() => handleCTAClick()}
             />
           </motion.div>
         ) : (
           <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
           </motion.div>
-        )
-      ) : eligibleScholarships.length > 0 ? (
-        <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <ScholarshipGrid 
-            scholarships={eligibleScholarships}
-            onScholarshipClick={(sch) => handleCTAClick()}
+        )}
+      </div>
+
+      {/* Section: CTA with subtle gradient */}
+      <div className="mt-12 bg-gradient-to-b from-white/40 to-transparent dark:from-gray-900/40">
+        <motion.div className="py-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <ResultCTA 
+            eligibleScholarships={eligibleScholarships}
+            onCTAClick={handleCTAClick}
           />
         </motion.div>
-      ) : (
-        <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
-        </motion.div>
-      )}
-      
-      <motion.div className="mt-12" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <ResultCTA 
-          eligibleScholarships={eligibleScholarships}
-          onCTAClick={handleCTAClick}
-        />
-      </motion.div>
-      
-      {/* Back to Home button */}
-      <div className="mt-8 text-center">
+      </div>
+
+      {/* Footer back link */}
+      <div className="mt-6 pb-10 text-center">
         <button 
-          className="text-blue-600 hover:text-blue-800 font-medium"
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           onClick={() => { window.location.href = '/'; }}
         >
           Quay về Trang chủ
