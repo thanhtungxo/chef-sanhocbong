@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#f5fbff] via-white to-white';
+  const pageBgClasses = 'bg-gradient-to-b from-[#D6F3FF] via-[#F9FAFF] to-white';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -176,11 +176,19 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
   return (
     <motion.div
-      className={`min-h-screen ${pageBgClasses} px-6 py-8`}
+      className={`min-h-screen ${pageBgClasses} px-6 py-8 relative overflow-hidden`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
+      {/* subtle tech pattern overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(6,182,212,0.03) 1px, transparent 1px)',
+          backgroundSize: '22px 22px'
+        }}
+      />
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
           {[...Array(50)].map((_, i) => {
@@ -213,7 +221,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="bg-white rounded-2xl shadow-2xl p-10 bg-gradient-to-r from-[#ffffff] to-[#f9fcff]"
+            className="rounded-2xl shadow-xl p-10 bg-gradient-to-br from-[#f0fdfa] via-[#eef7ff] to-white"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 items-center">
               {/* Bên trái: ảnh hero (1/3–1/4 chiều ngang) */}
@@ -222,10 +230,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <img
                     src={configMessages.heroImageUrl}
                     alt="Kết quả học bổng"
-                    className="w-full h-[240px] rounded-xl object-cover"
+                    className="w-full h-[240px] rounded-xl object-cover shadow-md"
                   />
                 ) : (
-                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-[#99f6e4] to-[#60a5fa]" />
+                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-[#ccfbf1] to-[#bfdbfe]" />
                 )}
               </div>
               {/* Bên phải: text message (căn giữa theo chiều dọc) */}
@@ -240,12 +248,12 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         </AnimatePresence>
 
         {/* Row B: Khung C (AI Analysis Box) */}
-        <motion.div className="mt-5" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className="mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="max-w-6xl mx-auto">
-            <div className="h-2 bg-gradient-to-r from-[#e0f2fe] to-[#dcfce7] rounded-t-2xl"></div>
-            <div className="bg-white border border-[#e0f2fe] rounded-b-2xl md:rounded-2xl shadow-2xl p-12">
-              <h3 className="text-3xl font-bold text-gray-900 text-center mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
-              <p className="text-lg leading-relaxed text-gray-700 text-center">
+            <div className="h-2 bg-gradient-to-r from-[#06B6D4] to-[#3B82F6] rounded-t-2xl"></div>
+            <div className="bg-white border-2 border-[#06B6D4] rounded-b-2xl md:rounded-2xl shadow-2xl shadow-[0_10px_30px_rgba(6,182,212,0.15)] px-12 py-10 text-center">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
+              <p className="text-xl leading-relaxed text-gray-700">
                 {aiFeedback}
               </p>
             </div>
@@ -254,8 +262,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Câu hỏi dẫn hướng */}
         <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-gradient-to-r from-[#e6f7ff] to-[#f0fbff] border border-[#cceeff] rounded-xl p-4">
-            <div className="flex items-center text-base font-medium text-gray-800">
+          <div className="bg-gradient-to-r from-[#E0F7FA] to-white border border-[#06B6D4]/20 rounded-xl p-5">
+            <div className="flex items-center text-lg font-semibold text-gray-800">
               <span className="mr-2">🎯</span>
               <span>{calloutText}</span>
             </div>
@@ -263,7 +271,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         </motion.div>
 
         {/* Row D: Scholarships Grid */}
-        <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className="mt-8 bg-gray-50 border border-[#06B6D4]/10 rounded-2xl p-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {eligibilityResults.map((s, idx) => {
@@ -274,7 +282,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="h-[180px] w-full bg-white rounded-xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-[#00c6ff] transition-all focus:outline-none"
+                    className="h-[180px] w-full bg-white rounded-xl p-6 shadow-sm border border-[#06B6D4]/30 hover:-translate-y-1 hover:shadow-md hover:ring-2 hover:ring-[#06B6D4]/30 transition-transform transition-shadow focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {/* Logo or placeholder */}
@@ -307,16 +315,17 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Row E: CTA Buttons */}
         <motion.div className="mt-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-[#f9fcff] rounded-xl shadow-inner p-6 flex justify-center gap-6">
+          <div className="bg-gradient-to-r from-[#F0FDFA] to-[#EFF6FF] rounded-xl shadow-inner p-8 flex justify-center gap-6">
             <button
               onClick={handleCTAClick}
-              className="bg-gradient-to-r from-[#00c6ff] to-[#0072ff] text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+              className="bg-gradient-to-r from-[#06B6D4] to-[#3B82F6] text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
             >
-              {primaryCtaLabel}
+              <span>⚡</span>
+              <span>{primaryCtaLabel}</span>
             </button>
             <button
               onClick={() => window.history.back()}
-              className="border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl"
+              className="border border-[#06B6D4] text-[#06B6D4] bg-white hover:bg-[#F0FDFA] px-6 py-3 rounded-xl"
             >
               Quay lại
             </button>
