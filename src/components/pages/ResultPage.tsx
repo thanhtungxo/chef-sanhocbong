@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#fdfefe] via-[#f3faff] to-[#ffffff]';
+  const pageBgClasses = 'bg-gradient-to-b from-[#f5fbff] to-white';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -176,7 +176,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
   return (
     <motion.div
-      className={`min-h-screen ${pageBgClasses} px-4 sm:px-6 lg:px-8 py-8 sm:py-12`}
+      className={`min-h-screen ${pageBgClasses} px-6 py-8`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -213,46 +213,50 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="grid grid-cols-12 gap-6 items-stretch"
+            className="bg-white rounded-2xl shadow-xl p-8 bg-gradient-to-r from-[#ffffff] to-[#f9fcff]"
           >
-            {/* Hình A */}
-            <div className="col-span-12 md:col-span-4 order-2 md:order-1">
-              <div className="bg-white rounded-2xl shadow-md hover:shadow-lg border border-gray-100 p-3 h-full flex items-center justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              {/* Bên trái: Hình A (admin upload) */}
+              <div className="w-full">
                 {configMessages.heroImageUrl ? (
                   <img
                     src={configMessages.heroImageUrl}
                     alt="Kết quả học bổng"
-                    className="w-full h-[220px] rounded-xl object-cover"
+                    className="w-full h-[240px] rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="w-full h-[220px] rounded-xl bg-gradient-to-br from-blue-200 to-blue-400" />
+                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-blue-200 to-blue-400" />
                 )}
               </div>
-            </div>
-            {/* Khung B: Thông báo tình huống */}
-            <div className="col-span-12 md:col-span-8 order-1 md:order-2">
-              <div className="min-h-[200px] p-6 rounded-xl shadow-md bg-[#fff8e1] border border-gray-100">
-                <h2 className="text-xl font-semibold">{configMessages.subheading}</h2>
-                <p className="mt-2 text-sm text-gray-700">{configMessages.message}</p>
+              {/* Bên phải: Khung text thông báo */}
+              <div className="w-full">
+                <h2 className="text-2xl font-bold text-gray-900">{configMessages.subheading}</h2>
+                <p className="mt-3 text-base text-gray-700 leading-relaxed">{configMessages.message}</p>
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
 
         {/* Row B: Khung C (AI Analysis Box) */}
-        <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
-            <p className="text-base leading-relaxed text-gray-700">
-              {aiFeedback}
-            </p>
+        <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="h-2 bg-[#e0f7fa] rounded-t-2xl"></div>
+            <div className="bg-white rounded-b-2xl md:rounded-2xl shadow-lg p-10">
+              <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
+              <p className="text-lg leading-relaxed text-gray-700 text-center">
+                {aiFeedback}
+              </p>
+            </div>
           </div>
         </motion.div>
 
         {/* Câu hỏi dẫn hướng */}
-        <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-[#f1f7ff] border border-[#d6eaff] rounded-2xl p-4">
-            <p className="text-sm text-gray-700 font-medium text-center">{calloutText}</p>
+        <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="bg-gradient-to-r from-[#e6f7ff] to-[#f0fbff] border border-[#cceeff] rounded-xl p-4">
+            <div className="flex items-center text-base font-medium text-gray-800">
+              <span className="mr-2">🎯</span>
+              <span>{calloutText}</span>
+            </div>
           </div>
         </motion.div>
 
@@ -268,7 +272,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="w-full bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg hover:scale-105 transition-all hover:ring-2 hover:ring-offset-2 hover:ring-[#00c6ff] focus:outline-none"
+                    className="h-[180px] w-full bg-white rounded-xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1 hover:ring-2 hover:ring-[#00c6ff] transition-all focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {/* Logo or placeholder */}
@@ -283,7 +287,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                         <div className="text-base font-semibold text-gray-800">{s.name}</div>
                       </div>
                       <div className="mt-3">
-                        <span className={`px-3 py-1 rounded-full text-xs ${badgeClasses}`}>
+                        <span className={`px-2 py-1 rounded-full text-sm ${badgeClasses}`}>
                           {s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}
                         </span>
                       </div>
@@ -301,16 +305,16 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Row E: CTA Buttons */}
         <motion.div className="mt-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="flex justify-center gap-6">
+          <div className="bg-[#f9fcff] rounded-xl shadow-inner p-6 flex justify-center gap-6">
             <button
               onClick={handleCTAClick}
-              className="bg-gradient-to-r from-[#00c6ff] to-[#0072ff] text-white font-bold px-6 py-3 rounded-2xl shadow-md hover:shadow-lg transition-all"
+              className="bg-gradient-to-r from-[#00c6ff] to-[#0072ff] text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
             >
               {primaryCtaLabel}
             </button>
             <button
               onClick={() => window.history.back()}
-              className="bg-gray-100 text-gray-700 font-medium px-6 py-3 rounded-2xl hover:bg-gray-200"
+              className="border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl"
             >
               Quay lại
             </button>
