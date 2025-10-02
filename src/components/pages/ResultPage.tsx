@@ -216,7 +216,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             className="grid grid-cols-12 gap-6 items-stretch"
           >
             {/* Hình A */}
-            <div className="col-span-12 md:col-span-4">
+            <div className="col-span-12 md:col-span-4 order-2 md:order-1">
               <div className="bg-white rounded-2xl shadow-md hover:shadow-lg border border-gray-100 p-3 h-full flex items-center justify-center">
                 {configMessages.heroImageUrl ? (
                   <img
@@ -230,10 +230,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
               </div>
             </div>
             {/* Khung B: Thông báo tình huống */}
-            <div className="col-span-12 md:col-span-8">
-              <div className={`min-h-[200px] p-6 rounded-xl shadow-md ${statusClasses}`}>
+            <div className="col-span-12 md:col-span-8 order-1 md:order-2">
+              <div className="min-h-[200px] p-6 rounded-xl shadow-md bg-[#fff8e1] border border-gray-100">
                 <h2 className="text-xl font-semibold">{configMessages.subheading}</h2>
-                <p className="mt-2 text-sm">{configMessages.message}</p>
+                <p className="mt-2 text-sm text-gray-700">{configMessages.message}</p>
               </div>
             </div>
           </motion.div>
