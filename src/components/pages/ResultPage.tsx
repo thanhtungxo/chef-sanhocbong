@@ -161,12 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = allPassed
-    ? 'bg-gradient-to-b from-green-50 to-white'
-    : allFailed
-    ? 'bg-gradient-to-b from-red-50 to-white'
-    : 'bg-gradient-to-b from-blue-50 to-white';
-
+  const pageBgClasses = 'bg-gradient-to-b from-[#fdfefe] via-[#f3faff] to-[#ffffff]';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -222,15 +217,17 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           >
             {/* Hình A */}
             <div className="col-span-12 md:col-span-4">
-              {configMessages.heroImageUrl ? (
-                <img
-                  src={configMessages.heroImageUrl}
-                  alt="Kết quả học bổng"
-                  className="w-[280px] h-[200px] md:w-[320px] rounded-xl shadow-md object-cover mx-auto"
-                />
-              ) : (
-                <div className="w-[280px] h-[200px] md:w-[320px] rounded-xl shadow-md bg-gradient-to-br from-blue-200 to-blue-400 mx-auto" />
-              )}
+              <div className="bg-white rounded-2xl shadow-md hover:shadow-lg border border-gray-100 p-3 h-full flex items-center justify-center">
+                {configMessages.heroImageUrl ? (
+                  <img
+                    src={configMessages.heroImageUrl}
+                    alt="Kết quả học bổng"
+                    className="w-full h-[220px] rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-[220px] rounded-xl bg-gradient-to-br from-blue-200 to-blue-400" />
+                )}
+              </div>
             </div>
             {/* Khung B: Thông báo tình huống */}
             <div className="col-span-12 md:col-span-8">
@@ -244,39 +241,36 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Row B: Khung C (AI Analysis Box) */}
         <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
-            <p className="text-base leading-relaxed text-gray-700 max-w-3xl">
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
+            <p className="text-base leading-relaxed text-gray-700">
               {aiFeedback}
             </p>
           </div>
         </motion.div>
 
-        {/* Row C: Callout */}
+        {/* Câu hỏi dẫn hướng */}
         <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 flex items-start">
-            <span className="w-6 h-6 mr-3 text-blue-500">🎯</span>
-            <p className="text-sm text-gray-700 font-medium">
-              {calloutText}
-            </p>
+          <div className="bg-[#f1f7ff] border border-[#d6eaff] rounded-2xl p-4">
+            <p className="text-sm text-gray-700 font-medium text-center">{calloutText}</p>
           </div>
         </motion.div>
 
         {/* Row D: Scholarships Grid */}
         <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 xl:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700';
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-red-50 text-red-600';
                 return (
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="h-[160px] w-full bg-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition ring-0 hover:ring-2 hover:ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full bg-white rounded-xl p-6 text-center shadow-md hover:shadow-lg hover:scale-105 transition-all hover:ring-2 hover:ring-offset-2 hover:ring-[#00c6ff] focus:outline-none"
                   >
-                    <div className="flex flex-col items-center justify-start h-full p-4">
+                    <div className="flex flex-col items-center justify-start">
                       {/* Logo or placeholder */}
                       {s.logoUrl ? (
                         <img src={s.logoUrl} alt={s.name} className="max-h-[50px] object-contain" />
@@ -310,13 +304,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           <div className="flex justify-center gap-6">
             <button
               onClick={handleCTAClick}
-              className="bg-gradient-to-r from-blue-500 to-green-500 text-white font-medium px-6 py-3 rounded-lg shadow hover:opacity-90 transition"
+              className="bg-gradient-to-r from-[#00c6ff] to-[#0072ff] text-white font-bold px-6 py-3 rounded-2xl shadow-md hover:shadow-lg transition-all"
             >
               {primaryCtaLabel}
             </button>
             <button
               onClick={() => window.history.back()}
-              className="bg-gray-100 text-gray-600 font-medium px-6 py-3 rounded-lg hover:bg-gray-200"
+              className="bg-gray-100 text-gray-700 font-medium px-6 py-3 rounded-2xl hover:bg-gray-200"
             >
               Quay lại
             </button>
