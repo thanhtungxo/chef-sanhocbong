@@ -1,16 +1,10 @@
 import React, { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { ResultBanner } from './ResultBanner';
-import { InsightBox } from './InsightBox';
-import { ScholarshipGrid } from './ScholarshipGrid';
-import { ResultCTA } from './ResultCTA';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // Define the Scholarship interface
-interface ReasonObject {
-  message: string;
-}
+interface ReasonObject { message: string; }
 
 type Reason = string | ReasonObject;
 
@@ -19,6 +13,7 @@ interface Scholarship {
   name: string;
   eligible: boolean;
   reasons?: Reason[];
+  logoUrl?: string; // Optional: admin-uploaded logo
 }
 
 interface ResultPageProps {
@@ -110,7 +105,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         message: 'Dưới đây là kết quả đánh giá học bổng của bạn.',
         subheading: 'Kết quả đánh giá học bổng',
         fallbackMessage: "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-        ctaText: "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis."
+        ctaText: "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+        heroImageUrl: undefined as string | undefined,
       };
     }
     switch (true) {
@@ -119,14 +115,16 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           message: resultPageConfig.allFailedMessage || 'Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào.',
           subheading: resultPageConfig.allFailedSubheading || 'Hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis."
+          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          heroImageUrl: resultPageConfig.heroImageUrl,
         };
       case allPassed:
         return {
           message: resultPageConfig.allPassedMessage || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng.',
           subheading: resultPageConfig.allPassedSubheading || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis."
+          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          heroImageUrl: resultPageConfig.heroImageUrl,
         };
       case passedSome:
       default:
@@ -134,7 +132,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           message: resultPageConfig.passedSomeMessage || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện.',
           subheading: resultPageConfig.passedSomeSubheading || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis."
+          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          heroImageUrl: resultPageConfig.heroImageUrl,
         };
     }
   };
@@ -149,9 +148,40 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     window.location.href = url.toString();
   };
 
+  const handleSelectScholarship = (scholarship: Scholarship) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('ui', 'smart-profile');
+    url.searchParams.set('sch', scholarship.id);
+    window.location.href = url.toString();
+  };
+
+  const statusClasses = allPassed
+    ? 'bg-green-50 border-l-4 border-green-500 text-green-800'
+    : allFailed
+    ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
+    : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
+
+  const pageBgClasses = allPassed
+    ? 'bg-gradient-to-b from-green-50 to-white'
+    : allFailed
+    ? 'bg-gradient-to-b from-red-50 to-white'
+    : 'bg-gradient-to-b from-blue-50 to-white';
+
+  const calloutText = allFailed
+    ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
+    : allPassed
+    ? 'Bạn đang có lợi thế! Chọn học bổng bạn quan tâm để xem cơ hội và hướng dẫn nộp hồ sơ.'
+    : 'Một số học bổng phù hợp với bạn. Hãy chọn học bổng bên dưới để xem điểm mạnh/điểm yếu và cách nâng hồ sơ.';
+
+  const primaryCtaLabel = allFailed
+    ? '⚡ Xem cách cải thiện hồ sơ'
+    : allPassed
+    ? '⚡ Xem phân tích chi tiết'
+    : '⚡ Tiếp tục với Smart Profile Analysis';
+
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-[#f8fbff] to-[#eef2ff] dark:from-gray-950 dark:to-gray-900"
+      className={`min-h-screen ${pageBgClasses} px-4 sm:px-6 lg:px-8 py-8 sm:py-12`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -179,83 +209,119 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         </div>
       )}
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={messageType}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.25 }}
-        >
-          <ResultBanner 
-            userName={userName}
-            allFailed={allFailed}
-            allPassed={allPassed}
-            passedSome={passedSome}
-            configMessages={{ subheading: configMessages.subheading }}
-          />
-        </motion.div>
-      </AnimatePresence>
+      <div className="max-w-6xl mx-auto">
+        {/* Row A: Image + Status Card */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={messageType}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25 }}
+            className="grid grid-cols-12 gap-6 items-stretch"
+          >
+            {/* Hình A */}
+            <div className="col-span-12 md:col-span-4">
+              {configMessages.heroImageUrl ? (
+                <img
+                  src={configMessages.heroImageUrl}
+                  alt="Kết quả học bổng"
+                  className="w-[280px] h-[200px] md:w-[320px] rounded-xl shadow-md object-cover mx-auto"
+                />
+              ) : (
+                <div className="w-[280px] h-[200px] md:w-[320px] rounded-xl shadow-md bg-gradient-to-br from-blue-200 to-blue-400 mx-auto" />
+              )}
+            </div>
+            {/* Khung B: Thông báo tình huống */}
+            <div className="col-span-12 md:col-span-8">
+              <div className={`min-h-[200px] p-6 rounded-xl shadow-md ${statusClasses}`}>
+                <h2 className="text-xl font-semibold">{configMessages.subheading}</h2>
+                <p className="mt-2 text-sm">{configMessages.message}</p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Section: AI Feedback with light background */}
-      <div className="mt-8 pb-12 bg-white/50 dark:bg-gray-900/30">
-        <motion.div className="pt-10" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <InsightBox
-            feedback={aiFeedback}
-            ctaText={displayCTAText}
-            onCTAClick={handleCTAClick}
-            configMessages={configMessages}
-          />
+        {/* Row B: Khung C (AI Analysis Box) */}
+        <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
+            <p className="text-base leading-relaxed text-gray-700 max-w-3xl">
+              {aiFeedback}
+            </p>
+          </div>
         </motion.div>
-      </div>
 
-      {/* Section: Scholarship Grid with neutral background */}
-      <div className="bg-slate-50 dark:bg-gray-950">
-        {typeof eligible === 'boolean' ? (
-          eligible ? (
-            <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <ScholarshipGrid 
-                scholarships={eligibleScholarships}
-                onScholarshipClick={() => handleCTAClick()}
-              />
-            </motion.div>
+        {/* Row C: Callout */}
+        <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 flex items-start">
+            <span className="w-6 h-6 mr-3 text-blue-500">🎯</span>
+            <p className="text-sm text-gray-700 font-medium">
+              {calloutText}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Row D: Scholarships Grid */}
+        <motion.div className="mt-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          {eligibilityResults.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 xl:gap-8">
+              {eligibilityResults.map((s, idx) => {
+                const badgeClasses = s.eligible
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700';
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => handleSelectScholarship(s)}
+                    className="h-[160px] w-full bg-white rounded-lg shadow hover:shadow-lg hover:scale-105 transition ring-0 hover:ring-2 hover:ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    <div className="flex flex-col items-center justify-start h-full p-4">
+                      {/* Logo or placeholder */}
+                      {s.logoUrl ? (
+                        <img src={s.logoUrl} alt={s.name} className="max-h-[50px] object-contain" />
+                      ) : (
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 font-bold text-lg">
+                          {s.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="mt-3 text-center">
+                        <div className="text-base font-semibold text-gray-800">{s.name}</div>
+                      </div>
+                      <div className="mt-3">
+                        <span className={`px-3 py-1 rounded-full text-xs ${badgeClasses}`}>
+                          {s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           ) : (
-            <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
-            </motion.div>
-          )
-        ) : eligibleScholarships.length > 0 ? (
-          <motion.div className="mt-12" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <ScholarshipGrid 
-              scholarships={eligibleScholarships}
-              onScholarshipClick={() => handleCTAClick()}
-            />
-          </motion.div>
-        ) : (
-          <motion.div className="mt-12 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <p className="text-gray-600 text-lg">{displayFallbackMessage}</p>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Section: CTA with subtle gradient */}
-      <div className="mt-12 bg-gradient-to-b from-white/40 to-transparent dark:from-gray-900/40">
-        <motion.div className="py-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <ResultCTA 
-            eligibleScholarships={eligibleScholarships}
-            onCTAClick={handleCTAClick}
-          />
+            <div className="text-center">
+              <p className="text-gray-600 text-base">{displayFallbackMessage}</p>
+            </div>
+          )}
         </motion.div>
-      </div>
 
-      {/* Footer back link */}
-      <div className="mt-6 pb-10 text-center">
-        <button 
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-          onClick={() => { window.location.href = '/'; }}
-        >
-          Quay về Trang chủ
-        </button>
+        {/* Row E: CTA Buttons */}
+        <motion.div className="mt-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="flex justify-center gap-6">
+            <button
+              onClick={handleCTAClick}
+              className="bg-gradient-to-r from-blue-500 to-green-500 text-white font-medium px-6 py-3 rounded-lg shadow hover:opacity-90 transition"
+            >
+              {primaryCtaLabel}
+            </button>
+            <button
+              onClick={() => window.history.back()}
+              className="bg-gray-100 text-gray-600 font-medium px-6 py-3 rounded-lg hover:bg-gray-200"
+            >
+              Quay lại
+            </button>
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );

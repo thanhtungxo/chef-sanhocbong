@@ -128,6 +128,8 @@ export default defineSchema({
     allFailedSubheading: v.optional(v.string()),
     allPassedSubheading: v.optional(v.string()),
     passedSomeSubheading: v.optional(v.string()),
+    heroImageUrl: v.optional(v.string()),
+    fallbackMessage: v.optional(v.string()),
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index('by_createdAt', ['createdAt']),

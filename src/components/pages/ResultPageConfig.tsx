@@ -33,6 +33,8 @@ export const ResultPageConfig: React.FC = () => {
   const [allFailedSubheading, setAllFailedSubheading] = useState<string>('');
   const [allPassedSubheading, setAllPassedSubheading] = useState<string>('');
   const [passedSomeSubheading, setPassedSomeSubheading] = useState<string>('');
+  const [heroImageUrl, setHeroImageUrl] = useState<string>('');
+  const [fallbackMessage, setFallbackMessage] = useState<string>('');
   
   // Loading and error states
   const [loading, setLoading] = useState<boolean>(false);
@@ -59,6 +61,8 @@ export const ResultPageConfig: React.FC = () => {
       setAllFailedSubheading(resultPageConfig.allFailedSubheading || defaultAllFailedSubheading);
       setAllPassedSubheading(resultPageConfig.allPassedSubheading || defaultAllPassedSubheading);
       setPassedSomeSubheading(resultPageConfig.passedSomeSubheading || defaultPassedSomeSubheading);
+      setHeroImageUrl(resultPageConfig.heroImageUrl || '');
+      setFallbackMessage(resultPageConfig.fallbackMessage || '');
     } else {
       // If no config exists, use default values
       setCtaText(defaultCTAText);
@@ -68,6 +72,8 @@ export const ResultPageConfig: React.FC = () => {
       setAllFailedSubheading(defaultAllFailedSubheading);
       setAllPassedSubheading(defaultAllPassedSubheading);
       setPassedSomeSubheading(defaultPassedSomeSubheading);
+      setHeroImageUrl('');
+      setFallbackMessage('');
     }
   }, [resultPageConfig]);
   
@@ -90,6 +96,8 @@ export const ResultPageConfig: React.FC = () => {
         allFailedSubheading,
         allPassedSubheading,
         passedSomeSubheading,
+        heroImageUrl,
+        fallbackMessage,
       });
       
       // Show success message
@@ -181,6 +189,31 @@ export const ResultPageConfig: React.FC = () => {
         <TabsContent value="content">
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6">
+              {/* Hero Image URL */}
+              <div className="space-y-2">
+                <Label htmlFor="heroImageUrl">Hero Image URL (Hình mở đầu ở Row A)</Label>
+                <input
+                  id="heroImageUrl"
+                  value={heroImageUrl}
+                  onChange={(e) => setHeroImageUrl(e.target.value)}
+                  placeholder="Nhập URL hình ảnh (PNG/JPG/WebP)"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <p className="text-sm text-muted-foreground">Nếu để trống, hệ thống sẽ dùng nền gradient mặc định.</p>
+              </div>
+              
+              {/* Fallback Message */}
+              <div className="space-y-2">
+                <Label htmlFor="fallbackMessage">Fallback Message (hiển thị khi không có học bổng nào)</Label>
+                <textarea
+                  id="fallbackMessage"
+                  value={fallbackMessage}
+                  onChange={(e) => setFallbackMessage(e.target.value)}
+                  placeholder="Nhập thông điệp fallback cho trường hợp không đủ điều kiện"
+                  className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              
               {/* CTA Text Configuration */}
               <div className="space-y-2">
                 <Label htmlFor="ctaText">CTA Text (dưới Insight Box)</Label>

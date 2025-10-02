@@ -31,6 +31,8 @@ export const updateResultPageConfig = mutation({
     allFailedSubheading: v.optional(v.string()),
     allPassedSubheading: v.optional(v.string()),
     passedSomeSubheading: v.optional(v.string()),
+    heroImageUrl: v.optional(v.string()),
+    fallbackMessage: v.optional(v.string()),
   },
   handler: async (ctx: any, args: any) => {
     // Get the current config if it exists
@@ -72,6 +74,8 @@ export const createResultPageConfig = mutation({
     allFailedSubheading: v.optional(v.string()),
     allPassedSubheading: v.optional(v.string()),
     passedSomeSubheading: v.optional(v.string()),
+    heroImageUrl: v.optional(v.string()),
+    fallbackMessage: v.optional(v.string()),
   },
   handler: async (ctx: any, args: any) => {
     const now = new Date().toISOString();
