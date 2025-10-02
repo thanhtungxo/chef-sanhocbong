@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#f5fbff] to-white';
+  const pageBgClasses = 'bg-gradient-to-b from-[#f5fbff] via-white to-white';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -213,11 +213,11 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
-            className="bg-white rounded-2xl shadow-xl p-8 bg-gradient-to-r from-[#ffffff] to-[#f9fcff]"
+            className="bg-white rounded-2xl shadow-2xl p-10 bg-gradient-to-r from-[#ffffff] to-[#f9fcff]"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              {/* Bên trái: Hình A (admin upload) */}
-              <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 items-center">
+              {/* Bên trái: ảnh hero (1/3–1/4 chiều ngang) */}
+              <div className="md:col-span-1 lg:col-span-1">
                 {configMessages.heroImageUrl ? (
                   <img
                     src={configMessages.heroImageUrl}
@@ -225,24 +225,26 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                     className="w-full h-[240px] rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-blue-200 to-blue-400" />
+                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-[#99f6e4] to-[#60a5fa]" />
                 )}
               </div>
-              {/* Bên phải: Khung text thông báo */}
-              <div className="w-full">
-                <h2 className="text-2xl font-bold text-gray-900">{configMessages.subheading}</h2>
-                <p className="mt-3 text-base text-gray-700 leading-relaxed">{configMessages.message}</p>
+              {/* Bên phải: text message (căn giữa theo chiều dọc) */}
+              <div className="md:col-span-2 lg:col-span-3 h-full flex">
+                <div className="flex flex-col justify-center w-full">
+                  <h2 className="text-2xl font-bold text-gray-900 text-left">{configMessages.subheading}</h2>
+                  <p className="mt-3 text-lg text-gray-700 leading-relaxed">{configMessages.message}</p>
+                </div>
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
 
         {/* Row B: Khung C (AI Analysis Box) */}
-        <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="h-2 bg-[#e0f7fa] rounded-t-2xl"></div>
-            <div className="bg-white rounded-b-2xl md:rounded-2xl shadow-lg p-10">
-              <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
+        <motion.div className="mt-5" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="h-2 bg-gradient-to-r from-[#e0f2fe] to-[#dcfce7] rounded-t-2xl"></div>
+            <div className="bg-white border border-[#e0f2fe] rounded-b-2xl md:rounded-2xl shadow-2xl p-12">
+              <h3 className="text-3xl font-bold text-gray-900 text-center mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
               <p className="text-lg leading-relaxed text-gray-700 text-center">
                 {aiFeedback}
               </p>
