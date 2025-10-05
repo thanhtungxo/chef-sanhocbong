@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#D6F3FF] via-[#F9FAFF] to-white';
+  const pageBgClasses = 'bg-gradient-to-b from-[#F9FBFF] to-white';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -176,7 +176,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
   return (
     <motion.div
-      className={`min-h-screen ${pageBgClasses} px-6 py-8 relative overflow-hidden`}
+      className={`min-h-screen ${pageBgClasses} px-6 py-8 relative overflow-hidden font-sans`}
+      style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif" }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
