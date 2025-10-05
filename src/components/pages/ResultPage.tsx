@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#C7E7FF] via-[#E8F6FF] to-[#FFFFFF]';
+  const pageBgClasses = 'bg-gradient-to-b from-[#EAF6FF] to-[#FFFFFF]';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -221,28 +221,35 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="relative group rounded-[16px] md:rounded-[20px] bg-white border-[1px] border-[#E0ECFF] shadow-[0_12px_40px_rgba(56,189,248,0.25)] p-4 md:p-5"
+            transition={{ duration: 0.3 }}
+            className="relative group rounded-2xl bg-gradient-to-br from-[#EAF7FF] via-[#F4FBFF] to-[#FFFFFF] border border-sky-100 shadow-[0_4px_12px_rgba(56,189,248,0.15)] px-5 py-4 animate-fadeInUp"
           >
-            {/* subtle top accent bar */}
-            <div className="absolute top-0 inset-x-4 h-[2px] bg-gradient-to-r from-[#00A8F0] to-[#0074E4] opacity-70 rounded-full pointer-events-none" aria-hidden="true" />
-
             <div className="flex items-start gap-3">
               {/* compact hero icon/logo */}
               {configMessages.heroImageUrl ? (
                 <img
                   src={configMessages.heroImageUrl}
                   alt="Kết quả học bổng"
-                  className="w-10 h-10 rounded-xl object-cover border border-[#E0ECFF] shadow-sm"
+                  className="w-10 h-10 rounded-xl object-cover border border-sky-100 shadow-[0_2px_8px_rgba(59,130,246,0.15)]"
                 />
               ) : (
-                <div className="icon-chip w-10 h-10 text-base">🎓</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-sky-100 shadow-[0_2px_8px_rgba(59,130,246,0.15)] bg-white">
+                  🎓
+                </div>
               )}
 
               {/* text block */}
               <div className="flex-1">
-                <h2 className="text-base md:text-lg font-semibold text-[#0B2749] tracking-tight">{configMessages.subheading}</h2>
-                <p className="mt-1.5 text-sm md:text-base text-[#405A7D] leading-snug">{configMessages.message}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🎉</span>
+                  <h2 className="text-[20px] font-bold bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent tracking-tight">
+                    {configMessages.subheading}
+                  </h2>
+                </div>
+                <div className="mt-1.5 flex items-center gap-1 text-[14px] text-slate-600">
+                  <span>💬</span>
+                  <p className="leading-relaxed">{configMessages.message}</p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -263,7 +270,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Câu hỏi dẫn hướng */}
         <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-gradient-to-r from-[#E0F7FA] to-white border border-[#06B6D4]/20 rounded-[16px] md:rounded-[20px] p-5">
+          <div className="bg-gradient-to-r from-[#E0F2FE] via-[#F0F9FF] to-white border-l-4 border-sky-400 rounded-[16px] md:rounded-[20px] p-5">
             <div className="flex items-center text-lg font-semibold text-[#0B2749]">
               <span className="mr-2">🎯</span>
               <span>{calloutText}</span>
