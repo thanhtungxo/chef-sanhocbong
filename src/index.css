@@ -41,3 +41,25 @@ body {
   padding-right: max(1rem, env(safe-area-inset-right));
 }
 
+
+/* App-like utility classes inspired by modern VN fintech apps */
+.app-card {
+  @apply bg-white/95 border border-gray-200/60 shadow-sm rounded-md transition-all duration-200;
+}
+.app-card:active {
+  @apply translate-y-0.5 shadow-sm;
+}
+.icon-chip {
+  @apply flex items-center justify-center w-8 h-8 rounded-full bg-sky-50 text-sky-600 border border-sky-100 shadow-sm;
+}
+
+/* Neutral badge style (optional) */
+.badge-neutral {
+  @apply rounded-full px-2 py-0.5 text-[11px] md:text-xs font-medium bg-neutral-50 text-neutral-700 border border-neutral-200;
+}
+
+/* Hairline divider utility */
+.hairline-divider-y {
+  @apply pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-gray-200/25 to-transparent;
+}
+

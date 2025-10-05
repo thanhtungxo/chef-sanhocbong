@@ -274,8 +274,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         {/* Row D: Scholarships Grid */}
         <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
-            <div className="relative grid grid-cols-2 gap-3 sm:gap-3 md:gap-4">
-              <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-sky-200/40 to-transparent"></div>
+            <div className="relative grid grid-cols-2 gap-2 sm:gap-2 md:gap-3">
+              <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-gray-200/25 to-transparent"></div>
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
                   ? 'bg-green-50 text-green-700'
@@ -284,13 +284,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="group w-full bg-white rounded-md p-3 md:p-4 border border-sky-200 shadow-sm sm:hover:shadow-md sm:hover:-translate-y-0.5 transition-transform focus:outline-none"
+                    className="group w-full app-card rounded-md overflow-hidden p-3 md:p-4 sm:hover:shadow-md sm:hover:-translate-y-0.5 sm:hover:ring-1 sm:hover:ring-sky-300/50 transition-all focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {s.logoUrl ? (
                         <img src={s.logoUrl} alt={s.name} className="h-8 object-contain" />
                       ) : (
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-xs">
+                        <div className="icon-chip text-xs font-semibold">
                           {s.name.charAt(0).toUpperCase()}
                         </div>
                       )}
