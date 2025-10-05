@@ -214,35 +214,35 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
       )}
 
       <div className="max-w-6xl mx-auto">
-        {/* Row A: Image + Status Card */}
+        {/* Row A: Professional App Header Card */}
         <AnimatePresence mode="wait">
           <motion.div
             key={messageType}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.25 }}
-            className="rounded-2xl shadow-xl p-10 bg-gradient-to-br from-[#f0fdfa] via-[#eef7ff] to-white"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="relative group rounded-[16px] md:rounded-[20px] bg-white border-[1px] border-[#E0ECFF] shadow-[0_12px_40px_rgba(56,189,248,0.25)] p-4 md:p-5"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 items-center">
-              {/* Bên trái: ảnh hero (1/3–1/4 chiều ngang) */}
-              <div className="md:col-span-1 lg:col-span-1">
-                {configMessages.heroImageUrl ? (
-                  <img
-                    src={configMessages.heroImageUrl}
-                    alt="Kết quả học bổng"
-                    className="w-full h-[180px] rounded-lg object-cover shadow-sm border border-white/40"
-                  />
-                ) : (
-                  <div className="w-full h-[180px] rounded-lg bg-gradient-to-br from-[#ccfbf1] to-[#bfdbfe] border border-white/40" />
-                )}
-              </div>
-              {/* Bên phải: text message (căn giữa theo chiều dọc) */}
-              <div className="md:col-span-2 lg:col-span-3 h-full flex">
-                <div className="flex flex-col justify-center w-full">
-                  <h2 className="text-lg md:text-xl font-semibold text-[#0B2749] text-left">{configMessages.subheading}</h2>
-                  <p className="mt-2 text-sm md:text-base text-[#405A7D] leading-snug">{configMessages.message}</p>
-                </div>
+            {/* subtle top accent bar */}
+            <div className="absolute top-0 inset-x-4 h-[2px] bg-gradient-to-r from-[#00A8F0] to-[#0074E4] opacity-70 rounded-full pointer-events-none" aria-hidden="true" />
+
+            <div className="flex items-start gap-3">
+              {/* compact hero icon/logo */}
+              {configMessages.heroImageUrl ? (
+                <img
+                  src={configMessages.heroImageUrl}
+                  alt="Kết quả học bổng"
+                  className="w-10 h-10 rounded-xl object-cover border border-[#E0ECFF] shadow-sm"
+                />
+              ) : (
+                <div className="icon-chip w-10 h-10 text-base">🎓</div>
+              )}
+
+              {/* text block */}
+              <div className="flex-1">
+                <h2 className="text-base md:text-lg font-semibold text-[#0B2749] tracking-tight">{configMessages.subheading}</h2>
+                <p className="mt-1.5 text-sm md:text-base text-[#405A7D] leading-snug">{configMessages.message}</p>
               </div>
             </div>
           </motion.div>
