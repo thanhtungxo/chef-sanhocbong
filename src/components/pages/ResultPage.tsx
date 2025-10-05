@@ -261,7 +261,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         {/* Row B: Scroll Paper modern card */}
         <motion.div className="mt-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
           <div className="max-w-5xl mx-auto">
-            <motion.div ref={paperRef} style={{ y: parallaxY }} className="relative bg-gradient-to-b from-[#FFF9EF] to-[#FFFCF7] border border-[#E8DCC4] rounded-3xl shadow-[0_10px_25px_rgba(180,160,120,0.15)] p-8 sm:p-10 text-center transition-all duration-300 hover:shadow-[0_12px_30px_rgba(180,160,120,0.18)]">
+            <motion.div ref={paperRef} style={{ y: parallaxY }} className="relative bg-gradient-to-b from-[#FFF9EF] to-[#FFFCF7] border border-[#E8DCC4] rounded-3xl shadow-[0_10px_25px_rgba(180,160,120,0.15)] py-8 sm:py-10 px-4 sm:px-5 text-center transition-all duration-300 hover:shadow-[0_12px_30px_rgba(180,160,120,0.18)]">
               {/* Scroll paper illusion bars */}
               <div className="absolute left-6 right-6 top-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(-50%)' }} />
               <div className="absolute left-6 right-6 bottom-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(50%)' }} />
@@ -270,7 +270,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
               <h3 className="text-2xl sm:text-3xl font-semibold text-[#1A1A1A]" style={{ fontFamily: "'Playfair Display','DM Serif Display',serif", letterSpacing: '-0.01em' }}>
                 Phân tích sơ bộ hồ sơ của bạn
               </h3>
-              <p className="mt-3 text-base sm:text-lg leading-relaxed text-[#333333] mx-auto max-w-[80%]" style={{ fontFamily: "'Inter','Plus Jakarta Sans',systemui,sans-serif" }}>
+              <p className="mt-3 text-base sm:text-lg leading-relaxed text-[#333333]" style={{ fontFamily: "'Inter','Plus Jakarta Sans',system-ui,sans-serif" }}>
                 {aiFeedback}
               </p>
             </motion.div>
