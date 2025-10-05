@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 
 // Define the Scholarship interface
 interface ReasonObject { message: string; }
@@ -173,6 +173,9 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     : allPassed
     ? '⚡ Xem phân tích chi tiết'
     : '⚡ Tiếp tục với Smart Profile Analysis';
+  const paperRef = React.useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({ target: paperRef, offset: ['start end', 'end start'] });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [-2, 2]);
 
   return (
     <motion.div
@@ -255,16 +258,22 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           </motion.div>
         </AnimatePresence>
 
-        {/* Row B: Khung C (AI Analysis Box) */}
-        <motion.div className="mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="max-w-6xl mx-auto">
-            <div className="h-[6px] w-20 md:w-24 bg-gradient-to-r from-sky-400 to-blue-500 mx-auto rounded-full mb-3"></div>
-            <div className="backdrop-blur-[2px] bg-white border-[1px] border-[#E0ECFF] rounded-[16px] md:rounded-[20px] shadow-[0_12px_40px_rgba(56,189,248,0.25)] p-5 md:p-6 text-center">
-              <h3 className="text-xl md:text-2xl font-bold text-[#0B2749] mb-2">Phân tích sơ bộ hồ sơ của bạn</h3>
-              <p className="text-sm md:text-base text-[#405A7D] leading-snug">
+        {/* Row B: Scroll Paper modern card */}
+        <motion.div className="mt-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+          <div className="max-w-5xl mx-auto">
+            <motion.div ref={paperRef} style={{ y: parallaxY }} className="relative bg-gradient-to-b from-[#FFF9EF] to-[#FFFCF7] border border-[#E8DCC4] rounded-3xl shadow-[0_10px_25px_rgba(180,160,120,0.15)] p-8 sm:p-10 text-center transition-all duration-300 hover:shadow-[0_12px_30px_rgba(180,160,120,0.18)]">
+              {/* Scroll paper illusion bars */}
+              <div className="absolute left-6 right-6 top-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(-50%)' }} />
+              <div className="absolute left-6 right-6 bottom-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(50%)' }} />
+
+              {/* Typography */}
+              <h3 className="text-2xl sm:text-3xl font-semibold text-[#1A1A1A]" style={{ fontFamily: "'Playfair Display','DM Serif Display',serif", letterSpacing: '-0.01em' }}>
+                Phân tích sơ bộ hồ sơ của bạn
+              </h3>
+              <p className="mt-3 text-base sm:text-lg leading-relaxed text-[#333333] mx-auto max-w-[80%]" style={{ fontFamily: "'Inter','Plus Jakarta Sans',systemui,sans-serif" }}>
                 {aiFeedback}
               </p>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
 
