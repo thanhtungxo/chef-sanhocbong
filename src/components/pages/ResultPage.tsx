@@ -274,7 +274,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         {/* Row D: Scholarships Grid */}
         <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="relative grid grid-cols-2 gap-3 sm:gap-3 md:gap-4">
+              <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-sky-200/40 to-transparent"></div>
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
                   ? 'bg-green-50 text-green-700'
@@ -283,21 +284,21 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="group w-full bg-white rounded-xl p-5 border border-sky-200 shadow-sm md:hover:shadow-md md:hover:-translate-y-0.5 transition-transform focus:outline-none"
+                    className="group w-full bg-white rounded-md p-3 md:p-4 border border-sky-200 shadow-sm sm:hover:shadow-md sm:hover:-translate-y-0.5 transition-transform focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {s.logoUrl ? (
-                        <img src={s.logoUrl} alt={s.name} className="h-10 object-contain" />
+                        <img src={s.logoUrl} alt={s.name} className="h-8 object-contain" />
                       ) : (
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-xs">
                           {s.name.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div className="mt-3 text-center">
-                        <div className="text-[15px] font-semibold text-gray-800">{s.name}</div>
+                      <div className="mt-2 text-center">
+                        <div className="text-[14px] font-medium text-gray-800">{s.name}</div>
                       </div>
-                      <div className="mt-3">
-                        <span className={`rounded-full px-3 py-1 text-xs md:text-[13px] font-medium ${badgeClasses}`}>
+                      <div className="mt-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] md:text-xs font-medium ${badgeClasses}`}>
                           {s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}
                         </span>
                       </div>
