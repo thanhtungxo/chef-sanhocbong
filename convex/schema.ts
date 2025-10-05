@@ -133,4 +133,28 @@ export default defineSchema({
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index('by_createdAt', ['createdAt']),
+  // AI Engine tables
+  ai_models: defineTable({
+    provider: v.string(),
+    model: v.string(),
+    aliasKey: v.string(),
+    status: v.string(), // 'Active' | 'Testing' | 'Disabled'
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index('by_active', ['isActive']).index('by_provider', ['provider']).index('by_status', ['status']),
+  ai_prompts: defineTable({
+    layer: v.string(), // e.g., 'Result Page', 'Smart Profile Analysis', 'Email Generator'
+    title: v.optional(v.string()),
+    version: v.string(),
+    template: v.string(),
+    modelId: v.id('ai_models'),
+    temperature: v.number(),
+    language: v.string(), // 'vi' | 'en'
+    fallbackText: v.optional(v.string()),
+    versionNote: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  }).index('by_layer', ['layer']).index('by_active_layer', ['layer','isActive']),
 });

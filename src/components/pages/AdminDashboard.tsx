@@ -36,9 +36,10 @@ class SimpleBoundary extends React.Component<{ children: React.ReactNode }, { ha
 
 // Import the ResultPageConfig component that we'll create next
 import { ResultPageConfig } from '@/components/pages/ResultPageConfig';
+import AiEnginePage from '@/components/pages/AiEnginePage';
 
 export const AdminDashboard: React.FC = () => {
-  const [tab, setTab] = React.useState<'scholarships' | 'forms' | 'result'>('scholarships');
+  const [tab, setTab] = React.useState<'scholarships' | 'forms' | 'result' | 'ai'>('scholarships');
   const active = useQuery(api.forms.getActiveForm, {});
 
   return (
@@ -47,6 +48,7 @@ export const AdminDashboard: React.FC = () => {
         <TabButton active={tab === 'scholarships'} onClick={() => setTab('scholarships')}>Học bổng</TabButton>
         <TabButton active={tab === 'forms'} onClick={() => setTab('forms')}>Form</TabButton>
         <TabButton active={tab === 'result'} onClick={() => setTab('result')}>Result</TabButton>
+        <TabButton active={tab === 'ai'} onClick={() => setTab('ai')}>AI Engine</TabButton>
       </div>
 
       {tab === 'scholarships' ? (
@@ -55,9 +57,13 @@ export const AdminDashboard: React.FC = () => {
         <SimpleBoundary>
           <FormBuilder />
         </SimpleBoundary>
-      ) : (
+      ) : tab === 'result' ? (
         <SimpleBoundary>
           <ResultPageConfig />
+        </SimpleBoundary>
+      ) : (
+        <SimpleBoundary>
+          <AiEnginePage />
         </SimpleBoundary>
       )}
     </div>
