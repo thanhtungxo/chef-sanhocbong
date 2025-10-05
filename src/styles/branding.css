@@ -18,6 +18,6 @@
   --color-neutral-light-rgb: 249 250 251;
 
   /* Fonts */
-  --font-sans: 'Inter', 'Roboto', 'Arial', sans-serif;
-  --font-heading: 'Poppins', 'Inter', 'Roboto', sans-serif;
+  --font-sans: 'Inter', 'Plus Jakarta Sans', 'Roboto', 'Arial', system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', 'Roboto', system-ui, sans-serif;
 }

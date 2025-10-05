@@ -176,7 +176,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
   return (
     <motion.div
-      className={`min-h-screen ${pageBgClasses} px-6 py-8 relative overflow-hidden font-sans`}
+      className={`min-h-screen ${pageBgClasses} px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans`}
       style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif" }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
@@ -224,24 +224,24 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             transition={{ duration: 0.25 }}
             className="rounded-2xl shadow-xl p-10 bg-gradient-to-br from-[#f0fdfa] via-[#eef7ff] to-white"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8 items-center">
               {/* Bên trái: ảnh hero (1/3–1/4 chiều ngang) */}
               <div className="md:col-span-1 lg:col-span-1">
                 {configMessages.heroImageUrl ? (
                   <img
                     src={configMessages.heroImageUrl}
                     alt="Kết quả học bổng"
-                    className="w-full h-[240px] rounded-xl object-cover shadow-md"
+                    className="w-full h-[180px] rounded-lg object-cover shadow-sm border border-white/40"
                   />
                 ) : (
-                  <div className="w-full h-[240px] rounded-xl bg-gradient-to-br from-[#ccfbf1] to-[#bfdbfe]" />
+                  <div className="w-full h-[180px] rounded-lg bg-gradient-to-br from-[#ccfbf1] to-[#bfdbfe] border border-white/40" />
                 )}
               </div>
               {/* Bên phải: text message (căn giữa theo chiều dọc) */}
               <div className="md:col-span-2 lg:col-span-3 h-full flex">
                 <div className="flex flex-col justify-center w-full">
-                  <h2 className="text-2xl font-bold text-gray-900 text-left">{configMessages.subheading}</h2>
-                  <p className="mt-3 text-lg text-gray-700 leading-relaxed">{configMessages.message}</p>
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 text-left">{configMessages.subheading}</h2>
+                  <p className="mt-2 text-sm md:text-base text-gray-700 leading-snug">{configMessages.message}</p>
                 </div>
               </div>
             </div>
@@ -251,10 +251,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         {/* Row B: Khung C (AI Analysis Box) */}
         <motion.div className="mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="max-w-6xl mx-auto">
-            <div className="h-2 bg-gradient-to-r from-[#06B6D4] to-[#3B82F6] rounded-t-2xl"></div>
-            <div className="bg-white border-2 border-[#06B6D4] rounded-b-2xl md:rounded-2xl shadow-2xl shadow-[0_10px_30px_rgba(6,182,212,0.15)] px-12 py-10 text-center">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Phân tích sơ bộ hồ sơ của bạn</h3>
-              <p className="text-xl leading-relaxed text-gray-700">
+            <div className="h-[6px] w-20 md:w-24 bg-gradient-to-r from-sky-400 to-blue-500 mx-auto rounded-full mb-3"></div>
+            <div className="backdrop-blur-[2px] bg-white/95 border border-sky-300/60 rounded-2xl shadow-md p-5 md:p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Phân tích sơ bộ hồ sơ của bạn</h3>
+              <p className="text-sm md:text-base text-gray-700 leading-snug">
                 {aiFeedback}
               </p>
             </div>
@@ -272,33 +272,32 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         </motion.div>
 
         {/* Row D: Scholarships Grid */}
-        <motion.div className="mt-8 bg-gray-50 border border-[#06B6D4]/10 rounded-2xl p-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
-                  ? 'bg-green-50 text-green-600'
-                  : 'bg-red-50 text-red-600';
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-red-50 text-red-700';
                 return (
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="h-[180px] w-full bg-white rounded-xl p-6 shadow-sm border border-[#06B6D4]/30 hover:-translate-y-1 hover:shadow-md hover:ring-2 hover:ring-[#06B6D4]/30 transition-transform transition-shadow focus:outline-none"
+                    className="group w-full bg-white rounded-xl p-5 border border-sky-200 shadow-sm md:hover:shadow-md md:hover:-translate-y-0.5 transition-transform focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
-                      {/* Logo or placeholder */}
                       {s.logoUrl ? (
-                        <img src={s.logoUrl} alt={s.name} className="max-h-[50px] object-contain" />
+                        <img src={s.logoUrl} alt={s.name} className="h-10 object-contain" />
                       ) : (
-                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 font-bold text-lg">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm">
                           {s.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="mt-3 text-center">
-                        <div className="text-base font-semibold text-gray-800">{s.name}</div>
+                        <div className="text-[15px] font-semibold text-gray-800">{s.name}</div>
                       </div>
                       <div className="mt-3">
-                        <span className={`px-2 py-1 rounded-full text-sm ${badgeClasses}`}>
+                        <span className={`rounded-full px-3 py-1 text-xs md:text-[13px] font-medium ${badgeClasses}`}>
                           {s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}
                         </span>
                       </div>
@@ -315,21 +314,23 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         </motion.div>
 
         {/* Row E: CTA Buttons */}
-        <motion.div className="mt-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-gradient-to-r from-[#F0FDFA] to-[#EFF6FF] rounded-xl shadow-inner p-8 flex justify-center gap-6">
-            <button
-              onClick={handleCTAClick}
-              className="bg-gradient-to-r from-[#06B6D4] to-[#3B82F6] text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-            >
-              <span>⚡</span>
-              <span>{primaryCtaLabel}</span>
-            </button>
-            <button
-              onClick={() => window.history.back()}
-              className="border border-[#06B6D4] text-[#06B6D4] bg-white hover:bg-[#F0FDFA] px-6 py-3 rounded-xl"
-            >
-              Quay lại
-            </button>
+        <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="rounded-2xl bg-white/80 backdrop-blur-[1px] shadow-inner p-3 mx-1">
+            <div className="max-w-md mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+              <button
+                onClick={handleCTAClick}
+                className="bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold h-12 rounded-xl w-full shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <span>⚡</span>
+                <span className="text-sm">{primaryCtaLabel}</span>
+              </button>
+              <button
+                onClick={() => window.history.back()}
+                className="border border-sky-300 text-sky-600 bg-white rounded-xl h-12 font-medium w-full hover:bg-sky-50"
+              >
+                <span className="text-sm">Quay lại</span>
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
