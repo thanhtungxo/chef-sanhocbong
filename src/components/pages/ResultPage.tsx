@@ -161,7 +161,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'bg-red-50 border-l-4 border-red-500 text-red-800'
     : 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800';
 
-  const pageBgClasses = 'bg-gradient-to-b from-[#F9FBFF] to-white';
+  const pageBgClasses = 'bg-gradient-to-b from-[#C7E7FF] via-[#E8F6FF] to-[#FFFFFF]';
   const calloutText = allFailed
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
@@ -186,8 +186,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(rgba(6,182,212,0.03) 1px, transparent 1px)',
-          backgroundSize: '22px 22px'
+          backgroundImage: 'radial-gradient(ellipse at top right, rgba(56,189,248,0.15), transparent 70%)',
+          backgroundSize: 'cover'
         }}
       />
       {showConfetti && (
@@ -240,8 +240,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
               {/* Bên phải: text message (căn giữa theo chiều dọc) */}
               <div className="md:col-span-2 lg:col-span-3 h-full flex">
                 <div className="flex flex-col justify-center w-full">
-                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 text-left">{configMessages.subheading}</h2>
-                  <p className="mt-2 text-sm md:text-base text-gray-700 leading-snug">{configMessages.message}</p>
+                  <h2 className="text-lg md:text-xl font-semibold text-[#0B2749] text-left">{configMessages.subheading}</h2>
+                  <p className="mt-2 text-sm md:text-base text-[#405A7D] leading-snug">{configMessages.message}</p>
                 </div>
               </div>
             </div>
@@ -252,9 +252,9 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         <motion.div className="mt-4" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <div className="max-w-6xl mx-auto">
             <div className="h-[6px] w-20 md:w-24 bg-gradient-to-r from-sky-400 to-blue-500 mx-auto rounded-full mb-3"></div>
-            <div className="backdrop-blur-[2px] bg-white/95 border border-sky-300/60 rounded-2xl shadow-md p-5 md:p-6 text-center">
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Phân tích sơ bộ hồ sơ của bạn</h3>
-              <p className="text-sm md:text-base text-gray-700 leading-snug">
+            <div className="backdrop-blur-[2px] bg-white border-[1px] border-[#E0ECFF] rounded-[16px] md:rounded-[20px] shadow-[0_12px_40px_rgba(56,189,248,0.25)] p-5 md:p-6 text-center">
+              <h3 className="text-xl md:text-2xl font-bold text-[#0B2749] mb-2">Phân tích sơ bộ hồ sơ của bạn</h3>
+              <p className="text-sm md:text-base text-[#405A7D] leading-snug">
                 {aiFeedback}
               </p>
             </div>
@@ -263,8 +263,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Câu hỏi dẫn hướng */}
         <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-gradient-to-r from-[#E0F7FA] to-white border border-[#06B6D4]/20 rounded-xl p-5">
-            <div className="flex items-center text-lg font-semibold text-gray-800">
+          <div className="bg-gradient-to-r from-[#E0F7FA] to-white border border-[#06B6D4]/20 rounded-[16px] md:rounded-[20px] p-5">
+            <div className="flex items-center text-lg font-semibold text-[#0B2749]">
               <span className="mr-2">🎯</span>
               <span>{calloutText}</span>
             </div>
@@ -274,8 +274,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
         {/* Row D: Scholarships Grid */}
         <motion.div className="mt-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {eligibilityResults.length > 0 ? (
-            <div className="relative grid grid-cols-2 gap-2 sm:gap-2 md:gap-3">
-              <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-gray-200/25 to-transparent"></div>
+            <div className="relative grid grid-cols-2 gap-4 sm:gap-4 md:gap-4 p-1">
+              <div className="hairline-divider-y"></div>
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
                   ? 'bg-green-50 text-green-700'
@@ -284,7 +284,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="group w-full app-card rounded-md overflow-hidden p-3 md:p-4 sm:hover:shadow-md sm:hover:-translate-y-0.5 sm:hover:ring-1 sm:hover:ring-sky-300/50 transition-all focus:outline-none"
+                    className="group w-full app-card overflow-hidden p-5 md:p-5 sm:hover:shadow-md sm:hover:-translate-y-0.5 sm:hover:ring-1 sm:hover:ring-sky-300/50 transition-all focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {s.logoUrl ? (
@@ -295,12 +295,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                         </div>
                       )}
                       <div className="mt-2 text-center">
-                        <div className="text-[14px] font-medium text-gray-800">{s.name}</div>
+                        <div className="text-[14px] font-medium text-[#0B2749] tracking-tight">{s.name}</div>
                       </div>
                       <div className="mt-2">
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] md:text-xs font-medium ${badgeClasses}`}>
-                          {s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}
-                        </span>
+                        <span className={`badge-neutral ${badgeClasses}`}>{s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}</span>
                       </div>
                     </div>
                   </button>
@@ -316,18 +314,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Row E: CTA Buttons */}
         <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="rounded-2xl bg-white/80 backdrop-blur-[1px] shadow-inner p-3 mx-1">
+          <div className="rounded-[16px] md:rounded-[20px] bg-white/90 backdrop-blur-[2px] shadow-inner p-3 mx-1">
             <div className="max-w-md mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-              <button
-                onClick={handleCTAClick}
-                className="bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold h-12 rounded-xl w-full shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <span>⚡</span>
+              <button onClick={handleCTAClick} className="cta-primary">
+                <span className="text-[#FFFFFF]">⚡</span>
                 <span className="text-sm">{primaryCtaLabel}</span>
               </button>
               <button
                 onClick={() => window.history.back()}
-                className="border border-sky-300 text-sky-600 bg-white rounded-xl h-12 font-medium w-full hover:bg-sky-50"
+                className="border border-[#E0ECFF] text-[#009CF2] bg-white rounded-2xl h-12 font-medium w-full hover:bg-[#E8F6FF]"
               >
                 <span className="text-sm">Quay lại</span>
               </button>
