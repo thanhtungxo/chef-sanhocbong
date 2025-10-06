@@ -294,6 +294,12 @@ const ModelsAndKeys: React.FC = () => {
   const deleteModel = useMutation(api.aiEngine.deleteModel);
   const [statusText, setStatusText] = React.useState<string>("");
   const [envWarning, setEnvWarning] = React.useState<string>("");
+  const [showAdd, setShowAdd] = React.useState<boolean>(false);
+  const [providerAdd, setProviderAdd] = React.useState<string>("OpenAI");
+  const [modelAdd, setModelAdd] = React.useState<string>("");
+  const [aliasAdd, setAliasAdd] = React.useState<string>("");
+  const [statusAdd, setStatusAdd] = React.useState<string>("Testing");
+  const [isActiveAdd, setIsActiveAdd] = React.useState<boolean>(false);
 
   const onPing = async (modelId?: string) => {
     try {
@@ -324,9 +330,33 @@ const ModelsAndKeys: React.FC = () => {
   };
 
   const onQuickAdd = async () => {
-    await addModel({ provider: "OpenAI", model: "gpt-4o-mini", aliasKey: "OPENAI_KEY_1", status: "Testing", isActive: false });
-    setStatusText("Model added ✅");
-    setTimeout(() => setStatusText(""), 3000);
+    setShowAdd(true);
+  };
+
+  const onSaveAdd = async () => {
+    try {
+      if (!providerAdd || !modelAdd || !aliasAdd) {
+        setStatusText("Vui lòng nhập Provider, Model và Alias");
+        setTimeout(() => setStatusText(""), 3000);
+        return;
+      }
+      const id = await addModel({
+        provider: providerAdd,
+        model: modelAdd,
+        aliasKey: aliasAdd,
+        status: statusAdd,
+        isActive: isActiveAdd,
+      });
+      setStatusText("Model added ✅");
+      setShowAdd(false);
+      setTimeout(() => setStatusText(""), 3000);
+      if (id) {
+        onPing(id as any);
+      }
+    } catch (e: any) {
+      setStatusText(e?.message || "Error adding model ❌");
+      setTimeout(() => setStatusText(""), 3000);
+    }
   };
 
   const onDelete = async (modelId: string) => {
@@ -362,6 +392,53 @@ const ModelsAndKeys: React.FC = () => {
         </div>
         <Button onClick={onQuickAdd} className="bg-gradient-to-r from-teal-400 to-sky-500 text-white font-semibold rounded-xl shadow hover:scale-[1.02] hover:shadow-md">+ Add Model</Button>
       </div>
+
+      {/* Add Model Modal */}
+      {showAdd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <Card className="w-full max-w-md bg-white rounded-2xl p-4 sm:p-6 shadow">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Thêm Model</h3>
+              <Button variant="ghost" onClick={() => setShowAdd(false)}>Đóng</Button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <div>
+                <Label>Provider</Label>
+                <select value={providerAdd} onChange={(e) => setProviderAdd(e.target.value)} className="mt-2 w-full rounded-xl border px-3 py-2">
+                  <option>OpenAI</option>
+                  <option>Claude</option>
+                  <option>Gemini</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <Label>Model</Label>
+                <Input value={modelAdd} onChange={(e) => setModelAdd(e.target.value)} placeholder="Ví dụ: gpt-4o-mini" className="mt-2 rounded-xl" />
+              </div>
+              <div>
+                <Label>Alias Key</Label>
+                <Input value={aliasAdd} onChange={(e) => setAliasAdd(e.target.value)} placeholder="Ví dụ: OPENAI_KEY_1" className="mt-2 rounded-xl" />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <select value={statusAdd} onChange={(e) => setStatusAdd(e.target.value)} className="mt-2 w-full rounded-xl border px-3 py-2">
+                  <option>Testing</option>
+                  <option>Active</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label>Set Active</Label>
+                <Switch checked={isActiveAdd} onCheckedChange={setIsActiveAdd} />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAdd(false)} className="rounded-xl">Hủy</Button>
+              <Button onClick={onSaveAdd} className="bg-gradient-to-r from-teal-400 to-sky-500 text-white font-semibold rounded-xl">Lưu</Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Warning banners */}
       {(!models || models.length === 0) && (
