@@ -6,20 +6,87 @@ import { api } from "./_generated/api";
 
 export const pingModel = httpAction(async (ctx, req) => {
   try {
-    const activeModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
-    if (!activeModel) {
-      return new Response(JSON.stringify({ ok: false, error: "No active model" }), {
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {}
+    const modelId = body?.modelId as string | undefined;
+    const inlineKey = body?.apiKey as string | undefined;
+
+    // Resolve target model: by id or active
+    let targetModel: any | null = null;
+    if (modelId) {
+      const allModels = await ctx.runQuery(api.aiEngine.listModels, {} as any);
+      targetModel = allModels?.find((m: any) => m._id === modelId) ?? null;
+    } else {
+      targetModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
+    }
+
+    if (!targetModel) {
+      return new Response(JSON.stringify({ ok: false, error: "No model found (no active model or invalid id)" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-    const alias = activeModel.aliasKey as string;
-    const key = process.env[alias];
-    const ok = !!key; // Basic check: ensure alias key exists in env
-    return new Response(JSON.stringify({ ok }), {
-      status: ok ? 200 : 500,
-      headers: { "Content-Type": "application/json" },
-    });
+
+    const alias = targetModel.aliasKey as string;
+    const provider = (targetModel.provider as string) || "";
+    const useKey = inlineKey || process.env[alias];
+
+    if (!useKey) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: `Key alias chưa được gắn API key hợp lệ. Vui lòng chạy: npx convex env set ${alias} <key>`,
+          alias,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    let ok = false;
+    let status = 0;
+    let error: string | null = null;
+    try {
+      const p = provider.toLowerCase();
+      if (p === "openai") {
+        const r = await fetch("https://api.openai.com/v1/models", {
+          headers: { Authorization: `Bearer ${useKey}` },
+        });
+        ok = r.ok;
+        status = r.status;
+      } else if (p === "claude" || p === "anthropic") {
+        const r = await fetch("https://api.anthropic.com/v1/models", {
+          headers: { "x-api-key": useKey, "anthropic-version": "2023-06-01" },
+        });
+        ok = r.ok;
+        status = r.status;
+      } else if (p === "gemini" || p === "google") {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models?key=${encodeURIComponent(useKey)}`
+        );
+        ok = r.ok;
+        status = r.status;
+      } else {
+        // Custom provider: basic key existence check only
+        ok = !!useKey;
+        status = 200;
+      }
+    } catch (err: any) {
+      ok = false;
+      error = String(err);
+    }
+
+    return new Response(
+      JSON.stringify({ ok, provider, alias, status, error, source: inlineKey ? "input" : "env" }),
+      {
+        status: ok ? 200 : 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String(e) }), {
       status: 500,

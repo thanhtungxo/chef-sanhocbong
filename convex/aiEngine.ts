@@ -64,6 +64,19 @@ export const setActiveModel = mutation({
   },
 });
 
+// NEW: Delete a model
+export const deleteModel = mutation({
+  args: { modelId: v.id("ai_models") },
+  handler: async (ctx, { modelId }) => {
+    const existing = await ctx.db.get(modelId);
+    if (!existing) {
+      return { ok: false, error: "Model not found" };
+    }
+    await ctx.db.delete(modelId);
+    return { ok: true };
+  },
+});
+
 // Prompts
 export const listPromptsByLayer = query({
   args: { layer: v.string() },
