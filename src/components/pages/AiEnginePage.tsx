@@ -4,11 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { AnimatePresence, motion } from "framer-motion";
 
 const layers = [
   "Result Page",
@@ -35,33 +33,20 @@ export const AiEnginePage: React.FC = () => {
           <TabsTrigger value="prompt">Prompt Configurator</TabsTrigger>
           <TabsTrigger value="models">AI Models & Keys</TabsTrigger>
         </TabsList>
-        <AnimatePresence mode="wait">
-          {tab === "prompt" ? (
-            <TabsContent value="prompt">
-              <motion.div
-                key="prompt"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <PromptConfigurator />
-              </motion.div>
-            </TabsContent>
-          ) : (
-            <TabsContent value="models">
-              <motion.div
-                key="models"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <ModelsAndKeys />
-              </motion.div>
-            </TabsContent>
-          )}
-        </AnimatePresence>
+        {/* Removed framer-motion AnimatePresence/motion wrappers to avoid CJS runtime issues */}
+        {tab === "prompt" ? (
+          <TabsContent value="prompt">
+            <div className="transition-opacity duration-200">
+              <PromptConfigurator />
+            </div>
+          </TabsContent>
+        ) : (
+          <TabsContent value="models">
+            <div className="transition-opacity duration-200">
+              <ModelsAndKeys />
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -305,13 +290,25 @@ const ModelsAndKeys: React.FC = () => {
   const setActive = useMutation(api.aiEngine.setActiveModel);
   const updateModel = useMutation(api.aiEngine.updateModel);
   const addModel = useMutation(api.aiEngine.addModel);
+  const activeModel = useQuery(api.aiEngine.getActiveModel, {});
+  const deleteModel = useMutation(api.aiEngine.deleteModel);
   const [statusText, setStatusText] = React.useState<string>("");
+  const [envWarning, setEnvWarning] = React.useState<string>("");
 
-  const onPing = async () => {
+  const onPing = async (modelId?: string) => {
     try {
       const url = convexUrl ? `${convexUrl}/api/ping-model` : "/api/ping-model";
-      const res = await fetch(url, { method: "POST" });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(modelId ? { modelId } : {}),
+      });
       const data = await res.json();
+      if (!data?.ok && data?.alias && typeof data?.error === "string") {
+        setEnvWarning(`Alias ${data.alias} chưa có API key trong môi trường. Vui lòng chạy: npx convex env set ${data.alias} <key>`);
+      } else {
+        setEnvWarning("");
+      }
       setStatusText(data?.ok ? "Model OK ✅" : "Error ❌");
     } catch {
       setStatusText("Error ❌");
@@ -332,6 +329,30 @@ const ModelsAndKeys: React.FC = () => {
     setTimeout(() => setStatusText(""), 3000);
   };
 
+  const onDelete = async (modelId: string) => {
+    try {
+      const res = await deleteModel({ modelId: modelId as any });
+      if ((res as any)?.ok) {
+        setStatusText("Model deleted ✅");
+      } else {
+        setStatusText((res as any)?.error || "Delete error ❌");
+      }
+    } catch (e: any) {
+      setStatusText(e?.message || "Delete error ❌");
+    } finally {
+      setTimeout(() => setStatusText(""), 3000);
+    }
+  };
+
+  React.useEffect(() => {
+    // Check env key for active model
+    if (activeModel?._id) {
+      onPing();
+    } else {
+      setEnvWarning("");
+    }
+  }, [activeModel?._id]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -341,6 +362,25 @@ const ModelsAndKeys: React.FC = () => {
         </div>
         <Button onClick={onQuickAdd} className="bg-gradient-to-r from-teal-400 to-sky-500 text-white font-semibold rounded-xl shadow hover:scale-[1.02] hover:shadow-md">+ Add Model</Button>
       </div>
+
+      {/* Warning banners */}
+      {(!models || models.length === 0) && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-800 px-4 py-3">
+          Chưa có model nào. Hãy thêm model để bắt đầu.
+        </div>
+      )}
+
+      {(models && models.length > 0 && !activeModel) && (
+        <div className="rounded-lg border border-orange-300 bg-orange-50 text-orange-800 px-4 py-3">
+          Chưa có model được đặt Active. Hãy chọn một model và bấm "Set Active".
+        </div>
+      )}
+
+      {envWarning && (
+        <div className="rounded-lg border border-red-300 bg-red-50 text-red-700 px-4 py-3">
+          {envWarning}
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {models?.map((m: any) => (
@@ -354,9 +394,10 @@ const ModelsAndKeys: React.FC = () => {
             </div>
             <div className="mt-2 text-xs text-slate-600">Alias: {m.aliasKey}</div>
             <div className="mt-2 text-xs text-slate-600">Status: {m.status}</div>
-            <div className="mt-3 flex gap-2">
-              <Button onClick={onPing} variant="secondary" className="rounded-xl">Test</Button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button onClick={() => onPing(m._id)} variant="secondary" className="rounded-xl">Test</Button>
               <Button onClick={() => onSetActive(m._id)} className="bg-gradient-to-r from-teal-400 to-sky-500 text-white font-semibold rounded-xl">Set Active</Button>
+              <Button onClick={() => onDelete(m._id)} variant="destructive" className="rounded-xl">Delete</Button>
             </div>
           </Card>
         ))}
