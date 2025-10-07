@@ -31,6 +31,7 @@ export const pingModel = httpAction(async (ctx, req) => {
 
     const alias = targetModel.aliasKey as string;
     const provider = (targetModel.provider as string) || "";
+    const modelName = (targetModel.model as string) || "";
     const useKey = inlineKey || process.env[alias];
 
     if (!useKey) {
@@ -47,43 +48,140 @@ export const pingModel = httpAction(async (ctx, req) => {
       );
     }
 
+    // Helper to timeout requests
+    const timeoutMs = 10000; // 10s
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
     let ok = false;
     let status = 0;
-    let error: string | null = null;
+    let message: string | undefined;
+    let error: string | undefined;
+
     try {
       const p = provider.toLowerCase();
+
       if (p === "openai") {
-        const r = await fetch("https://api.openai.com/v1/models", {
-          headers: { Authorization: `Bearer ${useKey}` },
+        // Minimal chat completion to verify connectivity and model validity
+        const r = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${useKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [{ role: "user", content: "ping" }],
+            max_tokens: 1,
+            temperature: 0,
+          }),
+          signal: controller.signal,
         });
-        ok = r.ok;
         status = r.status;
+        if (r.ok) {
+          ok = true;
+          message = "Model OK ✅";
+        } else {
+          let errMsg = `OpenAI error (${r.status})`;
+          try {
+            const j = await r.json();
+            const apiMsg = j?.error?.message || j?.message || j?.error || undefined;
+            if (apiMsg) errMsg = String(apiMsg);
+          } catch {}
+          if (r.status === 401) errMsg = "Unauthorized - invalid API key";
+          if (r.status === 404) errMsg = "Model not found";
+          error = errMsg;
+        }
       } else if (p === "claude" || p === "anthropic") {
-        const r = await fetch("https://api.anthropic.com/v1/models", {
-          headers: { "x-api-key": useKey, "anthropic-version": "2023-06-01" },
+        // Anthropic Messages API (Claude)
+        const r = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": useKey,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: modelName,
+            max_tokens: 1,
+            messages: [{ role: "user", content: "ping" }],
+          }),
+          signal: controller.signal,
         });
-        ok = r.ok;
         status = r.status;
+        if (r.ok) {
+          ok = true;
+          message = "Model OK ✅";
+        } else {
+          let errMsg = `Anthropic error (${r.status})`;
+          try {
+            const j = await r.json();
+            const apiMsg = j?.error?.message || j?.message || j?.error || undefined;
+            if (apiMsg) errMsg = String(apiMsg);
+          } catch {}
+          if (r.status === 401) errMsg = "Unauthorized - invalid API key";
+          if (r.status === 404) errMsg = "Model not found";
+          error = errMsg;
+        }
       } else if (p === "gemini" || p === "google") {
-        const r = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models?key=${encodeURIComponent(useKey)}`
-        );
-        ok = r.ok;
+        // Google Generative Language API (Gemini)
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+          modelName
+        )}:generateContent?key=${encodeURIComponent(useKey)}`;
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              { role: "user", parts: [{ text: "ping" }] },
+            ],
+            generationConfig: { maxOutputTokens: 1 },
+          }),
+          signal: controller.signal,
+        });
         status = r.status;
+        if (r.ok) {
+          ok = true;
+          message = "Model OK ✅";
+        } else {
+          let errMsg = `Gemini error (${r.status})`;
+          try {
+            const j = await r.json();
+            const apiMsg = j?.error?.message || j?.message || j?.error || undefined;
+            if (apiMsg) errMsg = String(apiMsg);
+          } catch {}
+          if (r.status === 401) errMsg = "Unauthorized - invalid API key";
+          if (r.status === 404) errMsg = "Model not found";
+          error = errMsg;
+        }
       } else {
-        // Custom provider: basic key existence check only
+        // Other providers: we only verify that a key exists (no external call)
         ok = !!useKey;
-        status = 200;
+        status = ok ? 200 : 400;
+        message = ok ? "Model OK ✅" : undefined;
+        if (!ok) error = "Missing provider API key";
       }
     } catch (err: any) {
+      // Handle aborts/timeouts or network errors
+      const msg = String(err?.message || err);
+      error = msg.includes("aborted") ? `Timeout after ${Math.round(timeoutMs / 1000)}s` : msg;
       ok = false;
-      error = String(err);
+    } finally {
+      clearTimeout(timer);
     }
 
     return new Response(
-      JSON.stringify({ ok, provider, alias, status, error, source: inlineKey ? "input" : "env" }),
+      JSON.stringify({
+        ok,
+        message,
+        error,
+        provider,
+        alias,
+        status,
+        source: inlineKey ? "input" : "env",
+      }),
       {
-        status: ok ? 200 : 500,
+        status: ok ? 200 : 400,
         headers: { "Content-Type": "application/json" },
       }
     );
