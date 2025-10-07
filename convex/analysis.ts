@@ -97,9 +97,63 @@ export const pingModel = httpAction(async (ctx, req) => {
 
 export const analysis = httpAction(async (ctx, req) => {
   try {
-    const body = await req.json();
-    const layer = body?.layer as string;
-    const override = body?.override ?? {};
+    let body: any = {};
+    let layer: string | undefined;
+    let override: any = {};
+
+    // Primary: try JSON body
+    try {
+      body = await req.json();
+    } catch {}
+    layer = body?.layer as string | undefined;
+    override = body?.override ?? {};
+
+    // Fallback 1: try raw text body (JSON or form-encoded)
+    if (!layer) {
+      try {
+        const raw = await req.text();
+        if (raw && raw.length > 0) {
+          // Attempt JSON parse
+          try {
+            const parsed = JSON.parse(raw);
+            layer = parsed?.layer ?? layer;
+            override = parsed?.override ?? override;
+          } catch {
+            // Attempt form-encoded parse
+            const params = new URLSearchParams(raw);
+            const l = params.get("layer");
+            if (l) layer = l;
+            const o = params.get("override");
+            if (o) {
+              try {
+                override = JSON.parse(o);
+              } catch {}
+            }
+          }
+        }
+      } catch {}
+    }
+
+    // Fallback 2: query string
+    if (!layer) {
+      try {
+        const url = new URL(req.url);
+        layer = url.searchParams.get("layer") ?? layer;
+        const o = url.searchParams.get("override");
+        if (o) {
+          try {
+            override = JSON.parse(o);
+          } catch {}
+        }
+      } catch {}
+    }
+
+    if (!layer) {
+      return new Response(JSON.stringify({ error: "Missing 'layer' in request body" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     const activeModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
     const activePrompt = await ctx.runQuery(api.aiEngine.getActivePromptByLayer, { layer } as any);

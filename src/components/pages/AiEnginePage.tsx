@@ -15,6 +15,8 @@ const layers = [
 ];
 
 const convexUrl = (import.meta as any).env?.VITE_CONVEX_URL as string | undefined;
+const httpActionsUrl = (import.meta as any).env?.VITE_HTTP_ACTIONS_URL as string | undefined;
+const isDev = !!((import.meta as any).env?.DEV || ((import.meta as any).env?.MODE === "development"));
 
 export const AiEnginePage: React.FC = () => {
   const [tab, setTab] = React.useState<string>("prompt");
@@ -151,7 +153,8 @@ const PromptConfigurator: React.FC = () => {
     setTesting(true);
     setTestResult(null);
     try {
-      const url = convexUrl ? `${convexUrl}/api/analysis` : "/api/analysis";
+      const base = !isDev ? (httpActionsUrl || convexUrl) : undefined;
+      const url = base ? `${base}/api/analysis?layer=${encodeURIComponent(layer)}` : `/api/analysis?layer=${encodeURIComponent(layer)}`;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -303,7 +306,8 @@ const ModelsAndKeys: React.FC = () => {
 
   const onPing = async (modelId?: string) => {
     try {
-      const url = convexUrl ? `${convexUrl}/api/ping-model` : "/api/ping-model";
+      const base = !isDev ? (httpActionsUrl || convexUrl) : undefined;
+      const url = base ? `${base}/api/ping-model` : "/api/ping-model";
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
