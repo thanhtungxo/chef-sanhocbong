@@ -313,6 +313,7 @@ const ModelsAndKeys: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(modelId ? { modelId } : {}),
+        credentials: "omit",
       });
       const data = await res.json();
       if (!data?.ok && data?.alias && typeof data?.error === "string") {

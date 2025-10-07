@@ -25,7 +25,7 @@ export const pingModel = httpAction(async (ctx, req) => {
     if (!targetModel) {
       return new Response(JSON.stringify({ ok: false, error: "No model found (no active model or invalid id)" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
@@ -43,7 +43,7 @@ export const pingModel = httpAction(async (ctx, req) => {
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
         }
       );
     }
@@ -182,13 +182,13 @@ export const pingModel = httpAction(async (ctx, req) => {
       }),
       {
         status: ok ? 200 : 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       }
     );
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String(e) }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });
   }
 });
@@ -208,6 +208,13 @@ export const analysisOptions = httpAction(async (ctx, req) => {
   return new Response("", { status: 405, headers: CORS_HEADERS });
 });
 
+// New: OPTIONS handler for /api/ping-model
+export const pingModelOptions = httpAction(async (ctx, req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("", { status: 204, headers: CORS_HEADERS });
+  }
+  return new Response("", { status: 405, headers: CORS_HEADERS });
+});
 export const analysis = httpAction(async (ctx, req) => {
   try {
     let body: any = {};

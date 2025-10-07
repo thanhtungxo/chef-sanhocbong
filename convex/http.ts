@@ -1,12 +1,17 @@
 import { auth } from "./auth";
 import router from "./router";
-import { analysis, pingModel, analysisOptions } from "./analysis";
+import { analysis, pingModel, analysisOptions, pingModelOptions } from "./analysis";
 
 const http = router;
 
 auth.addHttpRoutes(http);
 
 // Register AI Engine HTTP endpoints
+http.route({
+  path: "/api/ping-model",
+  method: "OPTIONS",
+  handler: pingModelOptions,
+});
 http.route({
   path: "/api/ping-model",
   method: "POST",
