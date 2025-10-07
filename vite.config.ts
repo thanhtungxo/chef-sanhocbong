@@ -5,10 +5,16 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const rawViteUrl = env.VITE_CONVEX_URL;
+  let rawViteUrl = env.VITE_CONVEX_URL;
   const deployment = env.CONVEX_DEPLOYMENT;
   const deploymentName = deployment ? deployment.replace(/^dev:/, "") : undefined;
-  const httpActionsUrl = env.VITE_HTTP_ACTIONS_URL || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
+  let httpActionsUrl = env.VITE_HTTP_ACTIONS_URL || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
+
+  // Production fallback: ensure UI points to the correct Convex deployment even when host env vars are missing
+  if (mode === "production") {
+    rawViteUrl = rawViteUrl ?? "https://strong-ermine-969.convex.cloud";
+    httpActionsUrl = httpActionsUrl ?? "https://strong-ermine-969.convex.site";
+  }
 
   return {
     plugins: [
