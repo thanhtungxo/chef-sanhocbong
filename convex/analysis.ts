@@ -267,7 +267,7 @@ export const analysis = httpAction(async (ctx, req) => {
     if (!layer) {
       return new Response(JSON.stringify({ error: "Missing 'layer' in request body" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
@@ -277,7 +277,7 @@ export const analysis = httpAction(async (ctx, req) => {
     if (!activePrompt) {
       return new Response(JSON.stringify({ error: "No active prompt configured for this layer" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
@@ -296,7 +296,7 @@ export const analysis = httpAction(async (ctx, req) => {
     if (!targetModel) {
       return new Response(JSON.stringify({ error: "No active model found" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
@@ -308,14 +308,14 @@ export const analysis = httpAction(async (ctx, req) => {
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Alias key missing in environment", alias }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
     if (provider !== "openai") {
       return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI)", provider }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
@@ -373,7 +373,7 @@ export const analysis = httpAction(async (ctx, req) => {
         if (r.status === 404) errMsg = "Model not found";
         return new Response(JSON.stringify({ error: errMsg }), {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
         });
       }
 
@@ -424,20 +424,20 @@ export const analysis = httpAction(async (ctx, req) => {
 
       return new Response(JSON.stringify(result), {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     } catch (err: any) {
       const msg = String(err?.message || err);
       const friendly = msg.includes("aborted") ? `Timeout after ${Math.round(timeoutMs / 1000)}s` : msg;
       return new Response(JSON.stringify({ error: friendly }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });
   }
 });
