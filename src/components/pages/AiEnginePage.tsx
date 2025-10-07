@@ -306,8 +306,9 @@ const ModelsAndKeys: React.FC = () => {
 
   const onPing = async (modelId?: string) => {
     try {
-      const base = !isDev ? (httpActionsUrl || convexUrl) : undefined;
-      const url = base ? `${base}/api/ping-model` : "/api/ping-model";
+      const url = isDev
+        ? "/api/ping-model"
+        : (httpActionsUrl ? `${httpActionsUrl}/api/ping-model` : "/api/ping-model");
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
