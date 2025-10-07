@@ -198,6 +198,7 @@ export const analysis = httpAction(async (ctx, req) => {
     let body: any = {};
     let layer: string | undefined;
     let override: any = {};
+    let profile: any = {};
 
     // Primary: try JSON body
     try {
@@ -205,6 +206,7 @@ export const analysis = httpAction(async (ctx, req) => {
     } catch {}
     layer = body?.layer as string | undefined;
     override = body?.override ?? {};
+    profile = body?.profile ?? {};
 
     // Fallback 1: try raw text body (JSON or form-encoded)
     if (!layer) {
@@ -216,6 +218,7 @@ export const analysis = httpAction(async (ctx, req) => {
             const parsed = JSON.parse(raw);
             layer = parsed?.layer ?? layer;
             override = parsed?.override ?? override;
+            profile = parsed?.profile ?? profile;
           } catch {
             // Attempt form-encoded parse
             const params = new URLSearchParams(raw);
@@ -256,41 +259,166 @@ export const analysis = httpAction(async (ctx, req) => {
     const activeModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
     const activePrompt = await ctx.runQuery(api.aiEngine.getActivePromptByLayer, { layer } as any);
 
+    if (!activePrompt) {
+      return new Response(JSON.stringify({ error: "No active prompt configured for this layer" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Use override values if provided (from Preview Test), otherwise use active prompt
     const temperature = override.temperature ?? activePrompt?.temperature ?? 0.7;
     const language = override.language ?? activePrompt?.language ?? "vi";
 
-    // Read alias key from env based on active model (do not return it to client)
-    const alias = (override.modelId && typeof override.modelId === "string")
-      ? (await ctx.runQuery(api.aiEngine.listModels, {} as any))?.find((m: any) => m._id === override.modelId)?.aliasKey
-      : activeModel?.aliasKey;
-    const keyExists = alias ? !!process.env[alias] : false;
+    // Determine target model (override.modelId or active)
+    let targetModel: any | null = activeModel ?? null;
+    if (override.modelId && typeof override.modelId === "string") {
+      const allModels = await ctx.runQuery(api.aiEngine.listModels, {} as any);
+      const found = allModels?.find((m: any) => m._id === override.modelId) ?? null;
+      if (found) targetModel = found;
+    }
 
-    if (!keyExists) {
-      return new Response(JSON.stringify({ error: "Alias key missing in environment" }), {
+    if (!targetModel) {
+      return new Response(JSON.stringify({ error: "No active model found" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const alias = targetModel.aliasKey as string | undefined;
+    const provider = (targetModel.provider as string | undefined)?.toLowerCase() || "";
+    const modelName = (targetModel.model as string | undefined) || "";
+    const apiKey = alias ? process.env[alias] : undefined;
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "Alias key missing in environment", alias }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Mocked analysis result (replace with real provider call using alias env key)
-    const result = {
-      overall: language === "vi" ? "Đây là bản xem trước kết quả phân tích." : "This is a preview analysis result.",
-      fit_with_scholarship: language === "vi" ? "Mức độ phù hợp: Khá tốt." : "Fit level: Quite good.",
-      contextual_insight: language === "vi" ? "Ứng viên có kinh nghiệm phù hợp với tiêu chí học bổng." : "The candidate has experience matching scholarship criteria.",
-      next_step: language === "vi" ? "Hoàn thiện hồ sơ và chuẩn bị bài luận." : "Complete your application and prepare your essay.",
-      debug: {
-        model: activeModel ? `${activeModel.provider}/${activeModel.model}` : null,
-        promptVersion: override.version ?? activePrompt?.version ?? null,
-        temperature,
-        language,
-      },
-    };
+    if (provider !== "openai") {
+      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI)", provider }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Prepare OpenAI chat completion request based on prompt template and input profile
+    const template: string = activePrompt.template || "";
+    const promptVersion = override.version ?? activePrompt.version ?? "v1";
+
+    const systemInstruction = `You are Scholarship Mentor AI. Reply strictly as a JSON object with keys: overall, fit_with_scholarship, contextual_insight, next_step. Use ${language === "vi" ? "Vietnamese" : "English"}. Do not include markdown or extra text.`;
+
+    const userContent = [
+      template.trim(),
+      "",
+      "Input Context:",
+      JSON.stringify({ profile }, null, 2),
+      "",
+      "Output JSON keys: { overall, fit_with_scholarship, contextual_insight, next_step }",
+    ].join("\n");
+
+    // Timeout controller to keep request lightweight
+    const timeoutMs = 20000;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const r = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            { role: "system", content: systemInstruction },
+            { role: "user", content: userContent },
+          ],
+          temperature,
+          // Encourage JSON output for compatible models
+          response_format: { type: "json_object" },
+          max_tokens: 800,
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+
+      if (!r.ok) {
+        let errMsg = `OpenAI error (${r.status})`;
+        try {
+          const j = await r.json();
+          const apiMsg = j?.error?.message || j?.message || j?.error || undefined;
+          if (apiMsg) errMsg = String(apiMsg);
+        } catch {}
+        if (r.status === 401) errMsg = "Unauthorized - invalid API key";
+        if (r.status === 404) errMsg = "Model not found";
+        return new Response(JSON.stringify({ error: errMsg }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const json = await r.json();
+      const content: string = json?.choices?.[0]?.message?.content ?? "";
+
+      // Try to parse JSON content from model response
+      const tryParse = (txt: string): any => {
+        try {
+          return JSON.parse(txt);
+        } catch {}
+        const m = txt.match(/\{[\s\S]*\}/);
+        if (m) {
+          try {
+            return JSON.parse(m[0]);
+          } catch {}
+        }
+        return null;
+      };
+
+      const parsed = tryParse(content);
+      const result = parsed && typeof parsed === "object"
+        ? {
+            overall: String(parsed.overall ?? ""),
+            fit_with_scholarship: String(parsed.fit_with_scholarship ?? ""),
+            contextual_insight: String(parsed.contextual_insight ?? ""),
+            next_step: String(parsed.next_step ?? ""),
+            debug: {
+              model: `${targetModel.provider}/${targetModel.model}`,
+              promptVersion,
+              temperature,
+              language,
+            },
+          }
+        : {
+            overall: content?.trim() || "",
+            fit_with_scholarship: "",
+            contextual_insight: "",
+            next_step: "",
+            debug: {
+              model: `${targetModel.provider}/${targetModel.model}`,
+              promptVersion,
+              temperature,
+              language,
+              note: "Response was not valid JSON; returned raw text in 'overall'",
+            },
+          };
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err: any) {
+      const msg = String(err?.message || err);
+      const friendly = msg.includes("aborted") ? `Timeout after ${Math.round(timeoutMs / 1000)}s` : msg;
+      return new Response(JSON.stringify({ error: friendly }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
