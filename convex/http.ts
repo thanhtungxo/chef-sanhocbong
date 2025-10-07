@@ -1,6 +1,6 @@
 import { auth } from "./auth";
 import router from "./router";
-import { analysis, pingModel } from "./analysis";
+import { analysis, pingModel, analysisOptions } from "./analysis";
 
 const http = router;
 
@@ -11,6 +11,11 @@ http.route({
   path: "/api/ping-model",
   method: "POST",
   handler: pingModel,
+});
+http.route({
+  path: "/api/analysis",
+  method: "OPTIONS",
+  handler: analysisOptions,
 });
 http.route({
   path: "/api/analysis",

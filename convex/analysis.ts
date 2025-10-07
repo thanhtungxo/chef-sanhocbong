@@ -193,6 +193,21 @@ export const pingModel = httpAction(async (ctx, req) => {
   }
 });
 
+// Simple CORS headers for preflight
+const CORS_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+export const analysisOptions = httpAction(async (ctx, req) => {
+  // Respond to CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("", { status: 204, headers: CORS_HEADERS });
+  }
+  return new Response("", { status: 405, headers: CORS_HEADERS });
+});
+
 export const analysis = httpAction(async (ctx, req) => {
   try {
     let body: any = {};

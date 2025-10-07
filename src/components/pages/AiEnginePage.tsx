@@ -174,6 +174,7 @@ const PromptConfigurator: React.FC = () => {
             modelId,
           },
         }),
+        credentials: "omit",
       });
       const data = await res.json();
       setTestResult(data);
