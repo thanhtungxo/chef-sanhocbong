@@ -26,7 +26,6 @@ export const ResultPageConfig: React.FC = () => {
   
   // Local state for form inputs
   const [ctaText, setCtaText] = useState<string>('');
-  const [aiPromptConfig, setAiPromptConfig] = useState<string>('');
   const [allFailedMessage, setAllFailedMessage] = useState<string>('');
   const [allPassedMessage, setAllPassedMessage] = useState<string>('');
   const [passedSomeMessage, setPassedSomeMessage] = useState<string>('');
@@ -40,9 +39,9 @@ export const ResultPageConfig: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
-  
+
   // Default values if no config exists
-  const defaultCTAText = "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.";
+  const defaultCTAText = "Một số học bổng phù hợp với bạn. Hãy chọn học bổng bên dưới để xem điểm mạnh/điểm yếu và cách nâng hồ sơ.";
   const defaultAllFailedMessage = "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.";
   const defaultAllPassedMessage = "Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng.";
   const defaultPassedSomeMessage = "Dưới đây là danh sách các học bổng bạn đủ điều kiện.";
@@ -54,29 +53,27 @@ export const ResultPageConfig: React.FC = () => {
   useEffect(() => {
     if (resultPageConfig) {
       setCtaText(resultPageConfig.ctaText || defaultCTAText);
-      setAiPromptConfig(resultPageConfig.aiPromptConfig || '');
-      setAllFailedMessage(resultPageConfig.allFailedMessage || defaultAllFailedMessage);
-      setAllPassedMessage(resultPageConfig.allPassedMessage || defaultAllPassedMessage);
-      setPassedSomeMessage(resultPageConfig.passedSomeMessage || defaultPassedSomeMessage);
-      setAllFailedSubheading(resultPageConfig.allFailedSubheading || defaultAllFailedSubheading);
-      setAllPassedSubheading(resultPageConfig.allPassedSubheading || defaultAllPassedSubheading);
-      setPassedSomeSubheading(resultPageConfig.passedSomeSubheading || defaultPassedSomeSubheading);
+      setAllFailedMessage(resultPageConfig.allFailedMessage || 'Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào.');
+      setAllPassedMessage(resultPageConfig.allPassedMessage || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng.');
+      setPassedSomeMessage(resultPageConfig.passedSomeMessage || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện.');
+      setAllFailedSubheading(resultPageConfig.allFailedSubheading || 'Hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào');
+      setAllPassedSubheading(resultPageConfig.allPassedSubheading || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng');
+      setPassedSomeSubheading(resultPageConfig.passedSomeSubheading || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện');
       setHeroImageUrl(resultPageConfig.heroImageUrl || '');
-      setFallbackMessage(resultPageConfig.fallbackMessage || '');
+      setFallbackMessage(resultPageConfig.fallbackMessage || 'Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.');
     } else {
-      // If no config exists, use default values
       setCtaText(defaultCTAText);
-      setAllFailedMessage(defaultAllFailedMessage);
-      setAllPassedMessage(defaultAllPassedMessage);
-      setPassedSomeMessage(defaultPassedSomeMessage);
-      setAllFailedSubheading(defaultAllFailedSubheading);
-      setAllPassedSubheading(defaultAllPassedSubheading);
-      setPassedSomeSubheading(defaultPassedSomeSubheading);
+      setAllFailedMessage('Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào.');
+      setAllPassedMessage('Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng.');
+      setPassedSomeMessage('Dưới đây là danh sách các học bổng bạn đủ điều kiện.');
+      setAllFailedSubheading('Hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào');
+      setAllPassedSubheading('Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng');
+      setPassedSomeSubheading('Dưới đây là danh sách các học bổng bạn đủ điều kiện');
       setHeroImageUrl('');
-      setFallbackMessage('');
+      setFallbackMessage('Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.');
     }
   }, [resultPageConfig]);
-  
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +86,7 @@ export const ResultPageConfig: React.FC = () => {
       // Update the configuration in the database
       await updateConfig({
         ctaText,
-        aiPromptConfig,
+        // removed aiPromptConfig
         allFailedMessage,
         allPassedMessage,
         passedSomeMessage,
@@ -226,21 +223,6 @@ export const ResultPageConfig: React.FC = () => {
                 />
                 <p className="text-sm text-muted-foreground">
                   Văn bản này sẽ hiển thị dưới hộp phân tích AI, kêu gọi người dùng tiếp tục với Smart Profile Analysis.
-                </p>
-              </div>
-              
-              {/* AI Prompt Configuration */}
-              <div className="space-y-2">
-                <Label htmlFor="aiPromptConfig">AI Prompt Configuration</Label>
-                <textarea
-                  id="aiPromptConfig"
-                  value={aiPromptConfig}
-                  onChange={(e) => setAiPromptConfig(e.target.value)}
-                  placeholder="Cấu hình prompt cho AI"
-                  className="min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Cấu hình này sẽ được sử dụng cho hệ thống AI để tạo phản hồi tùy chỉnh dựa trên hồ sơ người dùng.
                 </p>
               </div>
               

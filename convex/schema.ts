@@ -121,7 +121,6 @@ export default defineSchema({
   // Result Page Configuration
   resultPageConfig: defineTable({
     ctaText: v.optional(v.string()),
-    aiPromptConfig: v.optional(v.string()),
     allFailedMessage: v.optional(v.string()),
     allPassedMessage: v.optional(v.string()),
     passedSomeMessage: v.optional(v.string()),

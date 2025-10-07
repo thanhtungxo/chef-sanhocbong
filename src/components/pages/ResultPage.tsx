@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import { InsightBox } from './InsightBox';
 
 // Define the Scholarship interface
 interface ReasonObject { message: string; }
@@ -74,38 +75,73 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     const reasons = failedScholarships.flatMap(s => s.reasons || []);
     return reasons.map(reason => typeof reason === 'string' ? reason : reason.message);
   }, [failedScholarships]);
-  
-  const aiPromptTemplate = resultPageConfig?.aiPromptConfig || 
-    `{{userName}} vừa hoàn thành wizard.\n\nCác học bổng pass: {{passedScholarships}}\nCác học bổng fail: {{failedScholarships}}\nLý do fail: {{reasons}}\n\nHãy viết feedback thân thiện, khích lệ, ngắn gọn 3–4 câu.`;
-  
+
+  // Helper: render template variables in CTA
+  const renderTemplate = (tpl: string, ctx: Record<string, string>) => {
+    return tpl
+      .replace(/\{\{\s*fullname\s*\}\}/gi, ctx.fullname || ctx.userName || '')
+      .replace(/\{\{\s*userName\s*\}\}/gi, ctx.userName || '')
+      .trim();
+  };
+
   const passedScholarshipNames = eligibleScholarships.map(s => s.name).join(', ');
   const failedScholarshipNames = failedScholarships.map(s => s.name).join(', ');
   const reasonsText = allReasonsText.length > 0 ? allReasonsText.join(', ') : "không có lý do fail, hồ sơ rất mạnh";
-  
-  const finalPrompt = aiPromptTemplate
-    .replace('{{userName}}', userName)
-    .replace('{{passedScholarships}}', passedScholarshipNames)
-    .replace('{{failedScholarships}}', failedScholarshipNames)
-    .replace('{{reasons}}', reasonsText);
-  
-  const aiFeedback = useMemo(() => {
-    console.log("AI Prompt:", finalPrompt);
-    if (allFailed) {
-      return `Xin chào ${userName}, sau khi đánh giá hồ sơ của bạn, chúng tôi thấy bạn chưa đáp ứng đủ các yêu cầu cho các học bổng hiện tại. Đây là mội cơ hội để bạn cải thiện hồ sơ. Hãy xem xét việc nâng cao trình độ tiếng Anh, tích lũy thêm kinh nghiệm làm việc hoặc bổ sung các dự án liên quan.`;
-    } else if (allPassed) {
-      return `Xin chào ${userName}, chúc mừng! Hồ sơ của bạn rất xuất sắc và đáp ứng đầy đủ các yêu cầu cho tất cả các học bổng. Đây là mội bước đột phá trong hành trình học thuật của bạn. Hãy tiếp tục phát huy những ưu điểm này.`;
-    } else {
-      return `Xin chào ${userName}, sau khi đánh giá hồ sơ, chúng tôi thấy bạn đủ điều kiện cho một số học bổng. Đây là mội kết quả tuyệt vời! Để cải thiện thêm, hãy tập trung vào các điểm yếu được chỉ ra để gia tăng cơ hội nhận học bổng.`;
-    }
-  }, [finalPrompt, userName, allFailed, allPassed]);
+
+  // Fetch AI feedback from HTTP action /api/analysis (AI Engine, layer: Result Page)
+  const [aiFeedback, setAiFeedback] = React.useState<string>('');
+  const [loadingAI, setLoadingAI] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const httpActionsUrl = (import.meta as any).env?.VITE_HTTP_ACTIONS_URL as string | undefined;
+    const baseUrl = httpActionsUrl || 'https://strong-ermine-969.convex.site';
+    const url = `${baseUrl}/api/analysis`;
+
+    const profile = {
+      userName,
+      passedScholarships: passedScholarshipNames,
+      failedScholarships: failedScholarshipNames,
+      reasons: reasonsText,
+    };
+
+    const controller = new AbortController();
+    setLoadingAI(true);
+    fetch(url + `?layer=${encodeURIComponent('Result Page')}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ layer: 'Result Page', profile }),
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({ error: `${r.status}` }));
+          const msg = j?.error || `HTTP ${r.status}`;
+          setAiFeedback(`Lỗi: ${msg}`);
+          return;
+        }
+        const j = await r.json();
+        const combined = [j.overall, j.fit_with_scholarship, j.contextual_insight, j.next_step]
+          .filter(Boolean)
+          .join('\n\n');
+        setAiFeedback(combined || '');
+      })
+      .catch((err) => {
+        setAiFeedback(`Lỗi: ${String(err?.message || err)}`);
+      })
+      .finally(() => setLoadingAI(false));
+
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userName, passedScholarshipNames, failedScholarshipNames, reasonsText]);
   
   const getConfigMessages = () => {
+    const defaultCTA = "Một số học bổng phù hợp với bạn. Hãy chọn học bổng bên dưới để xem điểm mạnh/điểm yếu và cách nâng hồ sơ.";
     if (!resultPageConfig) {
       return {
         message: 'Dưới đây là kết quả đánh giá học bổng của bạn.',
         subheading: 'Kết quả đánh giá học bổng',
         fallbackMessage: "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-        ctaText: "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+        ctaText: defaultCTA,
         heroImageUrl: undefined as string | undefined,
       };
     }
@@ -115,7 +151,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           message: resultPageConfig.allFailedMessage || 'Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào.',
           subheading: resultPageConfig.allFailedSubheading || 'Hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          ctaText: resultPageConfig.ctaText || defaultCTA,
           heroImageUrl: resultPageConfig.heroImageUrl,
         };
       case allPassed:
@@ -123,7 +159,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           message: resultPageConfig.allPassedMessage || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng.',
           subheading: resultPageConfig.allPassedSubheading || 'Chúc mừng! Bạn đủ điều kiện cho tất cả các học bổng',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          ctaText: resultPageConfig.ctaText || defaultCTA,
           heroImageUrl: resultPageConfig.heroImageUrl,
         };
       case passedSome:
@@ -132,14 +168,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           message: resultPageConfig.passedSomeMessage || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện.',
           subheading: resultPageConfig.passedSomeSubheading || 'Dưới đây là danh sách các học bổng bạn đủ điều kiện',
           fallbackMessage: resultPageConfig.fallbackMessage || "Rất tiếc, hiện tại bạn chưa đủ điều kiện cho bất kỳ học bổng nào. Hãy thử lại sau khi cập nhật thêm thông tin.",
-          ctaText: resultPageConfig.ctaText || "Đây chỉ là phân tích sơ bộ. Để biết rõ điểm mạnh/điểm yếu và cách cải thiện hồ sơ, hãy đi tiếp với Smart Profile Analysis.",
+          ctaText: resultPageConfig.ctaText || defaultCTA,
           heroImageUrl: resultPageConfig.heroImageUrl,
         };
     }
   };
 
   const configMessages = getConfigMessages();
-  const displayCTAText = cmsResultText || configMessages.ctaText;
+  const displayCTATextRaw = cmsResultText || configMessages.ctaText;
+  const processedCTAText = renderTemplate(displayCTATextRaw || '', { fullname: userName, userName });
   const displayFallbackMessage = configMessages.fallbackMessage;
 
   const handleCTAClick = () => {
@@ -168,19 +205,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'Bạn đang có lợi thế! Chọn học bổng bạn quan tâm để xem cơ hội và hướng dẫn nộp hồ sơ.'
     : 'Một số học bổng phù hợp với bạn. Hãy chọn học bổng bên dưới để xem điểm mạnh/điểm yếu và cách nâng hồ sơ.';
 
-  const primaryCtaLabel = allFailed
-    ? '⚡ Xem cách cải thiện hồ sơ'
-    : allPassed
-    ? '⚡ Xem phân tích chi tiết'
-    : '⚡ Tiếp tục với Smart Profile Analysis';
   const paperRef = React.useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({ target: paperRef, offset: ['start end', 'end start'] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], [-2, 2]);
 
   return (
     <motion.div
+      ref={paperRef}
       className={`min-h-screen ${pageBgClasses} px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans`}
-      style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif" }}
+      style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif", y: parallaxY }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -258,23 +291,14 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           </motion.div>
         </AnimatePresence>
 
-        {/* Row B: Scroll Paper modern card */}
+        {/* Row B: Insight Box with AI feedback and CTA */}
         <motion.div className="mt-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-          <div className="max-w-5xl mx-auto">
-            <motion.div ref={paperRef} style={{ y: parallaxY }} className="relative bg-gradient-to-b from-[#FFF9EF] to-[#FFFCF7] border border-[#E8DCC4] rounded-3xl shadow-[0_10px_25px_rgba(180,160,120,0.15)] py-8 sm:py-10 px-4 sm:px-5 text-center transition-all duration-300 hover:shadow-[0_12px_30px_rgba(180,160,120,0.18)]">
-              {/* Scroll paper illusion bars */}
-              <div className="absolute left-6 right-6 top-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(-50%)' }} />
-              <div className="absolute left-6 right-6 bottom-0 h-[18px] rounded-full bg-gradient-to-r from-[#FFF4D9] to-[#FFEFC6] shadow-inner shadow-[inset_0_0_8px_rgba(255,255,255,0.45)]" style={{ transform: 'translateY(50%)' }} />
-
-              {/* Typography */}
-              <h3 className="text-2xl sm:text-3xl font-semibold text-[#1A1A1A]" style={{ fontFamily: "'Playfair Display','DM Serif Display',serif", letterSpacing: '-0.01em' }}>
-                Phân tích sơ bộ hồ sơ của bạn
-              </h3>
-              <p className="mt-3 text-base sm:text-lg leading-relaxed text-[#333333]" style={{ fontFamily: "'Inter','Plus Jakarta Sans',system-ui,sans-serif" }}>
-                {aiFeedback}
-              </p>
-            </motion.div>
-          </div>
+          <InsightBox
+            feedback={loadingAI ? 'Đang tạo nhận xét...' : aiFeedback}
+            ctaText={processedCTAText}
+            onCTAClick={handleCTAClick}
+            configMessages={{ ctaText: configMessages.ctaText }}
+          />
         </motion.div>
 
         {/* Câu hỏi dẫn hướng */}
@@ -328,23 +352,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
           )}
         </motion.div>
 
-        {/* Row E: CTA Buttons */}
-        <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="rounded-[16px] md:rounded-[20px] bg-white/90 backdrop-blur-[2px] shadow-inner p-3 mx-1">
-            <div className="max-w-md mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-              <button onClick={handleCTAClick} className="cta-primary">
-                <span className="text-[#FFFFFF]">⚡</span>
-                <span className="text-sm">{primaryCtaLabel}</span>
-              </button>
-              <button
-                onClick={() => window.history.back()}
-                className="border border-[#E0ECFF] text-[#009CF2] bg-white rounded-2xl h-12 font-medium w-full hover:bg-[#E8F6FF]"
-              >
-                <span className="text-sm">Quay lại</span>
-              </button>
-            </div>
-          </div>
-        </motion.div>
+        {/* Removed Row E: CTA Buttons (CTA now shown under Insight Box) */}
       </div>
     </motion.div>
   );

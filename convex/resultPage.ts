@@ -24,7 +24,6 @@ export const getResultPageConfig = query({
 export const updateResultPageConfig = mutation({
   args: {
     ctaText: v.optional(v.string()),
-    aiPromptConfig: v.optional(v.string()),
     allFailedMessage: v.optional(v.string()),
     allPassedMessage: v.optional(v.string()),
     passedSomeMessage: v.optional(v.string()),
@@ -67,7 +66,6 @@ export const updateResultPageConfig = mutation({
 export const createResultPageConfig = mutation({
   args: {
     ctaText: v.optional(v.string()),
-    aiPromptConfig: v.optional(v.string()),
     allFailedMessage: v.optional(v.string()),
     allPassedMessage: v.optional(v.string()),
     passedSomeMessage: v.optional(v.string()),

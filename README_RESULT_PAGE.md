@@ -32,7 +32,7 @@ The ResultPage is designed to display personalized scholarship eligibility resul
 
 ### User Experience
 - **Dynamic Banner**: Shows different messages based on whether the user is eligible for scholarships
-- **AI Feedback**: Displays placeholder AI analysis with a CTA to continue to the next step
+- **AI Feedback**: Displays AI analysis fetched from AI Engine via `/api/analysis` (layer: Result Page)
 - **Scholarship Grid**: Responsive layout that adapts to different screen sizes (2 columns on mobile, 3 on tablet, 4 on desktop)
 - **Fallback Avatars**: Generates letter avatars for scholarships without logos
 - **Empty State Handling**: Friendly message when no scholarships are eligible
@@ -41,7 +41,6 @@ The ResultPage is designed to display personalized scholarship eligibility resul
 ### Admin Control
 - **Content Management**: Administrators can customize:
   - CTA Text shown under the AI feedback section
-  - AI Prompt Configuration (for future AI integration)
   - Fallback messages for users not eligible for any scholarships
 - **Real-time Updates**: Changes made in the admin panel are immediately reflected on the ResultPage
 
@@ -55,7 +54,7 @@ The ResultPage is designed to display personalized scholarship eligibility resul
 5. The `ResultPage` is rendered with the evaluation results
 
 ### Data Structure
-- **ResultPageConfig**: Stores admin-managed content with fields for `ctaText`, `aiPromptConfig`, and `fallbackMessage`
+- **ResultPageConfig**: Stores admin-managed content with fields for `ctaText` and `fallbackMessage`
 - **Eligibility Evaluation**: Returns an array of eligible scholarships with details including name, ID, and eligibility status
 
 ## Using the ResultPage
