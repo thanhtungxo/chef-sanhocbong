@@ -152,39 +152,37 @@ const PromptConfigurator: React.FC = () => {
   const onPreviewTest = async () => {
     setTesting(true);
     setTestResult(null);
+    setStatusText("");
     try {
-      const base = !isDev ? (httpActionsUrl || convexUrl) : undefined;
-      const url = base ? `${base}/api/analysis?layer=${encodeURIComponent(layer)}` : `/api/analysis?layer=${encodeURIComponent(layer)}`;
+      const httpBase = httpActionsUrl || (convexUrl ? convexUrl.replace(".convex.cloud", ".convex.site") : undefined);
+      const url = isDev
+        ? `/api/analysis?layer=${encodeURIComponent(layer)}`
+        : (httpBase ? `${httpBase}/api/analysis?layer=${encodeURIComponent(layer)}` : `/api/analysis?layer=${encodeURIComponent(layer)}`);
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           layer,
           profile: {
-            fullName: "Nguyễn Văn A",
-            email: "test@example.com",
-            englishScore: 7.5,
-            currentJobTitle: "Software Engineer",
-            employerName: "ABC Tech",
-            aasEligible: true,
-            cheveningEligible: false,
+            name: "John",
+            major: "Computer Science",
           },
           override: {
-            title,
             version,
-            template,
-            modelId,
-            temperature,
             language: languageVi ? "vi" : "en",
+            temperature,
+            modelId,
           },
         }),
       });
       const data = await res.json();
       setTestResult(data);
-    } catch (e) {
-      setTestResult({ error: "Error ❌" });
+      setStatusText("Preview OK ✅");
+    } catch (e: any) {
+      setStatusText(e?.message || "Error ❌");
     } finally {
       setTesting(false);
+      setTimeout(() => setStatusText(""), 3000);
     }
   };
 
@@ -306,9 +304,10 @@ const ModelsAndKeys: React.FC = () => {
 
   const onPing = async (modelId?: string) => {
     try {
+      const httpBase = httpActionsUrl || (convexUrl ? convexUrl.replace(".convex.cloud", ".convex.site") : undefined);
       const url = isDev
         ? "/api/ping-model"
-        : (httpActionsUrl ? `${httpActionsUrl}/api/ping-model` : "/api/ping-model");
+        : (httpBase ? `${httpBase}/api/ping-model` : "/api/ping-model");
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
