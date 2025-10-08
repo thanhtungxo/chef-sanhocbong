@@ -328,6 +328,8 @@ const ModelsAndKeys: React.FC = () => {
   const [aliasAdd, setAliasAdd] = React.useState<string>("");
   const [statusAdd, setStatusAdd] = React.useState<string>("Testing");
   const [isActiveAdd, setIsActiveAdd] = React.useState<boolean>(false);
+  // NEW: inline API keys for quick testing without setting env yet
+  const [inlineKeys, setInlineKeys] = React.useState<Record<string, string>>({});
 
   const onPing = async (modelId?: string) => {
     try {
@@ -335,10 +337,15 @@ const ModelsAndKeys: React.FC = () => {
       const url = isDev
         ? "/api/ping-model"
         : (httpBase ? `${httpBase}/api/ping-model` : "/api/ping-model");
+      // Build request body including optional inline API key
+      const inlineKey = modelId ? inlineKeys[modelId] : undefined;
+      const body: any = {};
+      if (modelId) body.modelId = modelId;
+      if (inlineKey && inlineKey.trim().length > 0) body.apiKey = inlineKey.trim();
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(modelId ? { modelId } : {}),
+        body: JSON.stringify(body),
         credentials: "omit",
       });
       const data = await res.json();
@@ -503,6 +510,16 @@ const ModelsAndKeys: React.FC = () => {
             </div>
             <div className="mt-2 text-xs text-slate-600">Alias: {m.aliasKey}</div>
             <div className="mt-2 text-xs text-slate-600">Status: {m.status}</div>
+            {/* NEW: inline API key input for quick Test */}
+            <div className="mt-3">
+              <Label className="text-xs text-slate-700">Inline API Key (tùy chọn)</Label>
+              <Input
+                value={inlineKeys[m._id] ?? ""}
+                onChange={(e) => setInlineKeys((prev) => ({ ...prev, [m._id]: e.target.value }))}
+                placeholder="Dùng để Test nhanh nếu chưa set env"
+                className="mt-1 rounded-xl text-xs"
+              />
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={() => onPing(m._id)} variant="secondary" className="rounded-xl">Test</Button>
               <Button onClick={() => onSetActive(m._id)} className="bg-gradient-to-r from-teal-400 to-sky-500 text-white font-semibold rounded-xl">Set Active</Button>

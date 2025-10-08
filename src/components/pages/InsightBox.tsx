@@ -28,6 +28,16 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
     return () => clearTimeout(timer);
   }, []);
 
+  // Neutralize raw error messages (e.g., "Lỗi: ..." or "Error ...")
+  const ERROR_NEUTRAL_MSG = t(
+    'ui.result.ai.neutral',
+    'Hiện chưa có nhận xét từ AI. Bạn có thể chọn “Smart Profile Analysis” để xem hướng dẫn cải thiện hồ sơ.'
+  );
+  const isErrorFeedback = typeof feedback === 'string'
+    && (feedback.trim().toLowerCase().startsWith('lỗi:')
+      || feedback.trim().toLowerCase().startsWith('error'));
+  const effectiveFeedback = isErrorFeedback ? ERROR_NEUTRAL_MSG : feedback;
+
   return (
     <motion.section
       initial={{ opacity: 0, scale: 0.98 }}
@@ -57,10 +67,26 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
                       <span className="ml-2">Đang tạo nhận xét...</span>
                     </motion.div>
                   ) : (
-                    <pre className="whitespace-pre-line text-sm sm:text-base leading-relaxed">{feedback || t('ui.result.ai.empty', 'AI feedback sẽ hiển thị ở đây')}</pre>
+                    <pre className="whitespace-pre-line text-sm sm:text-base leading-relaxed">{effectiveFeedback || t('ui.result.ai.empty', 'AI feedback sẽ hiển thị ở đây')}</pre>
                   )}
                 </div>
               </div>
+
+              {/* CTA text and button */}
+              {displayCTAText && (
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    {displayCTAText}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onCTAClick}
+                    className="inline-flex items-center rounded-md bg-[rgb(var(--hb-blue))] text-white px-3 py-1.5 text-sm shadow hover:bg-[rgb(var(--hb-blue-700))] transition"
+                  >
+                    Smart Profile Analysis
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
