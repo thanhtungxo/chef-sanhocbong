@@ -14,7 +14,13 @@ export default defineConfig(({ mode }) => {
   let rawViteUrl = sanitizeUrl(env.VITE_CONVEX_URL);
   const deployment = env.CONVEX_DEPLOYMENT;
   const deploymentName = deployment ? deployment.replace(/^dev:/, "") : undefined;
-  let httpActionsUrl = sanitizeUrl(env.VITE_HTTP_ACTIONS_URL) || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
+  // Always derive HTTP Actions URL from the Convex client URL to avoid cross-deployment mismatches
+  let httpActionsUrl = rawViteUrl ? rawViteUrl.replace(".convex.cloud", ".convex.site") : undefined;
+  // Fallbacks if rawViteUrl is not available
+  if (!httpActionsUrl) {
+    const envHttp = sanitizeUrl(env.VITE_HTTP_ACTIONS_URL);
+    httpActionsUrl = envHttp || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
+  }
 
   // Production fallback: ensure UI points to the correct Convex deployment even when host env vars are missing
   if (mode === "production") {
@@ -61,7 +67,8 @@ window.addEventListener('message', async (message) => {
     },
     define: {
       'import.meta.env.VITE_CONVEX_URL': JSON.stringify(rawViteUrl ?? ""),
-      'import.meta.env.VITE_HTTP_ACTIONS_URL': JSON.stringify(httpActionsUrl ?? ""),
+      // Ensure the in-app HTTP base always matches the Convex deployment
+      'import.meta.env.VITE_HTTP_ACTIONS_URL': JSON.stringify(httpActionsUrl ?? (rawViteUrl ? rawViteUrl.replace('.convex.cloud', '.convex.site') : "")),
     },
     server: httpActionsUrl
       ? {

@@ -10,14 +10,30 @@ export const pingModel = httpAction(async (ctx, req) => {
     try {
       body = await req.json();
     } catch {}
-    const modelId = body?.modelId as string | undefined;
+    // Accept both string and DocumentId-like objects for modelId
+    const modelIdRaw = body?.modelId;
     const inlineKey = body?.apiKey as string | undefined;
+
+    // Helper to normalize Convex DocumentId to comparable string
+    const toIdString = (v: any): string | undefined => {
+      if (!v) return undefined;
+      if (typeof v === "string") return v;
+      if (typeof v === "object") {
+        // Convex DocumentId objects often have an `id` property
+        return (v.id as string) ?? (v._id?.id as string) ?? undefined;
+      }
+      return undefined;
+    };
 
     // Resolve target model: by id or active
     let targetModel: any | null = null;
-    if (modelId) {
+    if (modelIdRaw) {
       const allModels = await ctx.runQuery(api.aiEngine.listModels, {} as any);
-      targetModel = allModels?.find((m: any) => m._id === modelId) ?? null;
+      const reqId = toIdString(modelIdRaw);
+      targetModel = allModels?.find((m: any) => {
+        const mid = (m._id as any)?.id ?? (m._id as any);
+        return mid === reqId;
+      }) ?? null;
     } else {
       targetModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
     }
@@ -57,7 +73,6 @@ export const pingModel = httpAction(async (ctx, req) => {
     let status = 0;
     let message: string | undefined;
     let error: string | undefined;
-
     try {
       const p = provider.toLowerCase();
 
