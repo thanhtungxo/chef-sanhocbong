@@ -44,7 +44,7 @@ export const ResultCTA: React.FC<ResultCTAProps> = ({ eligibleScholarships, onCT
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:from-[#04c6f4] hover:to-[#3f7ee0] text-white py-3 px-6 rounded-lg transition-all duration-300 shadow hover:shadow-xl transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
+            className="w-full sm:w-auto bg-[rgb(var(--hb-blue))] hover:bg-[rgb(var(--hb-blue-700))] text-white py-3 px-7 rounded-full transition-all duration-300 shadow-[0_10px_20px_rgba(50,176,255,0.25)] hover:shadow-[0_12px_24px_rgba(11,39,73,0.25)] transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(var(--hb-blue))] dark:focus-visible:ring-offset-gray-900"
             onClick={handleContinue}
           >
             {primaryLabel}
@@ -53,7 +53,7 @@ export const ResultCTA: React.FC<ResultCTAProps> = ({ eligibleScholarships, onCT
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 py-3 px-6 rounded-lg transition-all duration-200"
+            className="w-full sm:w-auto bg-white text-[rgb(var(--hb-dark))] border border-[rgba(0,0,0,0.08)] hover:bg-[rgb(var(--hb-blue-50))] py-3 px-7 rounded-full transition-all duration-200"
             onClick={() => (window.location.href = '/')}
           >
             {secondaryLabel}
@@ -63,7 +63,7 @@ export const ResultCTA: React.FC<ResultCTAProps> = ({ eligibleScholarships, onCT
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full sm:w-auto bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] hover:from-[#04c6f4] hover:to-[#3f7ee0] text-white py-3 px-6 rounded-lg transition-all duration-300 shadow hover:shadow-xl transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00d2ff] dark:focus-visible:ring-offset-gray-900"
+          className="w-full sm:w-auto bg-[rgb(var(--hb-blue))] hover:bg-[rgb(var(--hb-blue-700))] text-white py-3 px-7 rounded-full transition-all duration-300 shadow-[0_10px_20px_rgba(50,176,255,0.25)] hover:shadow-[0_12px_24px_rgba(11,39,73,0.25)] transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(var(--hb-blue))] dark:focus-visible:ring-offset-gray-900"
           onClick={() => (window.location.href = '/')}
         >
           {backToHomeLabel}

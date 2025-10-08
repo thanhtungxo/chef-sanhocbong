@@ -17,6 +17,15 @@
   --color-neutral-dark-rgb: 17 24 39;
   --color-neutral-light-rgb: 249 250 251;
 
+  /* Habithon Scholar brand palette */
+  --hb-dark: 11 39 73;     /* #0B2749 */
+  --hb-blue: 50 176 255;   /* #32B0FF */
+  --hb-blue-700: 0 148 230;/* #0094E6 (hover) */
+  --hb-blue-50: 234 246 255; /* #EAF6FF (background tint) */
+  --hb-yellow: 255 214 107;/* #FFD66B */
+  --hb-yellow-50: 255 248 221; /* #FFF8DD */
+  --hb-surface: 252 253 255; /* subtle surface tint */
+
   /* Fonts */
   --font-sans: 'Inter', 'Plus Jakarta Sans', 'Roboto', 'Arial', system-ui, sans-serif;
   --font-heading: 'Plus Jakarta Sans', 'Inter', 'Roboto', system-ui, sans-serif;

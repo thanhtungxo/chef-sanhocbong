@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
 @import './styles/branding.css';
 
 @tailwind base;
@@ -20,6 +20,12 @@ body {
   font-family: var(--font-sans);
   color: var(--color-dark);
   background: var(--color-light);
+}
+
+/* Display serif for warm, human titles */
+.serif-title {
+  font-family: 'Merriweather', Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 /* only use this to update the style of the auth input fields. use a different class for all other input fields */

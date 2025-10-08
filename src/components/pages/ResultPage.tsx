@@ -212,17 +212,17 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
   return (
     <motion.div
       ref={paperRef}
-      className={`min-h-screen ${pageBgClasses} px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans`}
+      className={`min-h-screen bg-gradient-to-b from-[rgb(var(--hb-blue-50))] to-white px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans`}
       style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif", y: parallaxY }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* subtle tech pattern overlay */}
+      {/* warm subtle vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(ellipse at top right, rgba(56,189,248,0.15), transparent 70%)',
+          backgroundImage: 'radial-gradient(1200px 600px at 80% -10%, rgba(var(--hb-blue),0.08), transparent 60%)',
           backgroundSize: 'cover'
         }}
       />
@@ -258,19 +258,19 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3 }}
-            className="relative group rounded-2xl bg-gradient-to-br from-[#EAF7FF] via-[#F4FBFF] to-[#FFFFFF] border border-sky-100 shadow-[0_4px_12px_rgba(56,189,248,0.15)] px-5 py-4 animate-fadeInUp"
+            className="relative group rounded-2xl bg-white/90 border border-[rgba(0,0,0,0.06)] shadow-[0_8px_24px_rgba(0,0,0,0.06)] px-6 py-5 animate-fadeInUp"
           >
             <div className="flex items-start gap-3">
               {/* compact hero icon/logo */}
-              {configMessages.heroImageUrl ? (
+                            {configMessages.heroImageUrl ? (
                 <img
                   src={configMessages.heroImageUrl}
-                  alt="Kết quả học bổng"
-                  className="w-10 h-10 rounded-xl object-cover border border-sky-100 shadow-[0_2px_8px_rgba(59,130,246,0.15)]"
+                  alt="K???t qu??? h???c b??\u0007ng"
+                  className="w-10 h-10 rounded-xl object-cover border border-[rgba(0,0,0,0.06)] shadow-[0_4px_10px_rgba(0,0,0,0.06)]"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-sky-100 shadow-[0_2px_8px_rgba(59,130,246,0.15)] bg-white">
-                  🎓
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[rgba(0,0,0,0.06)] shadow-[0_4px_10px_rgba(0,0,0,0.06)] bg-white">
+                  dYZ"
                 </div>
               )}
 
@@ -278,11 +278,11 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🎉</span>
-                  <h2 className="text-[20px] font-bold bg-gradient-to-r from-sky-600 via-blue-500 to-indigo-500 bg-clip-text text-transparent tracking-tight">
+                  <h2 className="serif-title text-[22px] font-bold text-[rgb(var(--hb-dark))] tracking-tight">
                     {configMessages.subheading}
                   </h2>
                 </div>
-                <div className="mt-1.5 flex items-center gap-1 text-[14px] text-slate-600">
+                <div className="mt-1.5 flex items-center gap-1 text-[14px] text-[rgb(var(--hb-dark))]/80">
                   <span>💬</span>
                   <p className="leading-relaxed">{configMessages.message}</p>
                 </div>
@@ -303,8 +303,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
 
         {/* Câu hỏi dẫn hướng */}
         <motion.div className="mt-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="bg-gradient-to-r from-[#E0F2FE] via-[#F0F9FF] to-white border-l-4 border-sky-400 rounded-[16px] md:rounded-[20px] p-5">
-            <div className="flex items-center text-lg font-semibold text-[#0B2749]">
+          <div className="bg-[rgb(var(--hb-blue-50))] border-l-4 border-[rgb(var(--hb-yellow))] rounded-2xl p-5">
+            <div className="flex items-center text-lg font-semibold text-[rgb(var(--hb-dark))]">
               <span className="mr-2">🎯</span>
               <span>{calloutText}</span>
             </div>
@@ -318,13 +318,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
               <div className="hairline-divider-y"></div>
               {eligibilityResults.map((s, idx) => {
                 const badgeClasses = s.eligible
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-red-50 text-red-700';
+                  ? 'bg-[rgb(var(--hb-blue-50))] text-[rgb(var(--hb-dark))] border border-[rgba(50,176,255,0.35)]'
+                  : 'bg-[rgb(var(--hb-yellow-50))] text-[rgb(var(--hb-dark))] border border-[rgba(255,214,107,0.45)]';
                 return (
                   <button
                     key={s.id}
                     onClick={() => handleSelectScholarship(s)}
-                    className="group w-full app-card overflow-hidden p-5 md:p-5 sm:hover:shadow-md sm:hover:-translate-y-0.5 sm:hover:ring-1 sm:hover:ring-sky-300/50 transition-all focus:outline-none"
+                    className="group w-full rounded-2xl bg-white border border-[rgba(0,0,0,0.06)] shadow-[0_8px_24px_rgba(0,0,0,0.06)] overflow-hidden p-5 md:p-5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all focus:outline-none"
                   >
                     <div className="flex flex-col items-center justify-start">
                       {s.logoUrl ? (
@@ -335,7 +335,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
                         </div>
                       )}
                       <div className="mt-2 text-center">
-                        <div className="text-[14px] font-medium text-[#0B2749] tracking-tight">{s.name}</div>
+                        <div className="text-[15px] font-semibold text-[rgb(var(--hb-dark))] tracking-tight">{s.name}</div>
                       </div>
                       <div className="mt-2">
                         <span className={`badge-neutral ${badgeClasses}`}>{s.eligible ? 'Đủ điều kiện' : 'Không đủ điều kiện'}</span>
@@ -357,3 +357,4 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     </motion.div>
   );
 };
+

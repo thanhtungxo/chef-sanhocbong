@@ -52,14 +52,14 @@ export const ResultBanner: React.FC<ResultBannerProps> = ({
       <div className="relative mx-auto max-w-5xl px-4">
         {/* Gradient banner card */}
         <div className="relative overflow-hidden rounded-2xl shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5]" aria-hidden="true" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--hb-blue))] to-[rgb(var(--hb-dark))]" aria-hidden="true" />
           {/* subtle decorative gradient rings */}
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" aria-hidden="true" />
           <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl" aria-hidden="true" />
 
           <div className="relative p-10 text-center">
             <div className="text-5xl mb-4">🎉</div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+            <h1 className="serif-title text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
               {heading}
             </h1>
             <p className="mt-2 text-white/80 text-base sm:text-lg">
