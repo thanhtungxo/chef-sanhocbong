@@ -340,7 +340,13 @@ const ModelsAndKeys: React.FC = () => {
       } else {
         setEnvWarning("");
       }
-      setStatusText(data?.ok ? "Model OK ✅" : "Error ❌");
+      // Show detailed error to help debugging instead of generic text
+      if (data?.ok) {
+        setStatusText("Model OK ✅");
+      } else {
+        const detail = typeof data?.error === "string" ? data.error : `HTTP ${res.status}`;
+        setStatusText(`Error ❌: ${detail}`);
+      }
     } catch {
       setStatusText("Error ❌");
     } finally {
