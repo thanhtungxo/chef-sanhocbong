@@ -87,6 +87,7 @@ const PromptConfigurator: React.FC = () => {
   const activePrompt = useQuery(api.aiEngine.getActivePromptByLayer, { layer });
   const addPrompt = useMutation(api.aiEngine.addPrompt);
   const publishPrompt = useMutation(api.aiEngine.publishPrompt);
+  const updatePrompt = useMutation(api.aiEngine.updatePrompt);
 
   React.useEffect(() => {
     if (activePrompt) {
@@ -124,9 +125,22 @@ const PromptConfigurator: React.FC = () => {
 
   const onPublish = async () => {
     try {
-      const hasPrompts = Array.isArray(prompts) && prompts.length > 0;
-      if (!hasPrompts) {
-        // No prompts yet: create and activate this configuration
+      if (activePrompt?._id) {
+        // Update the current active prompt with the editor content and keep it active
+        await updatePrompt({
+          promptId: activePrompt._id as any,
+          title,
+          version,
+          template,
+          modelId: modelId as any,
+          temperature,
+          language: languageVi ? "vi" : "en",
+          fallbackText,
+          versionNote,
+          isActive: true,
+        });
+      } else {
+        // No active prompt yet for this layer, create one and activate
         await addPrompt({
           layer,
           title,
@@ -139,34 +153,6 @@ const PromptConfigurator: React.FC = () => {
           versionNote,
           isActive: true,
         });
-      } else {
-        if (activePrompt?._id) {
-          // Re-affirm activation of the current active prompt (no-op but safe)
-          await publishPrompt({ promptId: activePrompt._id as any });
-        } else {
-          // There are drafts but none active: activate the latest draft
-          const latest = prompts
-            .slice()
-            .sort((a: any, b: any) => ((a.updatedAt ?? a.createdAt ?? 0) - (b.updatedAt ?? b.createdAt ?? 0)))
-            .at(-1);
-          if (latest?._id) {
-            await publishPrompt({ promptId: latest._id as any });
-          } else {
-            // Fallback: create and activate new prompt
-            await addPrompt({
-              layer,
-              title,
-              version,
-              template,
-              modelId: modelId as any,
-              temperature,
-              language: languageVi ? "vi" : "en",
-              fallbackText,
-              versionNote,
-              isActive: true,
-            });
-          }
-        }
       }
       setStatusText(`Prompt activated for ${layer} 🚀`);
       setTimeout(() => setStatusText(""), 3000);
