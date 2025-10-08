@@ -294,10 +294,18 @@ export const analysis = httpAction(async (ctx, req) => {
     }
 
     const activeModel = await ctx.runQuery(api.aiEngine.getActiveModel, {} as any);
-    const activePrompt = await ctx.runQuery(api.aiEngine.getActivePromptByLayer, { layer } as any);
+    let activePrompt = await ctx.runQuery(api.aiEngine.getActivePromptByLayer, { layer } as any);
+
+    // Fallback: if no active prompt, try the latest prompt in this layer
+    if (!activePrompt) {
+      try {
+        const prompts = await ctx.runQuery(api.aiEngine.listPromptsByLayer, { layer } as any);
+        activePrompt = (prompts && prompts.length > 0) ? prompts[0] : null;
+      } catch {}
+    }
 
     if (!activePrompt) {
-      return new Response(JSON.stringify({ error: "No active prompt configured for this layer" }), {
+      return new Response(JSON.stringify({ error: "No active prompt configured for this layer", layer }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
