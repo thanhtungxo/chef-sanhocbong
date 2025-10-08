@@ -5,10 +5,16 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  let rawViteUrl = env.VITE_CONVEX_URL;
+  // Sanitize URLs coming from host env (remove quotes/backticks/whitespace)
+  const sanitizeUrl = (u?: string): string | undefined => {
+    if (!u) return undefined;
+    const trimmed = u.trim().replace(/^`+|`+$/g, "").replace(/^"+|"+$/g, "").replace(/^'+|'+$/g, "");
+    return trimmed || undefined;
+  };
+  let rawViteUrl = sanitizeUrl(env.VITE_CONVEX_URL);
   const deployment = env.CONVEX_DEPLOYMENT;
   const deploymentName = deployment ? deployment.replace(/^dev:/, "") : undefined;
-  let httpActionsUrl = env.VITE_HTTP_ACTIONS_URL || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
+  let httpActionsUrl = sanitizeUrl(env.VITE_HTTP_ACTIONS_URL) || (deploymentName ? `https://${deploymentName}.convex.site` : undefined);
 
   // Production fallback: ensure UI points to the correct Convex deployment even when host env vars are missing
   if (mode === "production") {
