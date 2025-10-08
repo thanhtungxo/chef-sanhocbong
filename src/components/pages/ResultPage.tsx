@@ -203,7 +203,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     ? 'Hiện tại bạn chưa đủ điều kiện. Đừng nản! Chọn Smart Profile Analysis để biết cách nâng hồ sơ và cải thiện điểm yếu.'
     : allPassed
     ? 'Bạn đang có lợi thế! Chọn học bổng bạn quan tâm để xem cơ hội và hướng dẫn nộp hồ sơ.'
-    : 'Một số học bổng phù hợp với bạn. Hãy chọn học bổng bên dưới để xem điểm mạnh/điểm yếu và cách nâng hồ sơ.';
+    : 'Bạn muốn biết mình có bao nhiêu % cơ hội đậu, điểm mạnh – điểm yếu ở đâu, và cách nâng hồ sơ? Chọn học bổng bạn quan tâm bên dưới để xem ngay!';
 
   const paperRef = React.useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({ target: paperRef, offset: ['start end', 'end start'] });
@@ -357,4 +357,3 @@ export const ResultPage: React.FC<ResultPageProps> = ({  userName,  eligibilityR
     </motion.div>
   );
 };
-

@@ -38,10 +38,7 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
       <div className="relative mx-auto max-w-5xl px-4">
         <div className="relative bg-white/95 dark:from-gray-800 dark:to-gray-700 border border-[rgba(0,0,0,0.06)] dark:border-gray-700 rounded-2xl p-6 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
           <div className="flex items-start gap-4">
-            {/* AI Avatar */}
-            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-[rgb(var(--hb-blue))] to-[rgb(var(--hb-dark))] shadow-md flex items-center justify-center text-white text-xl">
-              🤖
-            </div>
+            {/* AI Avatar removed per request */}
             {/* Text bubble */}
             <div className="flex-1">
               <h2 className="serif-title text-lg font-semibold text-[rgb(var(--hb-dark))] dark:text-blue-200 mb-1">{title}</h2>
@@ -63,14 +60,6 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
                     <pre className="whitespace-pre-line text-sm sm:text-base leading-relaxed">{feedback || t('ui.result.ai.empty', 'AI feedback sẽ hiển thị ở đây')}</pre>
                   )}
                 </div>
-              </div>
-              <div className="mt-4">
-                <button
-                  className="w-full sm:w-auto bg-[rgb(var(--hb-blue))] hover:bg-[rgb(var(--hb-blue-700))] text-white py-3 px-6 rounded-full transition-all duration-300 shadow-[0_10px_20px_rgba(50,176,255,0.25)] hover:shadow-[0_12px_24px_rgba(11,39,73,0.25)] transform hover:-translate-y-0.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(var(--hb-blue))] dark:focus-visible:ring-offset-gray-900"
-                  onClick={onCTAClick}
-                >
-                  {displayCTAText}
-                </button>
               </div>
             </div>
           </div>
