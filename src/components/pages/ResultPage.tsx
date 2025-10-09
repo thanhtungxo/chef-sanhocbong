@@ -109,6 +109,9 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
   const ctaBarTextRaw = configMessages.ctaText || '';
   const ctaBarText = renderTemplate(ctaBarTextRaw, { fullname: userName, userName });
 
+  // Hero title (gradient text) uses subheading from admin, templated with name
+  const heroTitle = renderTemplate(configMessages.subheading || '', { fullname: userName, userName });
+
   // Actions
   const handleSelectScholarship = (scholarship: Scholarship) => {
     const url = new URL(window.location.href);
@@ -145,9 +148,9 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
               </div>
             </div>
             <div className="md:col-span-2">
-              <div className="rp-hero-banner">
-                <div className="text-[15px] font-semibold mb-1 text-[var(--rp-text)]">{configMessages.subheading}</div>
-                <div className="text-[14px] md:text-[15px] leading-6 text-[var(--rp-text-muted)]">{configMessages.message}</div>
+              <div>
+                <div className="rp-hero-title">{heroTitle}</div>
+                <div className="rp-hero-sub mt-2 text-[14px] md:text-[15px] leading-6">{configMessages.message}</div>
               </div>
             </div>
           </div>
@@ -159,9 +162,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
 
           {/* Row 3 – CTA Bar (from Admin). Hidden if empty */}
           {ctaBarText.trim().length > 0 && (
-            <div className="mt-5 rp-cta-bar flex items-start gap-2">
-              <span aria-hidden>🎯</span>
-              <div className="text-[14px] md:text-[15px] leading-6">{ctaBarText}</div>
+            <div className="mt-5 rp-cta-bar">
+              <div className="leading-7">{ctaBarText}</div>
             </div>
           )}
 
@@ -170,7 +172,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
             {eligibilityResults.length > 0 ? (
               <div className="rp-grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                 {eligibilityResults.map((s) => {
-                  const chipClass = s.eligible ? 'rp-chip-success' : 'rp-chip-danger';
+                  const chipClass = 'rp-chip-neutral';
                   const chipText = s.eligible ? 'Eligible' : 'Not eligible';
                   return (
                     <button key={s.id} onClick={() => handleSelectScholarship(s)} className="rp-card text-left focus:outline-none">
@@ -183,7 +185,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
                               {s.name.charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <h3 className="font-semibold text-[16px] leading-6 text-[var(--rp-text)] flex-1 line-clamp-2">{s.name}</h3>
+                          <h3 className="font-bold text-[16px] leading-6 text-[var(--rp-text)] flex-1 line-clamp-2">{s.name}</h3>
                         </div>
                         <div className="mt-3">
                           <span className={chipClass}>{chipText}</span>
@@ -205,4 +207,3 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
     </motion.div>
   );
 };
-

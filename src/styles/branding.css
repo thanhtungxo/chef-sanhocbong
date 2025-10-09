@@ -30,21 +30,23 @@
   --font-sans: 'Inter', 'Plus Jakarta Sans', 'Roboto', 'Arial', system-ui, sans-serif;
   --font-heading: 'Plus Jakarta Sans', 'Inter', 'Roboto', system-ui, sans-serif;
 
-  /* ----- Result Page Design Tokens ----- */
-  --rp-bg-start: #E8F1FA;           /* Page gradient start */
-  --rp-bg-end: #DCE9F6;             /* Page gradient end */
-  --rp-surface: #FFFFFF;            /* Card surface */
-  --rp-card-border: #CCE0F5;        /* Soft card border */
+  /* ----- Result Page Design Tokens (Deep Blue + Neon Cyan) ----- */
+  --rp-bg-start: #89C4F4;           /* Page gradient start */
+  --rp-bg-mid: #4A90E2;             /* Page gradient mid */
+  --rp-bg-end: #1B6AC9;             /* Page gradient end */
+  --rp-surface: rgba(255,255,255,0.95); /* Frosted glass panel */
+  --rp-surface-border: rgba(255,255,255,0.6); /* Panel border */
+  --rp-card-border: #CCE0FF;        /* Card border (stronger) */
   --rp-section-tint: #F0F7FE;       /* Light inner tints */
-  --rp-text: #1E2A3A;               /* Primary text */
-  --rp-text-muted: #3D556F;         /* Secondary text */
-  --rp-accent: #00AEEF;             /* Cyan accent */
-  --rp-primary-from: #009EFF;       /* Primary gradient start */
-  --rp-primary-to: #00C2FF;         /* Primary gradient end */
-  --rp-success: #2ECC71;            /* Success */
-  --rp-danger: #FF6B6B;             /* Danger */
-  --rp-shadow: 0 10px 25px rgba(0, 64, 128, 0.08); /* Cool shadow */
-  --rp-shadow-strong: 0 14px 32px rgba(0, 64, 128, 0.12); /* Stronger shadow */
+  --rp-text: #0A1F44;               /* Primary text */
+  --rp-text-muted: #243B63;         /* Secondary text */
+  --rp-accent: #00E5FF;             /* Neon cyan accent */
+  --rp-primary-from: #00E5FF;       /* Gradient for accents */
+  --rp-primary-to: #0078FF;         /* Gradient for accents */
+  --rp-success: #00C853;            /* Success (white text) */
+  --rp-danger: #FF5252;             /* Danger (white text) */
+  --rp-shadow: 0 16px 48px rgba(0, 80, 160, 0.2); /* Deep cool shadow */
+  --rp-shadow-strong: 0 24px 64px rgba(0, 80, 160, 0.28); /* Stronger */
   --rp-radius-lg: 24px;             /* Main container radius */
   --rp-radius-md: 18px;             /* Card radius */
   --rp-radius-btn: 16px;            /* Button radius */

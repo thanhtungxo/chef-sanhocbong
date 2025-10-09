@@ -34,15 +34,16 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading, ctaTe
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
       className="relative"
     >
       <div className="rp-analysis">
-        <div className="h-1 w-full rounded-t-[14px] bg-gradient-to-r from-[var(--rp-primary-from)] to-[var(--rp-primary-to)] -mt-1 mb-3" />
-        <h2 className="text-[22px] md:text-[24px] font-bold text-[var(--rp-text)] mb-2">{title}</h2>
-        <div className="rounded-xl border border-[var(--rp-card-border)] bg-[var(--rp-section-tint)] p-4 text-[var(--rp-text-muted)]">
+        <div className="rp-analysis-header">
+          <h2 className="text-[22px] md:text-[24px] font-bold tracking-[0.5px] text-[var(--rp-text)]">{title}</h2>
+        </div>
+        <div className="rounded-xl border border-[var(--rp-card-border)] bg-[var(--rp-section-tint)] p-4">
           {loading ? (
             <div>
               <div className="rp-skeleton-line" />
@@ -51,7 +52,7 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading, ctaTe
               <div className="rp-skeleton-line" />
             </div>
           ) : (
-            <pre className="whitespace-pre-line text-[15px] md:text-[16px] leading-7 text-[var(--rp-text)]">
+            <pre className="whitespace-pre-line text-[15px] md:text-[16px] leading-8 text-[#1B365D]">
               {effectiveFeedback || t('ui.result.ai.empty', 'Phân tích đang được cập nhật...')}
             </pre>
           )}
@@ -60,4 +61,3 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading, ctaTe
     </motion.section>
   );
 };
-
