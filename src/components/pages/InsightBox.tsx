@@ -73,20 +73,6 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, ctaText, onCTA
               </div>
 
               {/* CTA text and button */}
-              {displayCTAText && (
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    {displayCTAText}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={onCTAClick}
-                    className="inline-flex items-center rounded-md bg-[rgb(var(--hb-blue))] text-white px-3 py-1.5 text-sm shadow hover:bg-[rgb(var(--hb-blue-700))] transition"
-                  >
-                    Smart Profile Analysis
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
