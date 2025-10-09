@@ -29,4 +29,26 @@
   /* Fonts */
   --font-sans: 'Inter', 'Plus Jakarta Sans', 'Roboto', 'Arial', system-ui, sans-serif;
   --font-heading: 'Plus Jakarta Sans', 'Inter', 'Roboto', system-ui, sans-serif;
+
+  /* ----- Result Page Design Tokens ----- */
+  --rp-bg-start: #E8F1FA;           /* Page gradient start */
+  --rp-bg-end: #DCE9F6;             /* Page gradient end */
+  --rp-surface: #FFFFFF;            /* Card surface */
+  --rp-card-border: #CCE0F5;        /* Soft card border */
+  --rp-section-tint: #F0F7FE;       /* Light inner tints */
+  --rp-text: #1E2A3A;               /* Primary text */
+  --rp-text-muted: #3D556F;         /* Secondary text */
+  --rp-accent: #00AEEF;             /* Cyan accent */
+  --rp-primary-from: #009EFF;       /* Primary gradient start */
+  --rp-primary-to: #00C2FF;         /* Primary gradient end */
+  --rp-success: #2ECC71;            /* Success */
+  --rp-danger: #FF6B6B;             /* Danger */
+  --rp-shadow: 0 10px 25px rgba(0, 64, 128, 0.08); /* Cool shadow */
+  --rp-shadow-strong: 0 14px 32px rgba(0, 64, 128, 0.12); /* Stronger shadow */
+  --rp-radius-lg: 24px;             /* Main container radius */
+  --rp-radius-md: 18px;             /* Card radius */
+  --rp-radius-btn: 16px;            /* Button radius */
+  --rp-gap: 24px;                   /* Grid gap */
+  --rp-pad-lg: 32px;                /* Container padding */
+  --rp-pad-md: 24px;                /* Card padding */
 }
