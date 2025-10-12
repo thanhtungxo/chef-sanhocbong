@@ -299,7 +299,7 @@ body {
     border-radius: 1rem; /* rounded-lg */
     box-shadow: 0 4px 12px rgba(0,128,255,0.08);
     border-color: rgba(0,128,255,0.15);
-    margin-inline: 0.5rem; /* mx-2 */
+    margin-inline: 0rem; /* remove extra side margin on mobile; wrapper controls safe margin */
   }
   .AI-box p {
     font-size: 14.5px;
@@ -309,6 +309,10 @@ body {
     font-size: 16px;
     margin-bottom: 0.75rem;
   }
+
+  /* Tighten left guide spacing on mobile for better content width */
+  .ai-stream { padding-left: 1rem; }
+  .ai-stream::before { width: 3px; opacity: 0.9; }
 }
 
 /* --- AI Thinking Wave (premium loading) --- */
