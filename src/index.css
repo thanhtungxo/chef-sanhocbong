@@ -315,6 +315,14 @@ body {
   .ai-stream::before { width: 3px; opacity: 0.9; }
 }
 
+/* Edge-to-panel utility: make a child span close to the rp-main inner edge on small screens */
+@media (max-width: 640px) {
+  .edge-to-panel-mobile {
+    margin-left: calc(-1 * clamp(28px, 3vw, var(--rp-pad-lg)) + 2px);
+    margin-right: calc(-1 * clamp(28px, 3vw, var(--rp-pad-lg)) + 2px);
+  }
+}
+
 /* --- AI Thinking Wave (premium loading) --- */
 .ai-thinking-stage { position: relative; }
 
