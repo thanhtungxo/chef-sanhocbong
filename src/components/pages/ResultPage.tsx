@@ -157,7 +157,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 2 – Analysis (Khung C) */}
-          <div className="mt-4 sm:mt-6 edge-to-panel-mobile sm:mx-0">
+          <div className="mt-4 sm:mt-6">
             <InsightBox feedback={aiFeedback} loading={loadingAI} configMessages={{ ctaText: configMessages.ctaText }} />
           </div>
 
