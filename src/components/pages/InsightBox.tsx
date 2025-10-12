@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 
 interface ConfigMessages { ctaText?: string }
@@ -49,15 +49,30 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
       <div className="AI-box bg-[rgba(255,255,255,0.95)] border border-[rgba(0,128,255,0.25)] shadow-[0_12px_32px_rgba(0,128,255,0.1)] rounded-2xl p-6 md:p-8 leading-relaxed transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_18px_36px_rgba(0,229,255,0.2)]">
         <h2 className="ai-title text-[20px] font-semibold tracking-wide mb-4">{title}</h2>
 
+        <AnimatePresence mode="wait" initial={false}>
         {loading ? (
-          <div>
-            <div className="rp-skeleton-line" />
-            <div className="rp-skeleton-line" />
-            <div className="rp-skeleton-line" />
-            <div className="rp-skeleton-line" />
-          </div>
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
+            <div className="rp-skeleton-line rp-shimmer" style={{ width: '92%' }} />
+            <div className="rp-skeleton-line rp-shimmer" style={{ width: '96%' }} />
+            <div className="rp-skeleton-line rp-shimmer" style={{ width: '88%' }} />
+            <div className="rp-skeleton-line rp-shimmer" style={{ width: '94%' }} />
+            <div className="rp-skeleton-line rp-shimmer" style={{ width: '76%' }} />
+          </motion.div>
         ) : (
-          <div className="ai-stream">
+          <motion.div
+            key="content"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="ai-stream"
+          >
             {intro && <p className="ai-intro mb-2">{intro}</p>}
             {restLines.length > 0 ? (
               restLines.map((line, idx) => (
@@ -66,8 +81,9 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
             ) : (
               !intro && <p className="mb-2">{t('ui.result.ai.empty', 'Phân tích đang được cập nhật...')}</p>
             )}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </motion.section>
   );

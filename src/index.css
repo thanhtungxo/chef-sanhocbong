@@ -199,15 +199,26 @@ body {
 /* Skeleton lines */
 .rp-skeleton-line {
   height: 12px;
-  background: linear-gradient(90deg, #e9f2fb 0%, #f6fbff 40%, #e9f2fb 80%);
+  background: #eaf4ff;
   border-radius: 8px;
-  animation: rp-skel 1.2s ease-in-out infinite;
+  overflow: hidden;
 }
 .rp-skeleton-line + .rp-skeleton-line { margin-top: 10px; }
-@keyframes rp-skel {
-  0% { filter: brightness(0.96); }
-  50% { filter: brightness(1.04); }
-  100% { filter: brightness(0.96); }
+
+/* Cyan-blue shimmer overlay */
+.rp-shimmer {
+  background: linear-gradient(90deg,
+    rgba(224, 240, 255, 0.85) 0%,
+    rgba(244, 250, 255, 1) 20%,
+    rgba(200, 230, 255, 0.9) 40%,
+    rgba(244, 250, 255, 1) 60%,
+    rgba(224, 240, 255, 0.85) 100%);
+  background-size: 200% 100%;
+  animation: rp-shimmer-move 1.2s linear infinite;
+}
+@keyframes rp-shimmer-move {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 /* ----- AI Box (Result Page – Insight) ----- */
