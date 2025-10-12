@@ -62,7 +62,8 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
 
   React.useEffect(() => {
     const httpActionsUrl = (import.meta as any).env?.VITE_HTTP_ACTIONS_URL as string | undefined;
-    const baseUrl = httpActionsUrl || 'https://strong-ermine-969.convex.site';
+    const normalizedUrl = httpActionsUrl?.replace('convex.cloud', 'convex.site');
+    const baseUrl = (normalizedUrl?.replace(/\/+$/, '') || 'https://strong-ermine-969.convex.site');
     const url = `${baseUrl}/api/analysis`;
 
     const profile = { userName, passedScholarships: passedScholarshipNames, failedScholarships: failedScholarshipNames, reasons: reasonsText };
