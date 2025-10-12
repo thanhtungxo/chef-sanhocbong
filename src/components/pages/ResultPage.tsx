@@ -62,14 +62,14 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
 
   React.useEffect(() => {
     const httpActionsUrl = (import.meta as any).env?.VITE_HTTP_ACTIONS_URL as string | undefined;
-    const normalizedUrl = httpActionsUrl?.replace('convex.cloud', 'convex.site');
-    const baseUrl = (normalizedUrl?.replace(/\/+$/, '') || 'https://strong-ermine-969.convex.site');
-    const url = `${baseUrl}/api/analysis`;
+    const convexUrl = (import.meta as any).env?.VITE_CONVEX_URL as string | undefined;
+    const normalizedBase = httpActionsUrl?.replace('convex.cloud', 'convex.site') || (convexUrl ? convexUrl.replace('.convex.cloud', '.convex.site') : undefined);
+    const url = normalizedBase ? `${normalizedBase.replace(/\/+$/, '')}/api/analysis` : `/api/analysis`;
 
     const profile = { userName, passedScholarships: passedScholarshipNames, failedScholarships: failedScholarshipNames, reasons: reasonsText };
     const controller = new AbortController();
     setLoadingAI(true);
-    fetch(url + `?layer=${encodeURIComponent('Result Page')}`, {
+    fetch(url + `?layer=${encodeURIComponent('Result Page')}` , {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ layer: 'Result Page', profile }), signal: controller.signal,
     })
       .then(async (r) => {
@@ -86,7 +86,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
       .catch(() => setAiFeedback(''))
       .finally(() => setLoadingAI(false));
     return () => controller.abort();
-  }, [userName, passedScholarshipNames, failedScholarshipNames, reasonsText]);
+  }, [userName, passedScholarshipNames, failedScholarships, reasonsText]);
 
   // Template helper for CTA bar
   const renderTemplate = (tpl: string, ctx: Record<string, string>) => tpl

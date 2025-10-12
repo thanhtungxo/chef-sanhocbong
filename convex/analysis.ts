@@ -305,10 +305,21 @@ export const analysis = httpAction(async (ctx, req) => {
     }
 
     if (!activePrompt) {
-      return new Response(JSON.stringify({ error: "No active prompt configured for this layer", layer }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      });
+      // Built-in fallback prompt to ensure /api/analysis works even when DB has no active prompt for this layer
+      activePrompt = {
+        layer,
+        version: "v1",
+        template: [
+          "Bạn là Scholarship Mentor AI. Hãy tạo phản hồi ở dạng JSON với các khóa: overall, fit_with_scholarship, contextual_insight, next_step.",
+          "- overall: Tóm tắt ngắn gọn (1-2 câu) về kết quả tổng quan.",
+          "- fit_with_scholarship: Mô tả tại sao hồ sơ phù hợp/không phù hợp với học bổng (ngắn gọn).",
+          "- contextual_insight: Gợi ý chi tiết dựa trên thông tin hồ sơ và các lý do không đạt (nếu có).",
+          "- next_step: Hành động tiếp theo cụ thể." ,
+          "Trả lời bằng tiếng Việt nếu không được chỉ định ngôn ngữ khác. Không dùng markdown, chỉ JSON thuần."
+        ].join("\n"),
+        temperature: 0.7,
+        language: "vi",
+      } as any;
     }
 
     // Use override values if provided (from Preview Test), otherwise use active prompt
@@ -351,8 +362,8 @@ export const analysis = httpAction(async (ctx, req) => {
     }
 
     // Prepare chat-style request based on prompt template and input profile
-    const template: string = activePrompt.template || "";
-    const promptVersion = override.version ?? activePrompt.version ?? "v1";
+    const template: string = activePrompt?.template ?? "";
+    const promptVersion = override.version ?? activePrompt?.version ?? "v1";
 
     const systemInstruction = `You are Scholarship Mentor AI. Reply strictly as a JSON object with keys: overall, fit_with_scholarship, contextual_insight, next_step. Use ${language === "vi" ? "Vietnamese" : "English"}. Do not include markdown or extra text.`;
 
