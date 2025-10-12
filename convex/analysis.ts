@@ -342,14 +342,15 @@ export const analysis = httpAction(async (ctx, req) => {
       });
     }
 
-    if (provider !== "openai") {
-      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI)", provider }), {
+    // Support OpenAI and Gemini providers. Others are not supported for analysis yet.
+    if (provider !== "openai" && provider !== "gemini" && provider !== "google") {
+      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI/Gemini)", provider }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
     }
 
-    // Prepare OpenAI chat completion request based on prompt template and input profile
+    // Prepare chat-style request based on prompt template and input profile
     const template: string = activePrompt.template || "";
     const promptVersion = override.version ?? activePrompt.version ?? "v1";
 
@@ -369,6 +370,98 @@ export const analysis = httpAction(async (ctx, req) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+    // Gemini (Google Generative Language API) branch
+    if (provider === "gemini" || provider === "google") {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              { role: "user", parts: [{ text: [systemInstruction, userContent].join("\n\n") }] },
+            ],
+            generationConfig: { temperature, maxOutputTokens: 800 },
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timer);
+
+        if (!r.ok) {
+          let errMsg = `Gemini error (${r.status})`;
+          try {
+            const j = await r.json();
+            const apiMsg = j?.error?.message || j?.message || j?.error || undefined;
+            if (apiMsg) errMsg = String(apiMsg);
+          } catch {}
+          if (r.status === 401) errMsg = "Unauthorized - invalid API key";
+          if (r.status === 404) errMsg = "Model not found";
+          return new Response(JSON.stringify({ error: errMsg }), {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+          });
+        }
+
+        const j = await r.json();
+        const textFromParts = Array.isArray(j?.candidates?.[0]?.content?.parts)
+          ? j.candidates[0].content.parts.map((p: any) => p?.text || "").join("\n").trim()
+          : "";
+        const content = textFromParts || j?.candidates?.[0]?.output_text || "";
+
+        // Try to parse JSON content from model response
+        const tryParse = (txt: string): any => {
+          try { return JSON.parse(txt); } catch {}
+          const m = txt.match(/\{[\s\S]*\}/);
+          if (m) {
+            try { return JSON.parse(m[0]); } catch {}
+          }
+          return null;
+        };
+
+        const parsed = tryParse(content);
+        const result = parsed && typeof parsed === "object"
+          ? {
+              overall: String(parsed.overall ?? ""),
+              fit_with_scholarship: String(parsed.fit_with_scholarship ?? ""),
+              contextual_insight: String(parsed.contextual_insight ?? ""),
+              next_step: String(parsed.next_step ?? ""),
+              debug: {
+                model: `${targetModel.provider}/${targetModel.model}`,
+                promptVersion,
+                temperature,
+                language,
+              },
+            }
+          : {
+              overall: content?.trim() || "",
+              fit_with_scholarship: "",
+              contextual_insight: "",
+              next_step: "",
+              debug: {
+                model: `${targetModel.provider}/${targetModel.model}`,
+                promptVersion,
+                temperature,
+                language,
+                note: "Response was not valid JSON; returned raw text in 'overall'",
+              },
+            };
+
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+        });
+      } catch (err: any) {
+        const msg = String(err?.message || err);
+        const friendly = msg.includes("aborted") ? `Timeout after ${Math.round(timeoutMs / 1000)}s` : msg;
+        return new Response(JSON.stringify({ error: friendly }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+        });
+      }
+    }
+
+    // Fallback to OpenAI branch (existing behavior)
     try {
       const r = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
