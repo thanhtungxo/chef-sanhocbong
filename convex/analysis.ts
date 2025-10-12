@@ -356,7 +356,7 @@ export const analysis = httpAction(async (ctx, req) => {
 
     // Support OpenAI and Gemini providers. Others are not supported for analysis yet.
     if (provider !== "openai" && provider !== "gemini" && provider !== "google") {
-      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI/Gemini/Google)", provider }), {
+      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI/Gemini/Google)", provider, deployedVersion: "v2-gemini" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
@@ -385,7 +385,7 @@ export const analysis = httpAction(async (ctx, req) => {
     // Gemini (Google Generative Language API) branch
     if (provider === "gemini" || provider === "google") {
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
         const r = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -393,7 +393,7 @@ export const analysis = httpAction(async (ctx, req) => {
             contents: [
               { role: "user", parts: [{ text: [systemInstruction, userContent].join("\n\n") }] },
             ],
-            generationConfig: { temperature, maxOutputTokens: 800, response_mime_type: "application/json" },
+            generationConfig: { temperature, maxOutputTokens: 800 },
           }),
           signal: controller.signal,
         });

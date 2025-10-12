@@ -129,8 +129,9 @@ export default defineSchema({
     passedSomeSubheading: v.optional(v.string()),
     heroImageUrl: v.optional(v.string()),
     fallbackMessage: v.optional(v.string()),
-    createdAt: v.union(v.string(), v.float64()),
-    updatedAt: v.union(v.string(), v.float64()),
+    aiPromptConfig: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
   }).index('by_createdAt', ['createdAt']),
   // AI Engine tables
   ai_models: defineTable({
