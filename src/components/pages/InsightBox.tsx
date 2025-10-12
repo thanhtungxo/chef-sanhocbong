@@ -52,17 +52,26 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
         <AnimatePresence mode="wait" initial={false}>
         {loading ? (
           <motion.div
-            key="skeleton"
+            key="loading"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <div className="rp-skeleton-line rp-shimmer" style={{ width: '92%' }} />
-            <div className="rp-skeleton-line rp-shimmer" style={{ width: '96%' }} />
-            <div className="rp-skeleton-line rp-shimmer" style={{ width: '88%' }} />
-            <div className="rp-skeleton-line rp-shimmer" style={{ width: '94%' }} />
-            <div className="rp-skeleton-line rp-shimmer" style={{ width: '76%' }} />
+            <div className="ai-thinking-stage h-28 md:h-32 rounded-xl overflow-hidden border border-blue-100 shadow-sm bg-white/80 relative">
+              <div className="ai-thinking-wave-bg" />
+              <div className="ai-thinking-wave-glow" />
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 2 }}
+              transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
+              className="mt-3 text-[13px] md:text-sm text-slate-500"
+            >
+              ⏳ Chờ chút nhé, Tùng đang phân tích hồ sơ của bạn...
+            </motion.p>
           </motion.div>
         ) : (
           <motion.div

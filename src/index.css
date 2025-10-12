@@ -283,3 +283,39 @@ body {
   opacity: 0.9;
 }
 
+/* --- AI Thinking Wave (premium loading) --- */
+.ai-thinking-stage { position: relative; }
+
+.ai-thinking-wave-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, #0099ff 0%, #00ccff 50%, #00e0ff 100%);
+  background-size: 200% 100%;
+  animation: aiStripe 1.4s linear infinite;
+  opacity: 0.33; /* subtle shimmer */
+}
+
+/* Soft moving glow that feels like “thinking” */
+.ai-thinking-wave-glow {
+  position: absolute;
+  inset: -35% -12% -35% -12%;
+  background:
+    radial-gradient(40% 60% at 50% 50%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.25) 60%, transparent 72%),
+    radial-gradient(26% 46% at 18% 50%, rgba(0,229,255,0.25) 0%, transparent 60%),
+    radial-gradient(26% 46% at 82% 50%, rgba(0,153,255,0.25) 0%, transparent 60%);
+  filter: blur(10px);
+  transform: translateX(-18%);
+  animation: aiWave 2.8s ease-in-out infinite;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+@keyframes aiStripe {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes aiWave {
+  0%   { transform: translateX(-18%); }
+  50%  { transform: translateX(18%); }
+  100% { transform: translateX(-18%); }
+}
