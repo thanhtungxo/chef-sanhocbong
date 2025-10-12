@@ -1,5 +1,6 @@
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
+// noop: trigger Convex upload for latest analysis logic supporting Gemini
 
 // HTTP endpoints related to AI analysis and model ping.
 // Note: Do not expose real API keys. Only read alias keys from environment.
@@ -355,7 +356,7 @@ export const analysis = httpAction(async (ctx, req) => {
 
     // Support OpenAI and Gemini providers. Others are not supported for analysis yet.
     if (provider !== "openai" && provider !== "gemini" && provider !== "google") {
-      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI/Gemini)", provider }), {
+      return new Response(JSON.stringify({ error: "Provider unsupported for analysis (expected OpenAI/Gemini/Google)", provider }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },
       });
@@ -392,7 +393,7 @@ export const analysis = httpAction(async (ctx, req) => {
             contents: [
               { role: "user", parts: [{ text: [systemInstruction, userContent].join("\n\n") }] },
             ],
-            generationConfig: { temperature, maxOutputTokens: 800 },
+            generationConfig: { temperature, maxOutputTokens: 800, response_mime_type: "application/json" },
           }),
           signal: controller.signal,
         });
