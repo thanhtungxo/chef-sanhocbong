@@ -416,10 +416,27 @@ export const analysis = httpAction(async (ctx, req) => {
         }
 
         const j = await r.json();
-        const textFromParts = Array.isArray(j?.candidates?.[0]?.content?.parts)
-          ? j.candidates[0].content.parts.map((p: any) => p?.text || "").join("\n").trim()
-          : "";
-        const content = textFromParts || j?.candidates?.[0]?.output_text || "";
+        // Robustly extract text from Gemini response across all candidates and parts
+        const collectTexts = (obj: any): string => {
+          try {
+            const cands = Array.isArray(obj?.candidates) ? obj.candidates : [];
+            const texts: string[] = [];
+            for (const c of cands) {
+              const parts = Array.isArray(c?.content?.parts) ? c.content.parts : [];
+              for (const p of parts) {
+                const t = typeof p?.text === "string" ? p.text : "";
+                if (t) texts.push(t);
+              }
+              // Some SDKs return `output_text` directly
+              const out = typeof c?.output_text === "string" ? c.output_text : "";
+              if (out) texts.push(out);
+            }
+            return texts.join("\n").trim();
+          } catch {
+            return "";
+          }
+        };
+        const content = collectTexts(j);
 
         // Try to parse JSON content from model response
         const tryParse = (txt: string): any => {
@@ -431,7 +448,7 @@ export const analysis = httpAction(async (ctx, req) => {
           return null;
         };
 
-        const parsed = tryParse(content);
+        const parsed = content ? tryParse(content) : null;
         const result = parsed && typeof parsed === "object"
           ? {
               overall: String(parsed.overall ?? ""),
@@ -446,7 +463,7 @@ export const analysis = httpAction(async (ctx, req) => {
               },
             }
           : {
-              overall: content?.trim() || "",
+              overall: (content || "").trim(),
               fit_with_scholarship: "",
               contextual_insight: "",
               next_step: "",
@@ -455,7 +472,7 @@ export const analysis = httpAction(async (ctx, req) => {
                 promptVersion,
                 temperature,
                 language,
-                note: "Response was not valid JSON; returned raw text in 'overall'",
+                note: content ? "Response was not valid JSON; returned raw text in 'overall'" : "Empty model response",
               },
             };
 
