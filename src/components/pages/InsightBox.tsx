@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { t } from '@/lib/i18n';
 
@@ -39,6 +39,36 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
   const [intro, rest] = findFirstSentence(effectiveFeedback);
   const restLines = rest ? rest.split(/\n+/).map(l => l.trim()).filter(Boolean) : [];
 
+  // Build paragraphs for staged reveal
+  const paragraphs = useMemo(() => {
+    const arr: string[] = [];
+    if (intro) arr.push(intro);
+    arr.push(...restLines);
+    return arr;
+  }, [intro, restLines]);
+
+  // Reveal paragraphs one-by-one when not loading
+  const [visibleCount, setVisibleCount] = useState(0);
+  useEffect(() => {
+    if (loading) {
+      setVisibleCount(0);
+      return;
+    }
+    // Start with the first paragraph visible if any
+    setVisibleCount(paragraphs.length > 0 ? 1 : 0);
+    if (paragraphs.length <= 1) return;
+    let i = 1;
+    const interval = setInterval(() => {
+      i += 1;
+      setVisibleCount(v => {
+        const next = Math.min(paragraphs.length, Math.max(v, i));
+        if (next >= paragraphs.length) clearInterval(interval);
+        return next;
+      });
+    }, 450); // 400–600ms per paragraph
+    return () => clearInterval(interval);
+  }, [loading, paragraphs.join('\n')]);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
@@ -46,8 +76,8 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="relative"
     >
-      <div className="AI-box bg-[rgba(255,255,255,0.95)] border border-[rgba(0,128,255,0.25)] shadow-[0_12px_32px_rgba(0,128,255,0.1)] rounded-2xl p-6 md:p-8 leading-relaxed transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_18px_36px_rgba(0,229,255,0.2)]">
-        <h2 className="ai-title text-[20px] font-semibold tracking-wide mb-4">{title}</h2>
+      <div className="AI-box bg-[rgba(255,255,255,0.95)] border border-[rgba(0,128,255,0.15)] md:border-[rgba(0,128,255,0.25)] shadow-[0_6px_16px_rgba(0,128,255,0.08)] md:shadow-[0_12px_32px_rgba(0,128,255,0.1)] rounded-lg md:rounded-2xl p-5 md:p-8 leading-relaxed transition-all duration-300 ease-in-out hover:-translate-y-[2px] md:hover:-translate-y-[3px] hover:shadow-[0_18px_36px_rgba(0,229,255,0.2)] mx-2 md:mx-0">
+        <h2 className="ai-title text-[16px] md:text-[20px] font-semibold tracking-wide mb-3 md:mb-4">{title}</h2>
 
         <AnimatePresence mode="wait" initial={false}>
         {loading ? (
@@ -82,11 +112,18 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className="ai-stream"
           >
-            {intro && <p className="ai-intro mb-2">{intro}</p>}
-            {restLines.length > 0 ? (
-              restLines.map((line, idx) => (
-                <p key={idx} className="mb-2">{line}</p>
-              ))
+            {paragraphs.length > 0 ? (
+              <div className="space-y-2">
+                {paragraphs.slice(0, visibleCount).map((p, idx) => (
+                  <p
+                    key={idx}
+                    className={(idx === 0 ? 'ai-intro ' : '') + 'fade-in text-[#0D1B3D] font-normal'}
+                    style={{ animationDelay: `${idx * 0.45}s` }}
+                  >
+                    {p}
+                  </p>
+                ))}
+              </div>
             ) : (
               !intro && <p className="mb-2">{t('ui.result.ai.empty', 'Phân tích đang được cập nhật...')}</p>
             )}

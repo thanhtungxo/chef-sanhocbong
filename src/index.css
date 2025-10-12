@@ -91,6 +91,12 @@ body {
   animation: fadeInUp 0.35s ease-out both;
 }
 
+/* Generic fade-in utility for staged paragraphs */
+.fade-in {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards;
+}
+
 /* ----- Result Page Utilities ----- */
 .rp-page-bg {
   background: linear-gradient(180deg, var(--rp-bg-start) 0%, var(--rp-bg-mid) 45%, var(--rp-bg-end) 100%);
@@ -264,6 +270,9 @@ body {
   animation: ai-fadeIn 0.8s ease-in both;
 }
 
+/* Ensure staged paragraph fade overrides base animation */
+.AI-box p.fade-in { animation: fadeInUp 0.8s ease forwards; }
+
 .ai-intro {
   font-weight: 500;
   font-style: italic;
@@ -281,6 +290,25 @@ body {
   width: 4px; border-radius: 999px;
   background: linear-gradient(180deg, #00E5FF, #0078FF);
   opacity: 0.9;
+}
+
+/* Responsive tuning for AI box on mobile */
+@media (max-width: 768px) {
+  .AI-box {
+    padding: 1.25rem; /* p-5 */
+    border-radius: 1rem; /* rounded-lg */
+    box-shadow: 0 4px 12px rgba(0,128,255,0.08);
+    border-color: rgba(0,128,255,0.15);
+    margin-inline: 0.5rem; /* mx-2 */
+  }
+  .AI-box p {
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .AI-box h2 {
+    font-size: 16px;
+    margin-bottom: 0.75rem;
+  }
 }
 
 /* --- AI Thinking Wave (premium loading) --- */
