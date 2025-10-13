@@ -114,9 +114,9 @@ export const backfillKeyAcrossSubmissions = internalMutation({
 // Public action: sync a single key (used by Admin or HTTP endpoint)
 export const syncAnswersForKey = action({
   args: { key: v.string() },
-  handler: async (ctx, { key }) => {
-    const res = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key });
-    return { ok: true, ...res } as any;
+  handler: async (ctx, { key }): Promise<{ ok: true; created: number } | { ok: true }> => {
+    const res: { ok: true; created: number } = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key }) as any;
+    return { ok: true, ...res } as { ok: true; created: number } | { ok: true };
   },
 });
 
@@ -158,8 +158,8 @@ export const renameKeyAcrossSubmissions = internalMutation({
 // Public action: rename a key (used by Admin or HTTP endpoint)
 export const syncRenameKey = action({
   args: { oldKey: v.string(), newKey: v.string() },
-  handler: async (ctx, { oldKey, newKey }) => {
-    const res = await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey });
-    return { ok: true, ...res } as any;
+  handler: async (ctx, { oldKey, newKey }): Promise<{ ok: true; movedAnswers: number; normalizedUpdated: number }> => {
+    const res: { ok: true; movedAnswers: number; normalizedUpdated: number } = await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey }) as any;
+    return { ok: true, ...res } as { ok: true; movedAnswers: number; normalizedUpdated: number };
   },
 });
