@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 
 export const getActiveForm = query({
   args: {},
@@ -150,6 +151,14 @@ export const createQuestion = mutation({
       ord = last ? last.order + 1 : 1;
     }
     const id = await ctx.db.insert("formQuestions", { ...args, order: ord, createdAt: Date.now() } as any);
+
+    // Auto-backfill the new key across existing submissions (answers table + normalizedAnswers JSON)
+    try {
+      await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key: finalKey });
+    } catch (e) {
+      console.warn("auto backfill new question key failed", e);
+    }
+
     return id;
   }
 });

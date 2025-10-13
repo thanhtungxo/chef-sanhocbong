@@ -77,3 +77,89 @@ export const syncAnswers = action({
     return { ok: true, keysCount: keys.length, submissionsCount: subs.length, created } as any;
   },
 });
+
+// Internal mutation: backfill a single key across all submissions (answers table + normalizedAnswers JSON)
+export const backfillKeyAcrossSubmissions = internalMutation({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => {
+    const subs = await ctx.db.query("form_submissions").collect();
+    let created = 0;
+    for (const sub of subs as any[]) {
+      // Ensure analytics row exists
+      const existing = await ctx.db
+        .query("form_submission_answers")
+        .withIndex("by_submission", (q: any) => q.eq("submissionId", (sub as any)._id))
+        .filter((q: any) => q.eq(q.field("key"), key))
+        .first();
+      if (!existing) {
+        await ctx.db.insert("form_submission_answers", {
+          submissionId: (sub as any)._id,
+          key,
+          value: null,
+          createdAt: Date.now(),
+        } as any);
+        created++;
+      }
+      // Ensure normalizedAnswers contains the key
+      const normalized = (sub as any).normalizedAnswers ?? {};
+      if (!(key in (normalized ?? {}))) {
+        const patchObj = { ...(normalized ?? {}), [key]: null };
+        await ctx.db.patch((sub as any)._id, { normalizedAnswers: patchObj } as any);
+      }
+    }
+    return { ok: true, created } as any;
+  },
+});
+
+// Public action: sync a single key (used by Admin or HTTP endpoint)
+export const syncAnswersForKey = action({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => {
+    const res = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key });
+    return { ok: true, ...res } as any;
+  },
+});
+
+// Internal mutation: rename a key across all submissions
+export const renameKeyAcrossSubmissions = internalMutation({
+  args: { oldKey: v.string(), newKey: v.string() },
+  handler: async (ctx, { oldKey, newKey }) => {
+    const subs = await ctx.db.query("form_submissions").collect();
+    let movedAnswers = 0;
+    let normalizedUpdated = 0;
+
+    // Update answers rows
+    const answerRows = await ctx.db
+      .query("form_submission_answers")
+      .withIndex("by_key", (q: any) => q.eq("key", oldKey))
+      .collect();
+    for (const row of answerRows as any[]) {
+      await ctx.db.patch((row as any)._id, { key: newKey } as any);
+      movedAnswers++;
+    }
+
+    // Update normalizedAnswers per submission
+    for (const sub of subs as any[]) {
+      const normalized = (sub as any).normalizedAnswers ?? {};
+      if (normalized && Object.prototype.hasOwnProperty.call(normalized, oldKey)) {
+        const value = (normalized as any)[oldKey];
+        const newObj = { ...(normalized as any) };
+        delete (newObj as any)[oldKey];
+        if (!(newKey in newObj)) (newObj as any)[newKey] = value;
+        await ctx.db.patch((sub as any)._id, { normalizedAnswers: newObj } as any);
+        normalizedUpdated++;
+      }
+    }
+
+    return { ok: true, movedAnswers, normalizedUpdated } as any;
+  },
+});
+
+// Public action: rename a key (used by Admin or HTTP endpoint)
+export const syncRenameKey = action({
+  args: { oldKey: v.string(), newKey: v.string() },
+  handler: async (ctx, { oldKey, newKey }) => {
+    const res = await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey });
+    return { ok: true, ...res } as any;
+  },
+});
