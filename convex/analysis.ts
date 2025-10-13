@@ -237,6 +237,7 @@ export const analysis = httpAction(async (ctx, req) => {
     let layer: string | undefined;
     let override: any = {};
     let profile: any = {};
+    let debugFlag = false;
 
     // Primary: try JSON body
     try {
@@ -245,6 +246,7 @@ export const analysis = httpAction(async (ctx, req) => {
     layer = body?.layer as string | undefined;
     override = body?.override ?? {};
     profile = body?.profile ?? {};
+    debugFlag = !!(body?.debug || override?.debug);
 
     // Fallback 1: try raw text body (JSON or form-encoded)
     if (!layer) {
@@ -268,6 +270,8 @@ export const analysis = httpAction(async (ctx, req) => {
                 override = JSON.parse(o);
               } catch {}
             }
+            const d = params.get("debug");
+            if (d && (d === "1" || d === "true")) debugFlag = true;
           }
         }
       } catch {}
@@ -284,6 +288,8 @@ export const analysis = httpAction(async (ctx, req) => {
             override = JSON.parse(o);
           } catch {}
         }
+        const d = url.searchParams.get("debug");
+        if (d && (d === "1" || d === "true")) debugFlag = true;
       } catch {}
     }
 
@@ -405,12 +411,33 @@ export const analysis = httpAction(async (ctx, req) => {
             contents: [
               { role: "user", parts: [{ text: userContent }] },
             ],
-            generationConfig: { temperature, maxOutputTokens: 800 },
+            generationConfig: {
+              temperature,
+              maxOutputTokens: 800,
+              // Strongly hint JSON output
+              response_mime_type: "application/json",
+              response_schema: {
+                type: "object",
+                properties: {
+                  overall: { type: "string" },
+                  fit_with_scholarship: { type: "string" },
+                  contextual_insight: { type: "string" },
+                  next_step: { type: "string" },
+                },
+                required: [
+                  "overall",
+                  "fit_with_scholarship",
+                  "contextual_insight",
+                  "next_step",
+                ],
+              },
+            },
             // Loosen default safety to avoid empty, blocked responses for benign prompts
             safetySettings: [
               { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
               { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+              // Newer API uses SEXUAL; keep only this to avoid 400s
+              { category: "HARM_CATEGORY_SEXUAL", threshold: "BLOCK_NONE" },
               { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
             ],
           }),
@@ -465,12 +492,20 @@ export const analysis = httpAction(async (ctx, req) => {
             return "";
           }
         };
+        // Detect safety blocks / empty candidates
         let content = collectTexts(j);
+        const blockReason = (j?.promptFeedback?.blockReason || j?.candidates?.[0]?.safetyRatings?.[0]?.blocked) as string | undefined;
 
         // Allow schema fallback text from prompt config if model returns nothing
         const fallbackText: string = (activePrompt?.fallbackText ?? "").toString().trim();
         if (!content && fallbackText) {
           content = fallbackText;
+        }
+
+        if (!content && blockReason) {
+          content = language === "vi"
+            ? "Hiện Gemini đã chặn phản hồi vì lý do an toàn. Nội dung sẽ được cập nhật sau."
+            : "Gemini blocked the response due to safety filters.";
         }
 
         // Try to parse JSON content from model response
@@ -484,6 +519,17 @@ export const analysis = httpAction(async (ctx, req) => {
         };
 
         const parsed = content ? tryParse(content) : null;
+        const defaultMsg = language === "vi"
+          ? "Hệ thống chưa nhận được phản hồi từ Gemini. Vui lòng thử lại sau."
+          : "No response received from Gemini yet. Please try again.";
+
+        const hadCandidates = Array.isArray(j?.candidates) && j.candidates.length > 0;
+
+        // Console diagnostics (server logs)
+        try {
+          const firstText = (content || "").slice(0, 240);
+          console.log(`[AI][Gemini] model=${modelName} status=${r.status} hadCandidates=${hadCandidates} block=${blockReason ? String(blockReason) : 'none'} textLen=${(content||'').length} preview="${firstText}"`);
+        } catch {}
         const result = parsed && typeof parsed === "object"
           ? {
               overall: String(parsed.overall ?? ""),
@@ -495,10 +541,22 @@ export const analysis = httpAction(async (ctx, req) => {
                 promptVersion,
                 temperature,
                 language,
+                hadCandidates,
+                blockReason: blockReason || undefined,
+                apiStatus: r.status,
+                raw: debugFlag ? {
+                  promptFeedback: j?.promptFeedback ?? null,
+                  usage: j?.usageMetadata ?? null,
+                  firstCandidate: Array.isArray(j?.candidates) && j.candidates.length > 0 ? {
+                    finishReason: j.candidates[0]?.finishReason,
+                    safetyRatings: j.candidates[0]?.safetyRatings,
+                    textPreview: (content || '').slice(0, 2000),
+                  } : null,
+                } : undefined,
               },
             }
           : {
-              overall: (content || "").trim(),
+              overall: ((content || "").trim()) || defaultMsg,
               fit_with_scholarship: "",
               contextual_insight: "",
               next_step: "",
@@ -508,6 +566,18 @@ export const analysis = httpAction(async (ctx, req) => {
                 temperature,
                 language,
                 note: content ? "Response was not valid JSON; returned raw text in 'overall'" : "Empty model response",
+                hadCandidates,
+                blockReason: blockReason || undefined,
+                apiStatus: r.status,
+                raw: debugFlag ? {
+                  promptFeedback: j?.promptFeedback ?? null,
+                  usage: j?.usageMetadata ?? null,
+                  firstCandidate: Array.isArray(j?.candidates) && j.candidates.length > 0 ? {
+                    finishReason: j.candidates[0]?.finishReason,
+                    safetyRatings: j.candidates[0]?.safetyRatings,
+                    textPreview: (content || '').slice(0, 2000),
+                  } : null,
+                } : undefined,
               },
             };
 
@@ -567,6 +637,11 @@ export const analysis = httpAction(async (ctx, req) => {
       const json = await r.json();
       const content: string = json?.choices?.[0]?.message?.content ?? "";
 
+      // Console diagnostics for OpenAI
+      try {
+        console.log(`[AI][OpenAI] model=${modelName} status=${r.status} textLen=${(content||'').length} preview="${(content||'').slice(0,240)}"`);
+      } catch {}
+
       // Try to parse JSON content from model response
       const tryParse = (txt: string): any => {
         try {
@@ -593,6 +668,8 @@ export const analysis = httpAction(async (ctx, req) => {
               promptVersion,
               temperature,
               language,
+              apiStatus: r.status,
+              raw: debugFlag ? { firstChoice: (json?.choices?.[0] ?? null), textPreview: (content || '').slice(0, 2000) } : undefined,
             },
           }
         : {
@@ -606,6 +683,8 @@ export const analysis = httpAction(async (ctx, req) => {
               temperature,
               language,
               note: "Response was not valid JSON; returned raw text in 'overall'",
+              apiStatus: r.status,
+              raw: debugFlag ? { firstChoice: (json?.choices?.[0] ?? null), textPreview: (content || '').slice(0, 2000) } : undefined,
             },
           };
 

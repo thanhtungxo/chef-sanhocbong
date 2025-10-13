@@ -168,8 +168,8 @@ const PromptConfigurator: React.FC = () => {
     try {
       const httpBase = httpActionsUrl || (convexUrl ? convexUrl.replace(".convex.cloud", ".convex.site") : undefined);
       const url = isDev
-        ? `/api/analysis?layer=${encodeURIComponent(layer)}`
-        : (httpBase ? `${httpBase}/api/analysis?layer=${encodeURIComponent(layer)}` : `/api/analysis?layer=${encodeURIComponent(layer)}`);
+        ? `/api/analysis?layer=${encodeURIComponent(layer)}&debug=1`
+        : (httpBase ? `${httpBase}/api/analysis?layer=${encodeURIComponent(layer)}&debug=1` : `/api/analysis?layer=${encodeURIComponent(layer)}&debug=1`);
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,7 +184,9 @@ const PromptConfigurator: React.FC = () => {
             language: languageVi ? "vi" : "en",
             temperature,
             modelId,
+            debug: true,
           },
+          debug: true,
         }),
         credentials: "omit",
       });
