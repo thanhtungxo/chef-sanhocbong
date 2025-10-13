@@ -413,7 +413,7 @@ export const analysis = httpAction(async (ctx, req) => {
             ],
             generationConfig: {
               temperature,
-              maxOutputTokens: 800,
+              maxOutputTokens: 2048,
               // Strongly hint JSON output
               response_mime_type: "application/json",
               response_schema: {
@@ -436,9 +436,9 @@ export const analysis = httpAction(async (ctx, req) => {
             safetySettings: [
               { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
               { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-              // Newer API uses SEXUAL; keep only this to avoid 400s
-              { category: "HARM_CATEGORY_SEXUAL", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
               { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" },
             ],
           }),
           signal: controller.signal,
@@ -495,6 +495,7 @@ export const analysis = httpAction(async (ctx, req) => {
         // Detect safety blocks / empty candidates
         let content = collectTexts(j);
         const blockReason = (j?.promptFeedback?.blockReason || j?.candidates?.[0]?.safetyRatings?.[0]?.blocked) as string | undefined;
+        const finishReason = (j?.candidates?.[0]?.finishReason || j?.candidates?.[0]?.finish_reason) as string | undefined;
 
         // Allow schema fallback text from prompt config if model returns nothing
         const fallbackText: string = (activePrompt?.fallbackText ?? "").toString().trim();
@@ -506,6 +507,57 @@ export const analysis = httpAction(async (ctx, req) => {
           content = language === "vi"
             ? "Hiện Gemini đã chặn phản hồi vì lý do an toàn. Nội dung sẽ được cập nhật sau."
             : "Gemini blocked the response due to safety filters.";
+        }
+
+        // Retry once if model hit MAX_TOKENS without visible output
+        let retried = false;
+        if (!content && finishReason === "MAX_TOKENS") {
+          retried = true;
+          const controller2 = new AbortController();
+          const timer2 = setTimeout(() => controller2.abort(), 12000);
+          try {
+            const r2 = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                systemInstruction: { role: "system", parts: [{ text: systemInstruction }] },
+                contents: [ { role: "user", parts: [{ text: userContent }] } ],
+                generationConfig: {
+                  temperature,
+                  maxOutputTokens: 4096,
+                  response_mime_type: "application/json",
+                  response_schema: {
+                    type: "object",
+                    properties: {
+                      overall: { type: "string" },
+                      fit_with_scholarship: { type: "string" },
+                      contextual_insight: { type: "string" },
+                      next_step: { type: "string" },
+                    },
+                    required: ["overall","fit_with_scholarship","contextual_insight","next_step"],
+                  },
+                },
+                safetySettings: [
+                  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+                  { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" },
+                ],
+              }),
+              signal: controller2.signal,
+            });
+            clearTimeout(timer2);
+            if (r2.ok) {
+              const j2 = await r2.json();
+              const c2 = collectTexts(j2);
+              if (c2) {
+                content = c2;
+              }
+            }
+          } catch {
+            clearTimeout(timer2);
+          }
         }
 
         // Try to parse JSON content from model response
@@ -528,7 +580,7 @@ export const analysis = httpAction(async (ctx, req) => {
         // Console diagnostics (server logs)
         try {
           const firstText = (content || "").slice(0, 240);
-          console.log(`[AI][Gemini] model=${modelName} status=${r.status} hadCandidates=${hadCandidates} block=${blockReason ? String(blockReason) : 'none'} textLen=${(content||'').length} preview="${firstText}"`);
+          console.log(`[AI][Gemini] model=${modelName} status=${r.status} hadCandidates=${hadCandidates} block=${blockReason ? String(blockReason) : 'none'} finish=${finishReason || 'none'} retried=${retried} textLen=${(content||'').length} preview="${firstText}"`);
         } catch {}
         const result = parsed && typeof parsed === "object"
           ? {
@@ -543,6 +595,7 @@ export const analysis = httpAction(async (ctx, req) => {
                 language,
                 hadCandidates,
                 blockReason: blockReason || undefined,
+                finishReason: finishReason || undefined,
                 apiStatus: r.status,
                 raw: debugFlag ? {
                   promptFeedback: j?.promptFeedback ?? null,
@@ -552,6 +605,7 @@ export const analysis = httpAction(async (ctx, req) => {
                     safetyRatings: j.candidates[0]?.safetyRatings,
                     textPreview: (content || '').slice(0, 2000),
                   } : null,
+                  retried,
                 } : undefined,
               },
             }
@@ -568,6 +622,7 @@ export const analysis = httpAction(async (ctx, req) => {
                 note: content ? "Response was not valid JSON; returned raw text in 'overall'" : "Empty model response",
                 hadCandidates,
                 blockReason: blockReason || undefined,
+                finishReason: finishReason || undefined,
                 apiStatus: r.status,
                 raw: debugFlag ? {
                   promptFeedback: j?.promptFeedback ?? null,
@@ -577,6 +632,7 @@ export const analysis = httpAction(async (ctx, req) => {
                     safetyRatings: j.candidates[0]?.safetyRatings,
                     textPreview: (content || '').slice(0, 2000),
                   } : null,
+                  retried,
                 } : undefined,
               },
             };
