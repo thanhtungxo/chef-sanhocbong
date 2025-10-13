@@ -66,7 +66,8 @@ const applicationTables = {
     createdAt: v.number(),
   }).index('by_userId', ['userId']).index('by_createdAt', ['createdAt']).index('by_email', ['email']),
 
-  // New: per-key answers for analytics and querying without changing schema per question
+
+  // Deprecated: kept temporarily for one-time migration from vertical schema
   form_submission_answers: defineTable({
     submissionId: v.id('form_submissions'),
     key: v.string(),

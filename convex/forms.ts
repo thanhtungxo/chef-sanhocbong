@@ -152,7 +152,7 @@ export const createQuestion = mutation({
     }
     const id = await ctx.db.insert("formQuestions", { ...args, order: ord, createdAt: Date.now() } as any);
 
-    // Auto-backfill the new key across existing submissions (answers table + normalizedAnswers JSON)
+    // Auto-backfill the new key across existing submissions only
     try {
       await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key: finalKey });
     } catch (e) {
@@ -188,6 +188,18 @@ export const updateQuestion = mutation({
           finalKey = `${base}-${i++}`;
         }
         patch.key = finalKey;
+
+        // If the key actually changes, auto-rename across normalized answers and backfill
+        const oldKey = current?.key;
+        const newKey = patch.key;
+        if (oldKey && newKey && oldKey !== newKey) {
+          try {
+            await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey });
+            await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key: newKey });
+          } catch (e) {
+            console.warn("auto rename/backfill normalized answers failed", e);
+          }
+        }
       }
     }
     await ctx.db.patch(questionId, patch as any);

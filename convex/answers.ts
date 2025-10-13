@@ -1,6 +1,6 @@
-import { action, internalQuery, internalMutation } from "./_generated/server";
-import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { action, internalQuery, internalMutation } from "./_generated/server"
+import { v } from "convex/values"
+import { internal } from "./_generated/api"
 
 // Internal query: get active form set's question keys (latest active)
 export const getActiveQuestionKeys = internalQuery({
@@ -9,157 +9,139 @@ export const getActiveQuestionKeys = internalQuery({
     const actives = await ctx.db
       .query("formSets")
       .withIndex("by_active", (q) => q.eq("isActive", true))
-      .collect();
-    if (!actives || actives.length === 0) return [] as string[];
+      .collect()
+    if (!actives || actives.length === 0) return [] as string[]
     const active = actives
       .slice()
       .sort((a: any, b: any) => (a.createdAt ?? 0) - (b.createdAt ?? 0))
-      .at(-1);
-    if (!active) return [] as string[];
+      .at(-1)
+    if (!active) return [] as string[]
     const qs = await ctx.db
       .query("formQuestions")
       .withIndex("by_formSet_step_order", (q) => q.eq("formSetId", active._id))
-      .collect();
-    const keys = Array.from(new Set(qs.map((q) => String((q as any).key || "").trim()).filter(Boolean)));
-    return keys;
+      .collect()
+    const keys = Array.from(new Set(qs.map((q) => String((q as any).key || "").trim()).filter(Boolean)))
+    return keys
   },
-});
+})
 
 // Internal query: list all form submissions
 export const listAllSubmissions = internalQuery({
   args: {},
   handler: async (ctx) => {
-    const subs = await ctx.db.query("form_submissions").collect();
-    return subs as any[];
+    const subs = await ctx.db.query("form_submissions").collect()
+    return subs as any[]
   },
-});
+})
 
-// Internal mutation: ensure an answer row exists for a submission/key
-export const ensureAnswerForSubmission = internalMutation({
-  args: { submissionId: v.id("form_submissions"), key: v.string(), defaultValue: v.optional(v.any()) },
-  handler: async (ctx, { submissionId, key, defaultValue }) => {
-    const existing = await ctx.db
-      .query("form_submission_answers")
-      .withIndex("by_submission", (q) => q.eq("submissionId", submissionId))
-      .filter((q) => q.eq(q.field("key"), key))
-      .first();
-    if (existing) {
-      // Do not overwrite value if it exists; only ensure presence
-      return { ok: true, existed: true } as any;
-    }
-    await ctx.db.insert("form_submission_answers", {
-      submissionId,
-      key,
-      value: defaultValue ?? null,
-      createdAt: Date.now(),
-    } as any);
-    return { ok: true, existed: false } as any;
-  },
-});
-
-// Public action: sync all submissions to have rows for all active question keys
+// Public action: ensure normalizedAnswers contains all active keys for all submissions
 export const syncAnswers = action({
   args: {},
-  handler: async (ctx) => {
-    const keys: string[] = await ctx.runQuery(internal.answers.getActiveQuestionKeys, {});
-    const subs: any[] = await ctx.runQuery(internal.answers.listAllSubmissions, {});
-    let created = 0;
-    for (const sub of subs as any[]) {
-      for (const key of keys as string[]) {
-        const r = await ctx.runMutation(internal.answers.ensureAnswerForSubmission, {
-          submissionId: (sub as any)._id,
-          key,
-          defaultValue: null,
-        });
-        if (r && (r as any).existed === false) created++;
-      }
-    }
-    return { ok: true, keysCount: keys.length, submissionsCount: subs.length, created } as any;
-  },
-});
+  handler: async (ctx): Promise<{ ok: true; keysCount: number; submissionsCount: number; patchedCount: number }> => {
+    const keys: string[] = await ctx.runQuery(internal.answers.getActiveQuestionKeys, {})
+    const subs: any[] = await ctx.runQuery(internal.answers.listAllSubmissions, {})
 
-// Internal mutation: backfill a single key across all submissions (answers table + normalizedAnswers JSON)
+    let patchedCount = 0
+    for (const key of keys) {
+      const res: { ok: true; created: number } = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key })
+      patchedCount += res.created
+    }
+
+    return { ok: true, keysCount: keys.length, submissionsCount: subs.length, patchedCount } as any
+  },
+})
+
+// Internal mutation: backfill a single key across all submissions (normalizedAnswers JSON only)
 export const backfillKeyAcrossSubmissions = internalMutation({
   args: { key: v.string() },
   handler: async (ctx, { key }) => {
-    const subs = await ctx.db.query("form_submissions").collect();
-    let created = 0;
+    const subs = await ctx.db.query("form_submissions").collect()
+    let patched = 0
     for (const sub of subs as any[]) {
-      // Ensure analytics row exists
-      const existing = await ctx.db
-        .query("form_submission_answers")
-        .withIndex("by_submission", (q: any) => q.eq("submissionId", (sub as any)._id))
-        .filter((q: any) => q.eq(q.field("key"), key))
-        .first();
-      if (!existing) {
-        await ctx.db.insert("form_submission_answers", {
-          submissionId: (sub as any)._id,
-          key,
-          value: null,
-          createdAt: Date.now(),
-        } as any);
-        created++;
-      }
-      // Ensure normalizedAnswers contains the key
-      const normalized = (sub as any).normalizedAnswers ?? {};
+      const normalized = (sub as any).normalizedAnswers ?? {}
       if (!(key in (normalized ?? {}))) {
-        const patchObj = { ...(normalized ?? {}), [key]: null };
-        await ctx.db.patch((sub as any)._id, { normalizedAnswers: patchObj } as any);
+        const patchObj = { ...(normalized ?? {}), [key]: null }
+        await ctx.db.patch((sub as any)._id, { normalizedAnswers: patchObj } as any)
+        patched++
       }
     }
-    return { ok: true, created } as any;
+    return { ok: true, created: patched } as any
   },
-});
+})
 
 // Public action: sync a single key (used by Admin or HTTP endpoint)
 export const syncAnswersForKey = action({
   args: { key: v.string() },
   handler: async (ctx, { key }): Promise<{ ok: true; created: number }> => {
-    const res: { ok: true; created: number } = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key });
-    return res;
+    const res: { ok: true; created: number } = await ctx.runMutation(internal.answers.backfillKeyAcrossSubmissions, { key })
+    return res
   },
-});
+})
 
-// Internal mutation: rename a key across all submissions
+// Internal mutation: rename a key across all submissions (normalizedAnswers JSON only)
 export const renameKeyAcrossSubmissions = internalMutation({
   args: { oldKey: v.string(), newKey: v.string() },
   handler: async (ctx, { oldKey, newKey }) => {
-    const subs = await ctx.db.query("form_submissions").collect();
-    let movedAnswers = 0;
-    let normalizedUpdated = 0;
+    const subs = await ctx.db.query("form_submissions").collect()
+    let normalizedUpdated = 0
 
-    // Update answers rows
-    const answerRows = await ctx.db
-      .query("form_submission_answers")
-      .withIndex("by_key", (q: any) => q.eq("key", oldKey))
-      .collect();
-    for (const row of answerRows as any[]) {
-      await ctx.db.patch((row as any)._id, { key: newKey } as any);
-      movedAnswers++;
-    }
-
-    // Update normalizedAnswers per submission
     for (const sub of subs as any[]) {
-      const normalized = (sub as any).normalizedAnswers ?? {};
+      const normalized = (sub as any).normalizedAnswers ?? {}
       if (normalized && Object.prototype.hasOwnProperty.call(normalized, oldKey)) {
-        const value = (normalized as any)[oldKey];
-        const newObj = { ...(normalized as any) };
-        delete (newObj as any)[oldKey];
-        if (!(newKey in newObj)) (newObj as any)[newKey] = value;
-        await ctx.db.patch((sub as any)._id, { normalizedAnswers: newObj } as any);
-        normalizedUpdated++;
+        const value = (normalized as any)[oldKey]
+        const newObj = { ...(normalized as any) }
+        delete (newObj as any)[oldKey]
+        if (!(newKey in newObj)) (newObj as any)[newKey] = value
+        await ctx.db.patch((sub as any)._id, { normalizedAnswers: newObj } as any)
+        normalizedUpdated++
       }
     }
 
-    return { ok: true, movedAnswers, normalizedUpdated } as any;
+    return { ok: true, movedAnswers: 0, normalizedUpdated } as any
   },
-});
+})
 
 // Public action: rename a key (used by Admin or HTTP endpoint)
 export const syncRenameKey = action({
   args: { oldKey: v.string(), newKey: v.string() },
   handler: async (ctx, { oldKey, newKey }): Promise<{ ok: true; movedAnswers: number; normalizedUpdated: number }> => {
-    const res: { ok: true; movedAnswers: number; normalizedUpdated: number } = await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey });
-    return res;
+    const res: { ok: true; movedAnswers: number; normalizedUpdated: number } = await ctx.runMutation(internal.answers.renameKeyAcrossSubmissions, { oldKey, newKey })
+    return res
   },
-});
+})
+
+// Internal mutation: migrate vertical answers table into normalizedAnswers (one-time)
+export const migrateAnswersToNormalized = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    // Group rows by submissionId
+    const subs = await ctx.db.query("form_submissions").collect()
+    let migratedSubmissions = 0
+    for (const sub of subs as any[]) {
+      const rows = await ctx.db
+        .query("form_submission_answers")
+        .withIndex("by_submission", (q: any) => q.eq("submissionId", (sub as any)._id))
+        .collect()
+      if (!rows || rows.length === 0) continue
+      const current = (sub as any).normalizedAnswers ?? {}
+      const merged: Record<string, any> = { ...current }
+      for (const row of rows as any[]) {
+        const k = (row as any).key
+        const vval = (row as any).value
+        if (!(k in merged)) merged[k] = vval
+      }
+      await ctx.db.patch((sub as any)._id, { normalizedAnswers: merged } as any)
+      migratedSubmissions++
+    }
+    return { ok: true, migratedSubmissions } as any
+  },
+})
+
+// Public action: trigger migration
+export const migrateAnswers = action({
+  args: {},
+  handler: async (ctx): Promise<{ ok: true; migratedSubmissions: number }> => {
+    const res: { ok: true; migratedSubmissions: number } = await ctx.runMutation(internal.answers.migrateAnswersToNormalized, {})
+    return res
+  },
+})
