@@ -309,9 +309,9 @@ body {
     margin-bottom: 0.75rem;
   }
 
-  /* Tighten left guide spacing on mobile for better content width */
-  .ai-stream { padding-left: 0.75rem; }
-  .ai-stream::before { width: 2px; opacity: 0.9; }
+  /* Remove inner horizontal padding and guide bar on mobile */
+  .ai-stream { padding-left: 0; padding-right: 0; }
+  .ai-stream::before { display: none; }
 }
 
 /* Edge-to-panel utility: make a child span close to the rp-main inner edge on small screens */
