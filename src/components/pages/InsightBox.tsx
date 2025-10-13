@@ -76,7 +76,7 @@ export const InsightBox: React.FC<InsightBoxProps> = ({ feedback, loading }) => 
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="relative"
     >
-      <div className="AI-box bg-[rgba(255,255,255,0.95)] border border-[rgba(0,128,255,0.15)] md:border-[rgba(0,128,255,0.25)] shadow-[0_6px_16px_rgba(0,128,255,0.08)] md:shadow-[0_12px_32px_rgba(0,128,255,0.1)] rounded-lg md:rounded-2xl p-5 md:p-8 leading-relaxed transition-all duration-300 ease-in-out hover:-translate-y-[2px] md:hover:-translate-y-[3px] hover:shadow-[0_18px_36px_rgba(0,229,255,0.2)] -mx-[26px] sm:mx-0">
+      <div className="AI-box bg-[rgba(255,255,255,0.95)] border border-[rgba(0,128,255,0.15)] md:border-[rgba(0,128,255,0.25)] shadow-[0_6px_16px_rgba(0,128,255,0.08)] md:shadow-[0_12px_32px_rgba(0,128,255,0.1)] rounded-lg md:rounded-2xl px-3 py-4 md:p-8 leading-relaxed transition-all duration-300 ease-in-out hover:-translate-y-[2px] md:hover:-translate-y-[3px] hover:shadow-[0_18px_36px_rgba(0,229,255,0.2)] -mx-[26px] sm:mx-0">
         <h2 className="ai-title text-[16px] md:text-[20px] font-semibold tracking-wide mb-3 md:mb-4">Phân tích tổng quan</h2>
 
         <AnimatePresence mode="wait" initial={false}>

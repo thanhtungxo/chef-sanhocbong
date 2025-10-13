@@ -310,8 +310,8 @@ body {
   }
 
   /* Tighten left guide spacing on mobile for better content width */
-  .ai-stream { padding-left: 1rem; }
-  .ai-stream::before { width: 3px; opacity: 0.9; }
+  .ai-stream { padding-left: 0.75rem; }
+  .ai-stream::before { width: 2px; opacity: 0.9; }
 }
 
 /* Edge-to-panel utility: make a child span close to the rp-main inner edge on small screens */
