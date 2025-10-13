@@ -329,10 +329,20 @@ export const analysis = httpAction(async (ctx, req) => {
 
     // Determine target model (override.modelId or active)
     let targetModel: any | null = activeModel ?? null;
-    if (override.modelId && typeof override.modelId === "string") {
-      const allModels = await ctx.runQuery(api.aiEngine.listModels, {} as any);
-      const found = allModels?.find((m: any) => m._id === override.modelId) ?? null;
-      if (found) targetModel = found;
+    if (override.modelId) {
+      // Normalize Convex DocumentId to string for comparison
+      const toIdString = (v: any): string | undefined => {
+        if (!v) return undefined;
+        if (typeof v === "string") return v;
+        if (typeof v === "object") return (v.id as string) ?? (v._id?.id as string) ?? undefined;
+        return undefined;
+      };
+      const reqId = toIdString(override.modelId);
+      if (reqId) {
+        const allModels = await ctx.runQuery(api.aiEngine.listModels, {} as any);
+        const found = allModels?.find((m: any) => ((m?._id as any)?.id ?? (m?._id as any)) === reqId) ?? null;
+        if (found) targetModel = found;
+      }
     }
 
     if (!targetModel) {
@@ -390,10 +400,19 @@ export const analysis = httpAction(async (ctx, req) => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            // Put system instruction explicitly for newer Gemini models
+            systemInstruction: { role: "system", parts: [{ text: systemInstruction }] },
             contents: [
-              { role: "user", parts: [{ text: [systemInstruction, userContent].join("\n\n") }] },
+              { role: "user", parts: [{ text: userContent }] },
             ],
             generationConfig: { temperature, maxOutputTokens: 800 },
+            // Loosen default safety to avoid empty, blocked responses for benign prompts
+            safetySettings: [
+              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+            ],
           }),
           signal: controller.signal,
         });
@@ -422,21 +441,37 @@ export const analysis = httpAction(async (ctx, req) => {
             const cands = Array.isArray(obj?.candidates) ? obj.candidates : [];
             const texts: string[] = [];
             for (const c of cands) {
-              const parts = Array.isArray(c?.content?.parts) ? c.content.parts : [];
-              for (const p of parts) {
+              // Typical REST shape: { content: { parts: [{ text }] } }
+              const partsA = Array.isArray(c?.content?.parts) ? c.content.parts : [];
+              for (const p of partsA) {
                 const t = typeof p?.text === "string" ? p.text : "";
+                if (t) texts.push(t);
+              }
+              // Alternate shape observed: { content: [{ text }] }
+              const partsB = Array.isArray(c?.content) ? c.content : [];
+              for (const p of partsB) {
+                const t = typeof p?.text === "string" ? p.text : (typeof p === "string" ? p : "");
                 if (t) texts.push(t);
               }
               // Some SDKs return `output_text` directly
               const out = typeof c?.output_text === "string" ? c.output_text : "";
               if (out) texts.push(out);
+              // Very defensive: top-level text on candidate
+              const direct = typeof c?.text === "string" ? c.text : "";
+              if (direct) texts.push(direct);
             }
             return texts.join("\n").trim();
           } catch {
             return "";
           }
         };
-        const content = collectTexts(j);
+        let content = collectTexts(j);
+
+        // Allow schema fallback text from prompt config if model returns nothing
+        const fallbackText: string = (activePrompt?.fallbackText ?? "").toString().trim();
+        if (!content && fallbackText) {
+          content = fallbackText;
+        }
 
         // Try to parse JSON content from model response
         const tryParse = (txt: string): any => {
