@@ -299,7 +299,6 @@ body {
     border-radius: 1rem; /* rounded-lg */
     box-shadow: 0 4px 12px rgba(0,128,255,0.08);
     border-color: rgba(0,128,255,0.15);
-    margin-inline: 0rem; /* remove extra side margin on mobile; wrapper controls safe margin */
   }
   .AI-box p {
     font-size: 14.5px;
