@@ -164,6 +164,31 @@ export const submitAndEvaluateForm = mutation({
       createdAt: Date.now(),
     });
 
+    // Backfill per-key answers for dynamic querying
+    try {
+      const normalized = mappedResponses ?? {};
+      if (normalized && typeof normalized === "object") {
+        for (const [key, value] of Object.entries(normalized)) {
+          // Ensure one row per (submissionId, key)
+          const exists = await ctx.db
+            .query("form_submission_answers")
+            .withIndex("by_submission", (q: any) => q.eq("submissionId", applicationId))
+            .filter((q: any) => q.eq(q.field("key"), key))
+            .first();
+          if (!exists) {
+            await ctx.db.insert("form_submission_answers", {
+              submissionId: applicationId,
+              key,
+              value: value as any,
+              createdAt: Date.now(),
+            } as any);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("backfill answers failed", e);
+    }
+
     // Attach the new application id to the result for downstream usage
     result.applicationId = applicationId as unknown as string;
     return result;
