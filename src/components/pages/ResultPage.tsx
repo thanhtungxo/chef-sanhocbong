@@ -3,6 +3,69 @@ import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { InsightBox } from './InsightBox';
+import type { ReactNode } from 'react';
+
+// Local icons (inline SVG, no extra deps)
+const StarIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M12 3.75l2.985 6.048 6.682.972-4.833 4.713 1.14 6.651L12 18.75l-6.974 3.384 1.14-6.651L1.333 10.77l6.682-.972L12 3.75z"/>
+  </svg>
+);
+
+const UsersIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M22 21v-2a4 4 0 00-3-3.87"/>
+    <path d="M16 3.13a4 4 0 010 7.75"/>
+  </svg>
+);
+
+const BookOpenIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M3 5.5A2.5 2.5 0 015.5 3H12v15H5.5A2.5 2.5 0 013 15.5v-10z"/>
+    <path d="M21 5.5A2.5 2.5 0 0018.5 3H12v15h6.5A2.5 2.5 0 0021 15.5v-10z"/>
+  </svg>
+);
+
+// Reusable wrapper for the AI insight sections
+interface AIInsightBoxProps {
+  title: string;
+  icon: ReactNode;
+  children?: ReactNode;
+  placeholder?: ReactNode;
+}
+
+const AIInsightBox: React.FC<AIInsightBoxProps> = ({ title, icon, children, placeholder }) => {
+  const hasContent = React.useMemo(() => {
+    if (children === undefined || children === null) return false;
+    if (typeof children === 'string') return children.trim().length > 0;
+    return true;
+  }, [children]);
+
+  return (
+    <section className="relative">
+      <div className="hb-insight-card relative bg-white border border-[#eaeaea] shadow-[0_12px_32px_rgba(0,0,0,0.08)] rounded-2xl p-5 md:p-7 transition-all hover:-translate-y-[2px]">
+        <span aria-hidden className="absolute left-0 top-3 bottom-3 w-[6px] bg-[#f59e0b] rounded-full shadow-[0_0_0_2px_rgba(245,158,11,0.15)]" />
+        <div className="flex items-start gap-3 md:gap-4">
+          <div className="shrink-0 mt-0.5 text-orange-500">
+            {icon}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-[18px] md:text-[22px] font-extrabold text-[#0B132B] mb-1.5">{title}</h3>
+            <div className="text-[15px] md:text-[16px] leading-7 text-slate-700">
+              {hasContent ? (
+                children
+              ) : (
+                <p className="italic text-[var(--rp-text-muted)]">(Đang phát triển – dữ liệu sẽ hiển thị ở đây)</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // Types
 interface ReasonObject { message: string }
@@ -137,65 +200,91 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
     >
       <div className="mx-auto" style={{ maxWidth: '1120px' }}>
         <div className="rp-main">
-          {/* Row 1 – Hero Strip */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div className="md:col-span-1">
-              <div className="ratio-16-9">
-                {configMessages.heroImageUrl ? (
-                  <img src={configMessages.heroImageUrl} alt="Hero" />
-                ) : (
-                  <div className="absolute inset-0 rounded-[16px] bg-[var(--rp-section-tint)] border border-[var(--rp-card-border)]" />
-                )}
+          {/* Row 1 – Hero Strip (brand, big title left + achievement image right) */}
+          <div className="rp-hero-wrap">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
+              {/* Left: brand + big title + message */}
+              <div className="md:col-span-2 order-2 md:order-1">
+                <div className="rp-hero-brand mb-2">Sanhocbong.com.vn</div>
+                <div className="rp-hero-title-strong">{heroTitle}</div>
+                <div className="rp-hero-sub mt-2 text-[15px] leading-7">{configMessages.message}</div>
               </div>
-            </div>
-            <div className="md:col-span-2">
-              <div>
-                <div className="rp-hero-title">{heroTitle}</div>
-                <div className="rp-hero-sub mt-2 text-[14px] md:text-[15px] leading-6">{configMessages.message}</div>
+              {/* Right: achievement image / placeholder */}
+              <div className="md:col-span-1 order-1 md:order-2">
+                <div className="rp-hero-achievement">
+                  {configMessages.heroImageUrl ? (
+                    <img src={configMessages.heroImageUrl} alt="Achievement" className="w-full h-full object-cover rounded-[14px]" />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full text-[#0B132B] font-semibold">Achievement Image</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Row 2 – Analysis (Khung C) */}
-          <div className="mt-4 sm:mt-6">
-            <InsightBox feedback={aiFeedback} loading={loadingAI} configMessages={{ ctaText: configMessages.ctaText }} />
+          {/* Row 2 – Section heading (green title + gold line + italic intro) */}
+          <div className="mt-6 md:mt-10 text-center">
+            <h2 className="hb-section-title">Phân tích tổng quan hồ sơ & Định hướng</h2>
+            <div className="hb-section-underline mx-auto mt-2" />
+            <p className="hb-section-sub mx-auto mt-4 max-w-3xl italic">
+              "Chúc mừng Thành viên! Với vai trò là người đồng hành, chúng tôi nhận thấy bạn đã có những bước tiến vững chắc trong hành trình chinh phục học bổng."
+            </p>
           </div>
 
-          {/* Row 3 – CTA Bar (from Admin). Hidden if empty */}
+          {/* Row 3 – AI Insights (three boxes) */}
+          <div className="mt-4 sm:mt-6 space-y-5">
+            {/* Box 1: Định vị Chiến lược (Strategic Positioning) */}
+            <AIInsightBox
+              title="Định vị Chiến lược (Strategic Positioning)"
+              icon={<StarIcon className="w-7 h-7 md:w-8 md:h-8" />}
+            >
+              {/* Keep the original AI Insight content */}
+              <InsightBox hideTitle feedback={aiFeedback} loading={loadingAI} configMessages={{ ctaText: configMessages.ctaText }} />
+            </AIInsightBox>
+
+            {/* Box 2: Sức mạnh Nền tảng (Foundational Strengths) */}
+            <AIInsightBox
+              title="Sức mạnh Nền tảng (Foundational Strengths)"
+              icon={<UsersIcon className="w-7 h-7 md:w-8 md:h-8" />}
+              placeholder={<p className="italic text-[var(--rp-text-muted)]">(Đang phát triển – dữ liệu sẽ hiển thị ở đây)</p>}
+            />
+
+            {/* Box 3: Khuyến nghị Hành động (Next Steps) */}
+            <AIInsightBox
+              title="Khuyến nghị Hành động (Next Steps)"
+              icon={<BookOpenIcon className="w-7 h-7 md:w-8 md:h-8" />}
+              placeholder={<p className="italic text-[var(--rp-text-muted)]">(Đang phát triển – dữ liệu sẽ hiển thị ở đây)</p>}
+            />
+          </div>
+
+          {/* Row 3 – CTA Banner (from Admin). Hidden if empty */}
           {ctaBarText.trim().length > 0 && (
-            <div className="mt-5 rp-cta-bar">
-              <div className="leading-7">{ctaBarText}</div>
+            <div className="mt-6">
+              <div className="hb-cta-banner text-center font-semibold">{ctaBarText}</div>
             </div>
           )}
 
           {/* Row 4 – Scholarship Grid */}
           <div className="mt-6">
             {eligibilityResults.length > 0 ? (
-              <div className="rp-grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                {eligibilityResults.map((s) => {
-                  const chipClass = 'rp-chip-neutral';
-                  const chipText = s.eligible ? 'Eligible' : 'Not eligible';
-                  return (
-                    <button key={s.id} onClick={() => handleSelectScholarship(s)} className="rp-card text-left focus:outline-none">
-                      <div className="flex flex-col h-full">
-                        <div className="flex items-center gap-3">
-                          {s.logoUrl ? (
-                            <img src={s.logoUrl} alt={s.name} className="h-8 w-8 object-contain rounded-md border border-[var(--rp-card-border)]" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-[var(--rp-section-tint)] text-[var(--rp-accent)] flex items-center justify-center font-semibold border border-[var(--rp-card-border)]">
-                              {s.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <h3 className="font-bold text-[16px] leading-6 text-[var(--rp-text)] flex-1 line-clamp-2">{s.name}</h3>
+              <div className="hb-grid-wrap">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                  {eligibilityResults.map((s) => {
+                    const chipText = s.eligible ? 'Eligible' : 'Not eligible';
+                    const pillClass = s.eligible ? 'hb-pill hb-pill-ok' : 'hb-pill hb-pill-no';
+                    return (
+                      <button key={s.id} onClick={() => handleSelectScholarship(s)} className="hb-sch-card text-left focus:outline-none">
+                        <div className="flex items-start gap-3">
+                          <div className="hb-initial">{s.name.charAt(0).toUpperCase()}</div>
+                          <div className="flex-1">
+                            <h3 className="hb-sch-title line-clamp-2">{s.name}</h3>
+                            <div className="mt-3"><span className={pillClass}>{chipText}</span></div>
+                          </div>
                         </div>
-                        <div className="mt-3">
-                          <span className={chipClass}>{chipText}</span>
-                        </div>
-                        <div className="mt-auto" />
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               <div className="text-center">

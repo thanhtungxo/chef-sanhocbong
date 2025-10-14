@@ -138,6 +138,35 @@ body {
 }
 .rp-hero-sub { color: #1B365D; }
 
+/* --- New Hero (matches mock) --- */
+.rp-hero-wrap {
+  background: #FBF7E8;               /* warm cream */
+  border: 1px solid #F3E7C9;         /* soft gold border */
+  border-radius: 18px;               /* rounded corners */
+  padding: 18px 18px;                /* compact padding */
+  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+}
+.rp-hero-brand {
+  color: #1f8b3a;                    /* brand green */
+  font-weight: 800;
+  font-size: 18px;
+}
+.rp-hero-title-strong {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 44px);
+  color: #0B132B;                    /* nearly black */
+  letter-spacing: -0.01em;
+}
+.rp-hero-achievement {
+  height: 160px;                      /* similar to mock ratio */
+  background: #DCF78B;               /* lime */
+  border: 3px solid #F59E0B;         /* orange border */
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(245,158,11,0.25); /* warm glow */
+  overflow: hidden;
+}
+
 .rp-analysis {
   background: var(--rp-surface);
   border: 1px solid var(--rp-card-border);
@@ -162,6 +191,49 @@ body {
   font-size: clamp(16px, 2vw, 18px);
   text-align: center;
 }
+
+/* Blue curved CTA banner (mock) */
+.hb-cta-banner {
+  position: relative;
+  background: linear-gradient(180deg, #EAF3FF 0%, #DDEBFF 100%);
+  border-radius: 18px;
+  padding: 18px 24px;
+  color: #103B66;
+  box-shadow: 0 14px 36px rgba(0, 120, 255, 0.18);
+}
+.hb-cta-banner::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+  border-radius: 18px 0 0 18px;
+  background: linear-gradient(180deg, #38C8FF 0%, #0AA2FF 100%);
+}
+
+/* Light gradient wrap behind scholarship cards */
+.hb-grid-wrap {
+  background: linear-gradient(180deg, rgba(226,240,255,0.7) 0%, rgba(250,252,255,0.9) 60%, rgba(255,255,255,0.9) 100%);
+  border-radius: 22px;
+  padding: 18px 16px;
+  box-shadow: inset 0 -40px 70px rgba(32, 126, 255, 0.08);
+}
+
+/* Scholarship card look (mock) */
+.hb-sch-card {
+  background: #fff;
+  border: 1px solid #E6EEFF;
+  border-radius: 18px;
+  padding: 18px 18px 20px;
+  min-height: 148px;
+  box-shadow: 0 14px 34px rgba(48, 99, 191, 0.14);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.hb-sch-card:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(48,99,191,0.18); }
+.hb-sch-title { font-weight: 800; color: #0A1F44; font-size: 16.5px; }
+.hb-initial { width: 36px; height: 36px; border-radius: 999px; background: #E9F3FF; color: #1495ff; border: 1px solid #CFE4FF; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.hb-pill { display: inline-block; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+.hb-pill-ok { background: #EAF3FF; color: #0A66CC; border: 1px solid #BED9FF; }
+.hb-pill-no { background: #F6F8FF; color: #475569; border: 1px solid #E2E8F0; }
 
 .rp-grid {
   display: grid;
@@ -260,6 +332,19 @@ body {
   border-radius: 999px;
 }
 
+/* Allow hiding the built-in InsightBox title when embedded under a custom section */
+.ai-hide-title > h2.ai-title {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 .AI-box p, .ai-box p {
   font-family: 'Inter', 'Manrope', system-ui, sans-serif;
   font-weight: 400;
@@ -314,6 +399,19 @@ body {
   .ai-stream::before { display: none; }
 }
 
+/* --- Gemini AI box neutralization when embedded inside hb-insight-card --- */
+.hb-insight-card .AI-box {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+.hb-insight-card .ai-title { display: none !important; }
+.hb-insight-card .ai-stream { padding-left: 0 !important; }
+.hb-insight-card .ai-stream::before { display: none !important; }
+
 /* Edge-to-panel utility: make a child span close to the rp-main inner edge on small screens */
 @media (max-width: 640px) {
   .edge-to-panel-mobile {
@@ -357,4 +455,23 @@ body {
   0%   { transform: translateX(-18%); }
   50%  { transform: translateX(18%); }
   100% { transform: translateX(-18%); }
+}
+
+/* ---- Habithon Section Heading (matches mock) ---- */
+.hb-section-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #1f8b3a; /* deep green to match screenshot */
+  font-size: clamp(22px, 3.4vw, 34px);
+}
+.hb-section-underline {
+  height: 4px;
+  width: 140px;
+  background: linear-gradient(90deg, #f2b34c, #f59e0b);
+  border-radius: 999px;
+}
+.hb-section-sub {
+  color: #546071; /* muted dark slate */
+  line-height: 1.9;
 }
