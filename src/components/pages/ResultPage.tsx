@@ -45,15 +45,15 @@ const AIInsightBox: React.FC<AIInsightBoxProps> = ({ title, icon, children, plac
 
   return (
     <section className="relative">
-      <div className="hb-insight-card relative bg-white border border-[#eaeaea] shadow-[0_12px_32px_rgba(0,0,0,0.08)] rounded-2xl p-5 md:p-7 transition-all hover:-translate-y-[2px]">
-        <span aria-hidden className="absolute left-0 top-3 bottom-3 w-[6px] bg-[#f59e0b] rounded-full shadow-[0_0_0_2px_rgba(245,158,11,0.15)]" />
+      <div className="hb-insight-card relative bg-white rounded-2xl px-8 py-6 shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-[2px]">
+        <span aria-hidden className="absolute left-0 top-4 bottom-4 w-[6px] bg-[#F97316] rounded-full" />
         <div className="flex items-start gap-3 md:gap-4">
           <div className="shrink-0 mt-0.5 text-orange-500">
             {icon}
           </div>
           <div className="flex-1">
-            <h3 className="text-[18px] md:text-[22px] font-extrabold text-[#0B132B] mb-1.5">{title}</h3>
-            <div className="text-[15px] md:text-[16px] leading-7 text-slate-700">
+            <h3 className="text-[18px] md:text-[22px] font-semibold text-stone-800 mb-2">{title}</h3>
+            <div className="text-[15px] md:text-[16px] leading-loose text-gray-700">
               {hasContent ? (
                 children
               ) : (
@@ -223,7 +223,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 2 – Section heading (green title + gold line + italic intro) */}
-          <div className="mt-6 md:mt-10 text-center">
+          <div className="mt-6 md:mt-10 text-center mb-4 md:mb-6">
             <h2 className="hb-section-title">Phân tích tổng quan hồ sơ & Định hướng</h2>
             <div className="hb-section-underline mx-auto mt-2" />
             <p className="hb-section-sub mx-auto mt-4 max-w-3xl italic">
@@ -232,7 +232,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 3 – AI Insights (three boxes) */}
-          <div className="mt-4 sm:mt-6 space-y-5">
+          <div className="mt-10 space-y-8 max-w-4xl mx-auto">
             {/* Box 1: Định vị Chiến lược (Strategic Positioning) */}
             <AIInsightBox
               title="Định vị Chiến lược (Strategic Positioning)"
