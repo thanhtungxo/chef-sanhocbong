@@ -217,15 +217,15 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
         <div className="rp-main">
           {/* Row 1 – Hero Strip (brand, big title left + achievement image right) */}
           <div className="rp-hero-wrap">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
+            <div className="grid grid-cols-3 gap-4 md:gap-6 items-center">
               {/* Left: brand + big title + message */}
-              <div className="md:col-span-2 order-2 md:order-1">
+              <div className="md:col-span-2 col-span-2">
                 <div className="rp-hero-brand mb-2">Sanhocbong.com.vn</div>
                 <div className="rp-hero-title-strong">{heroTitle}</div>
                 <div className="rp-hero-sub mt-2 text-[15px] leading-7">{configMessages.message}</div>
               </div>
               {/* Right: achievement image / placeholder */}
-              <div className="md:col-span-1 order-1 md:order-2">
+              <div className="md:col-span-1 col-span-1">
                 <div className="rp-hero-achievement">
                   {configMessages.heroImageUrl ? (
                     <img src={configMessages.heroImageUrl} alt="Achievement" className="w-full h-full object-cover rounded-[14px]" />
