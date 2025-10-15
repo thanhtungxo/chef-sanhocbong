@@ -140,18 +140,19 @@ body {
 
 /* --- New Hero (matches mock) --- */
 .rp-hero-wrap {
-  background: #FBF7E8;               /* warm cream */
-  border: 1px solid #F3E7C9;         /* soft gold border */
-  border-radius: 18px;               /* rounded corners */
-  padding: 16px 14px;                /* compact padding */
-  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+  /* Cream banner card like dunghappy mobile */
+  background: linear-gradient(180deg, #FFF9EA 0%, #FBF7E8 100%);
+  border: 1px solid #F3E7C9;            /* soft gold border */
+  border-radius: 18px;                   /* rounded corners */
+  padding: 16px 14px;                    /* compact padding */
+  box-shadow: 0 12px 28px rgba(0,0,0,0.06);
   position: relative;
   overflow: hidden;
 }
 .rp-hero-wrap::after{
-  /* soft right-to-left mist like DungHappy banner */
+  /* Soft mist highlight from the right */
   content:""; position:absolute; inset:-20% -12% -20% 30%;
-  background: radial-gradient(60% 60% at 85% 50%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0) 70%);
+  background: radial-gradient(60% 60% at 85% 50%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.45) 45%, rgba(255,255,255,0) 70%);
   pointer-events:none;
 }
 
@@ -161,28 +162,37 @@ body {
   .rp-hero-grid{ grid-template-columns: 1.35fr 0.9fr; gap: 12px; }
 }
 .rp-hero-brand {
-  color: #1f8b3a;                    /* brand green */
+  color: #16A34A;                    /* brand green (Tailwind green-600) */
   font-weight: 800;
   font-size: 18px;
 }
 .rp-hero-title-strong {
   font-family: var(--font-heading);
   font-weight: 900;
-  font-size: clamp(22px, 5.2vw, 40px);
+  font-size: clamp(22px, 5.2vw, 36px);
   color: #0B132B;                    /* nearly black */
   letter-spacing: -0.01em;
 }
 .rp-hero-achievement {
+  /* Outer container only defines size; visual frame handled by .rp-hero-frame */
   height: 150px;                      /* mobile-friendly */
-  background: #DCF78B;               /* lime */
-  border: 3px solid #F59E0B;         /* orange border */
-  border-radius: 14px;
-  box-shadow: 0 16px 36px rgba(245,158,11,0.25); /* warm glow */
-  overflow: hidden;
 }
 @media (max-width: 480px){
   .rp-hero-achievement{ height: 120px; }
 }
+
+/* Orange rounded photo frame like screenshot */
+.rp-hero-frame {
+  height: 100%;
+  width: 100%;
+  border-radius: 14px;
+  padding: 6px;                       /* white gutter inside orange outline */
+  background: #FFFFFF;
+  border: 3px solid #F59E0B;          /* orange border */
+  box-shadow: 0 16px 36px rgba(245,158,11,0.22);
+  overflow: hidden;                    /* clip inner image */
+}
+.rp-hero-frame > img { border-radius: 10px; width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .rp-analysis {
   background: var(--rp-surface);

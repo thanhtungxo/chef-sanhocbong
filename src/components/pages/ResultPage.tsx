@@ -227,11 +227,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
               {/* Right: achievement image / placeholder */}
               <div>
                 <div className="rp-hero-achievement">
-                  {configMessages.heroImageUrl ? (
-                    <img src={configMessages.heroImageUrl} alt="Achievement" className="w-full h-full object-cover rounded-[14px]" />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full text-[#0B132B] font-semibold">Achievement Image</div>
-                  )}
+                  <div className="rp-hero-frame">
+                    {configMessages.heroImageUrl ? (
+                      <img src={configMessages.heroImageUrl} alt="Hình minh hoạ thành tựu" />
+                    ) : (
+                      <img src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=600&auto=format&fit=crop" alt="Hình minh hoạ" />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
