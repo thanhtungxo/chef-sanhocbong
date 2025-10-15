@@ -65,15 +65,6 @@ const applicationTables = {
     result: v.any(),
     createdAt: v.number(),
   }).index('by_userId', ['userId']).index('by_createdAt', ['createdAt']).index('by_email', ['email']),
-
-
-  // Deprecated: kept temporarily for one-time migration from vertical schema
-  form_submission_answers: defineTable({
-    submissionId: v.id('form_submissions'),
-    key: v.string(),
-    value: v.any(),
-    createdAt: v.number(),
-  }).index('by_submission', ['submissionId']).index('by_key', ['key']),
 };
 
 export default defineSchema({

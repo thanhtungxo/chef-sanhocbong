@@ -231,7 +231,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
                     {configMessages.heroImageUrl ? (
                       <img src={configMessages.heroImageUrl} alt="Hình minh hoạ thành tựu" />
                     ) : (
-                      <img src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=600&auto=format&fit=crop" alt="Hình minh hoạ" />
+                      <svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                        <rect width="600" height="400" fill="#f3f4f6"/>
+                        <path d="M200 150L250 200L350 100L400 150V300H200V150Z" fill="#d1d5db"/>
+                        <circle cx="320" cy="120" r="20" fill="#9ca3af"/>
+                        <rect x="220" y="320" width="160" height="20" rx="10" fill="#e5e7eb"/>
+                        <rect x="250" y="350" width="100" height="15" rx="7.5" fill="#f3f4f6"/>
+                      </svg>
                     )}
                   </div>
                 </div>

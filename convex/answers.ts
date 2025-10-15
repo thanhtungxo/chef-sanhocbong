@@ -109,39 +109,3 @@ export const syncRenameKey = action({
     return res
   },
 })
-
-// Internal mutation: migrate vertical answers table into normalizedAnswers (one-time)
-export const migrateAnswersToNormalized = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    // Group rows by submissionId
-    const subs = await ctx.db.query("form_submissions").collect()
-    let migratedSubmissions = 0
-    for (const sub of subs as any[]) {
-      const rows = await ctx.db
-        .query("form_submission_answers")
-        .withIndex("by_submission", (q: any) => q.eq("submissionId", (sub as any)._id))
-        .collect()
-      if (!rows || rows.length === 0) continue
-      const current = (sub as any).normalizedAnswers ?? {}
-      const merged: Record<string, any> = { ...current }
-      for (const row of rows as any[]) {
-        const k = (row as any).key
-        const vval = (row as any).value
-        if (!(k in merged)) merged[k] = vval
-      }
-      await ctx.db.patch((sub as any)._id, { normalizedAnswers: merged } as any)
-      migratedSubmissions++
-    }
-    return { ok: true, migratedSubmissions } as any
-  },
-})
-
-// Public action: trigger migration
-export const migrateAnswers = action({
-  args: {},
-  handler: async (ctx): Promise<{ ok: true; migratedSubmissions: number }> => {
-    const res: { ok: true; migratedSubmissions: number } = await ctx.runMutation(internal.answers.migrateAnswersToNormalized, {})
-    return res
-  },
-})

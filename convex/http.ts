@@ -77,24 +77,4 @@ export const syncAnswersKeyHttp = httpAction(async (ctx, req) => {
 http.route({ path: "/api/sync-answers-key", method: "OPTIONS", handler: syncAnswersKeyOptions })
 http.route({ path: "/api/sync-answers-key", method: "POST", handler: syncAnswersKeyHttp })
 
-// One-time migration endpoint: merge vertical answers into normalizedAnswers
-export const migrateAnswersOptions = httpAction(async (ctx, req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("", { status: 204, headers: CORS_HEADERS })
-  }
-  return new Response("", { status: 405, headers: CORS_HEADERS })
-})
-
-export const migrateAnswersHttp = httpAction(async (ctx, req) => {
-  try {
-    const res = await ctx.runAction(api.answers.migrateAnswers)
-    return new Response(JSON.stringify(res), { status: 200, headers: { "Content-Type": "application/json", ...CORS_HEADERS } })
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), { status: 500, headers: { "Content-Type": "application/json", ...CORS_HEADERS } })
-  }
-})
-
-http.route({ path: "/api/migrate-answers", method: "OPTIONS", handler: migrateAnswersOptions })
-http.route({ path: "/api/migrate-answers", method: "POST", handler: migrateAnswersHttp })
-
 export default http
