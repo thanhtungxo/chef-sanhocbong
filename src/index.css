@@ -143,8 +143,22 @@ body {
   background: #FBF7E8;               /* warm cream */
   border: 1px solid #F3E7C9;         /* soft gold border */
   border-radius: 18px;               /* rounded corners */
-  padding: 18px 18px;                /* compact padding */
+  padding: 16px 14px;                /* compact padding */
   box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+  position: relative;
+  overflow: hidden;
+}
+.rp-hero-wrap::after{
+  /* soft right-to-left mist like DungHappy banner */
+  content:""; position:absolute; inset:-20% -12% -20% 30%;
+  background: radial-gradient(60% 60% at 85% 50%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0) 70%);
+  pointer-events:none;
+}
+
+/* Two-column layout at all widths, but weighted 60/40 */
+.rp-hero-grid{ grid-template-columns: 1.45fr 1fr; }
+@media (max-width: 480px){
+  .rp-hero-grid{ grid-template-columns: 1.35fr 0.9fr; gap: 12px; }
 }
 .rp-hero-brand {
   color: #1f8b3a;                    /* brand green */
@@ -154,17 +168,20 @@ body {
 .rp-hero-title-strong {
   font-family: var(--font-heading);
   font-weight: 900;
-  font-size: clamp(26px, 4vw, 44px);
+  font-size: clamp(22px, 5.2vw, 40px);
   color: #0B132B;                    /* nearly black */
   letter-spacing: -0.01em;
 }
 .rp-hero-achievement {
-  height: 160px;                      /* similar to mock ratio */
+  height: 150px;                      /* mobile-friendly */
   background: #DCF78B;               /* lime */
   border: 3px solid #F59E0B;         /* orange border */
   border-radius: 14px;
   box-shadow: 0 16px 36px rgba(245,158,11,0.25); /* warm glow */
   overflow: hidden;
+}
+@media (max-width: 480px){
+  .rp-hero-achievement{ height: 120px; }
 }
 
 .rp-analysis {
