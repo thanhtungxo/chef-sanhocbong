@@ -207,14 +207,14 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
   return (
     <motion.div
       ref={paperRef}
-      className={`min-h-screen rp-page-bg px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans`}
+      className={`min-h-screen rp-page-bg px-4 py-6 md:px-6 md:py-8 safe-area relative overflow-hidden font-sans md:max-w-5xl md:mx-auto`}
       style={{ fontFamily: "'Inter','Plus Jakarta Sans', system-ui, sans-serif", y: parallaxY }}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="mx-auto" style={{ maxWidth: '1120px' }}>
-        <div className="rp-main">
+      <div className="rp-main w-full">
+        <div className="space-y-6 md:space-y-10">
           {/* Row 1 – Hero Strip (brand, big title left + achievement image right) */}
           <div className="rp-hero-wrap">
             <div className="grid rp-hero-grid gap-3 md:gap-6 items-center">
@@ -246,7 +246,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 2 – Section heading (green title + gold line + italic intro) */}
-          <div className="mt-6 md:mt-10 text-center mb-4 md:mb-6">
+          <div className="text-center mb-4 md:mb-6">
             <h2 className="hb-section-title">Phân tích tổng quan hồ sơ & Định hướng</h2>
             <div className="hb-section-underline mx-auto mt-2" />
             <p className="hb-section-sub mx-auto mt-4 max-w-3xl italic">
@@ -255,7 +255,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 3 – AI Insights (three boxes) */}
-          <div className="mt-10 space-y-8">
+          <div className="space-y-8">
             {/* Box 1: Định vị Chiến lược (Strategic Positioning) */}
             <AIInsightBox
               title="Định vị Chiến lược (Strategic Positioning)"
@@ -282,13 +282,13 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
 
           {/* Row 3 – CTA Banner (from Admin). Hidden if empty */}
           {ctaBarText.trim().length > 0 && (
-            <div className="mt-6">
+            <div>
               <div className="hb-cta-banner text-center font-semibold">{ctaBarText}</div>
             </div>
           )}
 
           {/* Row 4 – Scholarship Grid */}
-          <div className="mt-6">
+          <div>
             {eligibilityResults.length > 0 ? (
               <div className="hb-grid-wrap">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">

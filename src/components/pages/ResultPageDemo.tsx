@@ -31,7 +31,7 @@ export const ResultPageDemo: React.FC = () => {
     // Wrapper chính cho toàn bộ trang demo
     // - Trên mobile (<768px): padding p-4
     // - Trên desktop (>=768px): có nền gradient và padding lớn hơn để khung hiển thị đẹp mắt
-    <div className="min-h-screen w-full bg-white md:bg-gradient-to-b md:from-gray-50 md:to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen w-full bg-white p-4 md:p-8">
       {/* Container cho nội dung, căn giữa trên desktop */}
       {/* - Trên desktop: max-w-5xl, mx-auto */}
       <div className="max-w-5xl mx-auto">
@@ -87,7 +87,7 @@ export const ResultPageDemo: React.FC = () => {
         {/* Wrapper cho ResultPage component */}
         {/* - Trên mobile: không có style, nội dung sẽ tràn lề */}
         {/* - Trên desktop: có nền trắng, bo góc, đổ bóng và padding lớn */}
-        <div className="md:bg-white md:rounded-3xl md:shadow-2xl md:p-10">
+        <div>
           {/* Các component con bên trong ResultPage sẽ dùng space-y để tạo khoảng cách */}
           {/* Ví dụ: <div className="space-y-6 md:space-y-10">...</div> */}
           {showTest === 'mixedReasons' ? (
