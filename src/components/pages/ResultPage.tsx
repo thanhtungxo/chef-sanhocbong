@@ -28,6 +28,21 @@ const BookOpenIcon: React.FC<{ className?: string }> = ({ className = 'w-6 h-6' 
   </svg>
 );
 
+// Status icons for scholarship cards
+const CheckCircleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+);
+
+const XCircleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M15 9l-6 6M9 9l6 6" />
+  </svg>
+);
+
 // Reusable wrapper for the AI insight sections
 interface AIInsightBoxProps {
   title: string;
@@ -232,7 +247,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
           </div>
 
           {/* Row 3 – AI Insights (three boxes) */}
-          <div className="mt-10 space-y-8 max-w-4xl mx-auto">
+          <div className="mt-10 space-y-8">
             {/* Box 1: Định vị Chiến lược (Strategic Positioning) */}
             <AIInsightBox
               title="Định vị Chiến lược (Strategic Positioning)"
@@ -270,17 +285,28 @@ export const ResultPage: React.FC<ResultPageProps> = ({ userName, eligibilityRes
               <div className="hb-grid-wrap">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                   {eligibilityResults.map((s) => {
-                    const chipText = s.eligible ? 'Eligible' : 'Not eligible';
-                    const pillClass = s.eligible ? 'hb-pill hb-pill-ok' : 'hb-pill hb-pill-no';
+                    const statusText = s.eligible ? 'Đủ Điều Kiện' : 'Chưa Đủ Điều Kiện';
+                    const statusClass = s.eligible ? 'hb-status hb-status-ok' : 'hb-status hb-status-no';
                     return (
-                      <button key={s.id} onClick={() => handleSelectScholarship(s)} className="hb-sch-card text-left focus:outline-none">
-                        <div className="flex items-start gap-3">
-                          <div className="hb-initial">{s.name.charAt(0).toUpperCase()}</div>
-                          <div className="flex-1">
-                            <h3 className="hb-sch-title line-clamp-2">{s.name}</h3>
-                            <div className="mt-3"><span className={pillClass}>{chipText}</span></div>
-                          </div>
+                      <button
+                        key={s.id}
+                        onClick={() => handleSelectScholarship(s)}
+                        className="hb-sch-card text-left focus:outline-none"
+                      >
+                        {/* Status bar inside the card */}
+                        <div className={statusClass}>
+                          <span>{statusText}</span>
+                          <span className="inline-flex items-center">
+                            {s.eligible ? (
+                              <CheckCircleIcon className="w-5 h-5" />
+                            ) : (
+                              <XCircleIcon className="w-5 h-5" />
+                            )}
+                          </span>
                         </div>
+
+                        {/* Title */}
+                        <h3 className="hb-sch-title line-clamp-2 mt-3">{s.name}</h3>
                       </button>
                     );
                   })}
